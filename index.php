@@ -956,7 +956,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
                 <a href="/abuse" class="px-2.5 py-1.5 transition hover:text-white"><?= h($t['abuse']) ?></a>
                 <?php if (isUserLoggedIn()): ?><a href="/account" class="px-2.5 py-1.5 transition hover:text-white">account</a><?php else: ?><a href="/login" class="px-2.5 py-1.5 transition hover:text-white">login</a><?php endif; ?>
                 <span class="mx-1 h-4 w-px bg-white/10"></span>
-                <a href="https://github.com/HyperGaming99/0x79.one" target="_blank" rel="noopener" aria-label="GitHub" title="Source on GitHub" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 transition hover:text-white">
+                <a href="https://github.com/HyperGaming99/0x79" target="_blank" rel="noopener" aria-label="GitHub" title="Source on GitHub" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 transition hover:text-white">
                     <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.55-.29-5.23-1.27-5.23-5.67 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.17a10.9 10.9 0 0 1 5.74 0c2.18-1.48 3.14-1.17 3.14-1.17.63 1.58.24 2.75.12 3.04.74.8 1.18 1.82 1.18 3.07 0 4.41-2.69 5.38-5.25 5.66.42.36.8 1.08.8 2.18v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
                     <span>github</span>
                 </a>
@@ -1143,7 +1143,7 @@ $homePosts = fetchRssPosts(10);
                 <a href="/abuse" class="px-2.5 py-1.5 transition hover:text-white"><?= h($t['abuse']) ?></a>
                 <?php if (isUserLoggedIn()): ?><a href="/account" class="px-2.5 py-1.5 transition hover:text-white">account</a><?php else: ?><a href="/login" class="px-2.5 py-1.5 transition hover:text-white">login</a><?php endif; ?>
                 <span class="mx-1 h-4 w-px bg-white/10"></span>
-                <a href="https://github.com/HyperGaming99/0x79.one" target="_blank" rel="noopener" aria-label="GitHub" title="Source on GitHub" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 transition hover:text-white">
+                <a href="https://github.com/HyperGaming99/0x79" target="_blank" rel="noopener" aria-label="GitHub" title="Source on GitHub" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 transition hover:text-white">
                     <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.55-.29-5.23-1.27-5.23-5.67 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.17a10.9 10.9 0 0 1 5.74 0c2.18-1.48 3.14-1.17 3.14-1.17.63 1.58.24 2.75.12 3.04.74.8 1.18 1.82 1.18 3.07 0 4.41-2.69 5.38-5.25 5.66.42.36.8 1.08.8 2.18v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
                     <span>github</span>
                 </a>
