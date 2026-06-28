@@ -65,9 +65,9 @@ if (preg_match('#^posts?/([0-9]+)$#', $request_path, $m)) {
 // ---------------------------------------------------------
 if ($request_path === 'register') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        [$okUser, $userErr] = createUserAccount($_POST['email'] ?? '', $_POST['password'] ?? '');
+        [$okUser, $userErr] = createUserAccount($_POST['username'] ?? '', $_POST['password'] ?? '');
         if ($okUser) { header('Location: /account'); exit; }
-        $msg = $userErr === 'email_taken' ? 'email ist bereits registriert.' : ($userErr === 'weak_password' ? 'passwort braucht mindestens 8 zeichen.' : ($userErr === 'invalid_email' ? 'ungültige email.' : 'account konnte nicht erstellt werden. migration ausgeführt?'));
+        $msg = $userErr === 'username_taken' ? 'username ist bereits vergeben.' : ($userErr === 'weak_password' ? 'passwort braucht mindestens 8 zeichen.' : ($userErr === 'invalid_username' ? 'username ungültig: 3-32 zeichen, nur a-z, 0-9, . _ -' : 'account konnte nicht erstellt werden. migration ausgeführt?'));
         renderUserAuthPage('register', $msg);
     }
     renderUserAuthPage('register');
@@ -75,9 +75,9 @@ if ($request_path === 'register') {
 
 if ($request_path === 'login') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        [$okUser, $userErr] = loginUserAccount($_POST['email'] ?? '', $_POST['password'] ?? '');
+        [$okUser, $userErr] = loginUserAccount($_POST['username'] ?? '', $_POST['password'] ?? '');
         if ($okUser) { header('Location: /account'); exit; }
-        renderUserAuthPage('login', 'email oder passwort falsch.');
+        renderUserAuthPage('login', 'username oder passwort falsch.');
     }
     renderUserAuthPage('login');
 }

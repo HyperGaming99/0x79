@@ -799,6 +799,15 @@ function normalizeEmail($email) {
     return strtolower(trim((string)$email));
 }
 
+function normalizeUsername($username) {
+    return strtolower(trim((string)$username));
+}
+
+// 3-32 chars: letters, digits, underscore, hyphen and dot.
+function isValidUsername($username) {
+    return (bool)preg_match('/^[a-z0-9._-]{3,32}$/', normalizeUsername($username));
+}
+
 function currentUserId() {
     return isset($_SESSION['user_id']) ? (string)$_SESSION['user_id'] : null;
 }
@@ -814,7 +823,7 @@ function fetchUserByApiKey($apiKey) {
     if ($apiKey === '') return null;
 
     $hash = userApiKeyHash($apiKey);
-    $url = $supabase_url . "/rest/v1/app_users?api_key_hash=eq." . urlencode($hash) . "&select=id,email,api_key_prefix,created_at&limit=1";
+    $url = $supabase_url . "/rest/v1/app_users?api_key_hash=eq." . urlencode($hash) . "&select=id,username,api_key_prefix,created_at&limit=1";
     [$http, $response, $error] = supabaseRequest('GET', $url);
     if ($error || $http < 200 || $http >= 300) return null;
     $data = json_decode($response, true);

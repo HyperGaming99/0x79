@@ -60,8 +60,8 @@ function renderUserAuthPage($mode, $error = '') {
 
                 <form method="POST" action="/<?= $isRegister ? 'register' : 'login' ?>" class="grid gap-4">
                     <label class="grid gap-2">
-                        <span class="font-mono text-xs text-white/45">email</span>
-                        <input type="email" name="email" required autofocus class="h-11 w-full border border-white/10 bg-[#0b0b0c] px-3.5 font-sans text-sm text-white outline-none transition placeholder:text-white/20 focus:border-white/35">
+                        <span class="font-mono text-xs text-white/45">username</span>
+                        <input type="text" name="username" required autofocus autocomplete="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]{3,32}" placeholder="3-32 · a-z 0-9 . _ -" class="h-11 w-full border border-white/10 bg-[#0b0b0c] px-3.5 font-sans text-sm text-white outline-none transition placeholder:text-white/20 focus:border-white/35">
                     </label>
 
                     <label class="grid gap-2">
@@ -105,7 +105,7 @@ function renderUserAccountPage($notice = '') {
     ?>
 <!DOCTYPE html><html lang="de"><head><link rel="icon" href="/logo.png" type="image/jpeg"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>account — 0x79</title><?= userPageCss() ?></head>
 <body><main class="wrap"><div class="nav"><a class="brand" href="/" style="display:inline-flex;align-items:center;gap:6px"><img src="/logo.png" alt="Logo" class="h-10 w-10 rounded-lg object-cover">0x79</a><div class="inline"><a href="/shorten">shorten</a><a href="/upload">upload</a><a href="/paste">paste</a><a href="/music">music</a><a href="/logout">logout</a></div></div>
-<h1>account</h1><p class="muted"><?= h($user['email'] ?? '') ?></p><?php if($notice): ?><p class="ok"><?= h($notice) ?></p><?php endif; ?>
+<h1>account</h1><p class="muted">@<?= h($user['username'] ?? '') ?></p><?php if($notice): ?><p class="ok"><?= h($notice) ?></p><?php endif; ?>
 <?php if($lastKey): ?><div class="card"><h2>dein neuer API-Key</h2><p class="muted">Nur jetzt sichtbar. Kopieren und sicher speichern.</p><code style="display:block;white-space:normal;word-break:break-all"><?= h($lastKey) ?></code></div><?php endif; ?>
 <div class="grid"><section class="card"><h2>API</h2><p class="muted">Public Create-API braucht jetzt deinen API-Key.</p><p>Prefix: <code><?= h($user['api_key_prefix'] ?? '') ?>…</code></p><form method="POST" action="/account/action"><input type="hidden" name="action" value="regen_api_key"><button type="submit">API-Key neu generieren</button></form><pre class="muted">curl -X POST https://<?= h($host) ?>/api/paste \
   -H "X-API-Key: YOUR_KEY" \

@@ -246,36 +246,36 @@ function fetchUserById($id) {
     $id = trim((string)$id);
     if ($id === '') return null;
 
-    $url = $supabase_url . "/rest/v1/app_users?id=eq." . urlencode($id) . "&select=id,email,api_key_prefix,created_at&limit=1";
+    $url = $supabase_url . "/rest/v1/app_users?id=eq." . urlencode($id) . "&select=id,username,api_key_prefix,created_at&limit=1";
     [$http, $response, $error] = supabaseRequest('GET', $url);
     if ($error || $http < 200 || $http >= 300) return null;
     $data = json_decode($response, true);
     return (!empty($data) && isset($data[0]['id'])) ? $data[0] : null;
 }
 
-function fetchUserByEmail($email) {
+function fetchUserByUsername($username) {
     global $supabase_url;
-    $email = normalizeEmail($email);
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return null;
+    $username = normalizeUsername($username);
+    if (!isValidUsername($username)) return null;
 
-    $url = $supabase_url . "/rest/v1/app_users?email=eq." . urlencode($email) . "&select=id,email,password_hash,api_key_prefix,created_at&limit=1";
+    $url = $supabase_url . "/rest/v1/app_users?username=eq." . urlencode($username) . "&select=id,username,password_hash,api_key_prefix,created_at&limit=1";
     [$http, $response, $error] = supabaseRequest('GET', $url);
     if ($error || $http < 200 || $http >= 300) return null;
     $data = json_decode($response, true);
     return (!empty($data) && isset($data[0]['id'])) ? $data[0] : null;
 }
-function createUserAccount($email, $password) {
+function createUserAccount($username, $password) {
     global $supabase_url;
-    $email = normalizeEmail($email);
+    $username = normalizeUsername($username);
     $password = (string)$password;
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return [false, 'invalid_email', null, null];
+    if (!isValidUsername($username)) return [false, 'invalid_username', null, null];
     if (strlen($password) < 8) return [false, 'weak_password', null, null];
-    if (fetchUserByEmail($email)) return [false, 'email_taken', null, null];
+    if (fetchUserByUsername($username)) return [false, 'username_taken', null, null];
 
     $apiKey = generateUserApiKey();
     $payload = [
-        'email' => $email,
+        'username' => $username,
         'password_hash' => password_hash($password, PASSWORD_DEFAULT),
         'api_key_hash' => userApiKeyHash($apiKey),
         'api_key_prefix' => substr($apiKey, 0, 10),
@@ -292,8 +292,8 @@ function createUserAccount($email, $password) {
     return [true, null, $user, $apiKey];
 }
 
-function loginUserAccount($email, $password) {
-    $user = fetchUserByEmail($email);
+function loginUserAccount($username, $password) {
+    $user = fetchUserByUsername($username);
     if (!$user || empty($user['password_hash']) || !password_verify((string)$password, (string)$user['password_hash'])) {
         return [false, 'invalid_login', null];
     }
