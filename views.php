@@ -1595,6 +1595,7 @@ function renderUploadPage($error = '', $short_url = '') {
                 <p class="font-mono text-xs uppercase tracking-[0.22em] text-emerald-300/60"><?= h($t['uploaded_file']) ?></p>
                 <a href="<?= h($short_url) ?>" target="_blank" rel="noopener"
                    class="mt-3 block break-all font-mono text-sm text-white underline decoration-white/20 underline-offset-4"><?= h($short_url) ?></a>
+                <img src="/qr?d=<?= h(rawurlencode($short_url)) ?>" alt="QR code" width="104" height="104" class="mt-4 border border-white/10 bg-white p-1">
             </div>
             <?php endif; ?>
 
@@ -1603,6 +1604,7 @@ function renderUploadPage($error = '', $short_url = '') {
                 <p class="font-mono text-xs uppercase tracking-[0.22em] text-emerald-300/60"><?= h($t['uploaded_file']) ?></p>
                 <a id="js-url" href="#" target="_blank" rel="noopener"
                    class="mt-3 block break-all font-mono text-sm text-white underline decoration-white/20 underline-offset-4"></a>
+                <img id="js-qr" src="" alt="QR code" width="104" height="104" class="mt-4 border border-white/10 bg-white p-1">
                 <div class="mt-4 flex gap-3">
                     <button onclick="doCopy()" class="border border-white/15 px-4 py-2 font-mono text-xs text-white hover:border-white/40"><?= h($t['copy']) ?></button>
                     <button onclick="doReset()" class="border border-white/15 px-4 py-2 font-mono text-xs text-white/45 hover:border-white/40 hover:text-white">upload another</button>
@@ -1778,6 +1780,7 @@ function showOk(url){
     b.classList.remove('hidden');
     const a=document.getElementById('js-url');
     a.href=url;a.textContent=url;
+    document.getElementById('js-qr').src='/qr?d='+encodeURIComponent(url);
 }
 function showErr(m){
     document.getElementById('js-error').classList.remove('hidden');

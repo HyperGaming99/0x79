@@ -5,8 +5,22 @@ require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/supabase.php';
 require_once __DIR__ . '/views.php';
+require_once __DIR__ . '/qr.php';
 
 $request_path = trim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
+
+// Same-origin QR code as SVG: /qr?d=<data>  (used by success pages & account)
+if ($request_path === 'qr') {
+    $d = (string)($_GET['d'] ?? '');
+    if ($d === '' || strlen($d) > 512) { http_response_code(400); header('Content-Type: text/plain'); exit('bad qr data'); }
+    $svg = qrSvg($d, 8, 4);
+    if ($svg === '') { http_response_code(413); header('Content-Type: text/plain'); exit('qr data too long'); }
+    header('Content-Type: image/svg+xml; charset=utf-8');
+    header('Cache-Control: public, max-age=86400');
+    header('X-Content-Type-Options: nosniff');
+    echo $svg;
+    exit;
+}
 
 if ($request_path === 'preview-asset') {
     streamPreviewAsset();
@@ -1108,6 +1122,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
                     <button type="button" class="copy h-11 border border-white/15 px-4 font-mono text-sm text-white transition hover:border-white/35" data-copy="<?= h($t['copy']) ?>" data-copied="<?= h($t['copied']) ?>" onclick="copyLink(this, '<?= h($short_url) ?>')">
                         <?= h($t['copy']) ?>
                     </button>
+                </div>
+                <div class="mt-4 flex items-center gap-4">
+                    <img src="/qr?d=<?= h(rawurlencode($short_url)) ?>" alt="QR code" width="104" height="104" class="border border-white/10 bg-white p-1">
+                    <div class="font-mono text-xs text-white/45">
+                        <p>scan or <a href="/qr?d=<?= h(rawurlencode($short_url)) ?>" download="qr.svg" class="text-white underline decoration-white/25 underline-offset-2">download QR</a></p>
+                    </div>
                 </div>
             </div>
         <?php endif; ?>
