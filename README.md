@@ -31,21 +31,33 @@ Live: **https://0x79.one**
 
 ## Tech stack
 
-| Layer    | Used                                  |
-|----------|---------------------------------------|
-| Backend  | PHP 8.x (no framework)                |
-| Database | Supabase / Postgres (via REST)        |
-| Storage  | Supabase Storage (public bucket)      |
-| Frontend | Server-rendered HTML + Tailwind (CDN) |
+| Layer    | Used                                                      |
+|----------|-----------------------------------------------------------|
+| Backend  | PHP 8.x (no framework)                                    |
+| Database | **Supabase** (PostgREST) *or* **PostgreSQL** (PDO) — pick one |
+| Storage  | **Supabase Storage** *or* **S3 / MinIO** — pick one        |
+| Frontend | Server-rendered HTML + Tailwind (CDN)                     |
+
+### Pluggable backends
+
+Both the database and the file storage are pluggable and selected in `.env`. The default is Supabase for both, so existing setups keep working with no changes.
+
+| Setting          | Values                  | Default    |
+|------------------|-------------------------|------------|
+| `DB_DRIVER`      | `supabase` \| `postgres`| `supabase` |
+| `STORAGE_DRIVER` | `supabase` \| `s3`      | `supabase` |
+
+You can mix them freely — e.g. `DB_DRIVER=postgres` with `STORAGE_DRIVER=supabase`, or Supabase DB with `STORAGE_DRIVER=s3`.
 
 ### Layout
 
 ```
 index.php         Front controller / router
-config.php        Config + language metadata (reads from .env)
+config.php        Config + backend selection (reads from .env)
 helpers.php       Core helpers (validation, upload, link logic, i18n)
-supabase.php      Supabase REST/Storage calls
+supabase.php      DB drivers (Supabase REST + Postgres) & storage (Supabase + S3)
 views.php         Page render functions
+schema.sql        PostgreSQL schema (for DB_DRIVER=postgres)
 rss.php           RSS feed
 generate_post.js  Post generation helper
 lang/             de.json, en.json translations
@@ -61,15 +73,53 @@ lang/             de.json, en.json translations
    cd 0x79.one
    ```
 
-2. **Configure** — create a `.env` (this file is gitignored and must **never** be committed):
+2. **Configure** — create a `.env` (this file is gitignored and must **never** be committed). Always set:
+   ```env
+   ADMIN_API_KEY=<your-admin-key>
+   GEMINI_API_KEY=<optional, for AI features>
+
+   # Pick your backends (defaults shown)
+   DB_DRIVER=supabase        # supabase | postgres
+   STORAGE_DRIVER=supabase   # supabase | s3
+   ```
+
+   **a) Supabase (default)** — needed when either driver is `supabase`:
    ```env
    SUPABASE_URL=https://<your-project>.supabase.co
    SUPABASE_KEY=<service-or-anon-key>
-   ADMIN_API_KEY=<your-admin-key>
-   GEMINI_API_KEY=<optional, for AI features>
+   SUPABASE_SERVICE_ROLE_KEY=<service-role-key, recommended for uploads>
    ```
 
-3. **Supabase** — create the `urls` and `pastes` tables, plus a public Storage bucket named `images`.
+   **b) PostgreSQL** — when `DB_DRIVER=postgres` (DSN, or discrete parts):
+   ```env
+   POSTGRES_DSN=pgsql:host=localhost;port=5432;dbname=ox79
+   # or:
+   POSTGRES_HOST=localhost
+   POSTGRES_PORT=5432
+   POSTGRES_DB=ox79
+   POSTGRES_USER=ox79
+   POSTGRES_PASSWORD=<secret>
+   ```
+   Requires the `pdo_pgsql` PHP extension. Create the tables with `psql "$POSTGRES_DSN" -f schema.sql`.
+
+   **c) S3 / MinIO** — when `STORAGE_DRIVER=s3`:
+   ```env
+   S3_ENDPOINT=http://minio:9000      # your MinIO/S3 endpoint
+   S3_REGION=us-east-1
+   S3_BUCKET=files
+   S3_ACCESS_KEY=<access-key>
+   S3_SECRET_KEY=<secret-key>
+   S3_USE_PATH_STYLE=true             # true for MinIO; false for AWS virtual-hosted
+   S3_PUBLIC_BASE_URL=                # optional: public base URL for objects
+                                      # (e.g. https://cdn.example.com). If empty it is
+                                      # derived from the endpoint + bucket.
+   ```
+   The bucket must allow public reads of uploaded objects (like a Supabase public bucket), since file/image URLs are served publicly. Uploads use streaming PUT with AWS Signature V4.
+
+3. **Create the schema / storage**
+   - **Supabase:** create the `urls`, `pastes`, `music_promos`, `app_users`, `abuse_reports`, `posts` tables, plus a public Storage bucket.
+   - **Postgres:** run `schema.sql` (see above).
+   - **S3/MinIO:** create the bucket and grant public read.
 
 4. **Run**
    ```bash

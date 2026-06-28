@@ -2,7 +2,212 @@
 declare(strict_types=1);
 
 
+// Dispatches a PostgREST-style request to the active DB driver.
+// Returns [$httpStatus, $responseBodyJson, $errorString] like the original.
 function supabaseRequest($method, $url, $body = null) {
+    global $db_driver;
+    if (($db_driver ?? 'supabase') === 'postgres') {
+        return pgRestRequest($method, $url, $body);
+    }
+    return supabaseHttpRequest($method, $url, $body);
+}
+
+// ---------------------------------------------------------
+// POSTGRES DRIVER
+// Translates the small PostgREST URL surface this app uses
+// (eq filters, or/ilike search, select/order/limit/offset,
+//  insert/update/delete) into parameterized SQL over PDO.
+// ---------------------------------------------------------
+function pgConnect() {
+    global $pg_dsn, $pg_host, $pg_port, $pg_db, $pg_user, $pg_password;
+    static $pdo = null;
+    if ($pdo instanceof PDO) return $pdo;
+
+    if (!extension_loaded('pdo_pgsql')) {
+        throw new RuntimeException('DB_DRIVER=postgres requires the pdo_pgsql PHP extension.');
+    }
+    $dsn = $pg_dsn !== '' ? $pg_dsn : sprintf('pgsql:host=%s;port=%s;dbname=%s', $pg_host, $pg_port, $pg_db);
+    $pdo = new PDO($dsn, $pg_user ?: null, $pg_password ?: null, [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+    ]);
+    return $pdo;
+}
+
+// Convert a PHP value to a PDO-bindable value (arrays -> JSON, bools -> pg literal).
+function pgBindValue($v) {
+    if (is_array($v))  return json_encode($v, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    if (is_bool($v))   return $v ? 'true' : 'false';
+    if ($v === null)   return null;
+    return (string)$v;
+}
+
+// Fetch all rows, casting pg native types to JSON-like PHP types (bool/int/float).
+function pgFetchAllTyped($st) {
+    $types = [];
+    $n = $st->columnCount();
+    for ($i = 0; $i < $n; $i++) {
+        $m = $st->getColumnMeta($i);
+        if (is_array($m) && isset($m['name'])) {
+            $types[$m['name']] = strtolower((string)($m['native_type'] ?? ''));
+        }
+    }
+    $out = [];
+    while ($r = $st->fetch(PDO::FETCH_ASSOC)) {
+        foreach ($r as $k => $v) {
+            if ($v === null) continue;
+            $t = $types[$k] ?? '';
+            if ($t === 'bool') {
+                $r[$k] = ($v === 't' || $v === true || $v === '1' || $v === 'true');
+            } elseif (in_array($t, ['int2', 'int4', 'int8'], true)) {
+                $r[$k] = (int)$v;
+            } elseif (in_array($t, ['float4', 'float8', 'numeric'], true)) {
+                $r[$k] = (float)$v;
+            }
+            // text/json/jsonb/timestamp/uuid stay as strings (matches PostgREST handling here)
+        }
+        $out[] = $r;
+    }
+    return $out;
+}
+
+function pgErrorHttp($e) {
+    // 23505 = unique_violation -> 409 so create-with-retry loops behave like PostgREST.
+    if ($e instanceof PDOException && isset($e->errorInfo[0]) && $e->errorInfo[0] === '23505') {
+        return 409;
+    }
+    return 400;
+}
+
+function pgQuoteIdent($name) {
+    return '"' . str_replace('"', '', (string)$name) . '"';
+}
+
+function pgRestRequest($method, $url, $body = null) {
+    try {
+        $pdo = pgConnect();
+    } catch (Throwable $e) {
+        return [500, json_encode(['message' => $e->getMessage()]), $e->getMessage()];
+    }
+
+    $parts = parse_url((string)$url);
+    $path  = $parts['path'] ?? '';
+    if (!preg_match('#/rest/v1/([a-zA-Z_][a-zA-Z0-9_]*)#', $path, $m)) {
+        return [400, '[]', 'invalid_table'];
+    }
+    $table = pgQuoteIdent($m[1]);
+
+    $q = [];
+    parse_str($parts['query'] ?? '', $q);
+
+    // WHERE: column=eq.VALUE filters + optional or=(col.ilike.*v*,...)
+    $where  = [];
+    $params = [];
+    $pi = 0;
+    $reserved = ['select', 'order', 'limit', 'offset', 'or', 'on_conflict'];
+    foreach ($q as $col => $val) {
+        if (in_array($col, $reserved, true)) continue;
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', (string)$col)) continue;
+        if (is_string($val) && strncmp($val, 'eq.', 3) === 0) {
+            $ph = ':w' . ($pi++);
+            $where[] = pgQuoteIdent($col) . ' = ' . $ph;
+            $params[$ph] = substr($val, 3);
+        }
+    }
+    if (!empty($q['or']) && is_string($q['or'])) {
+        $orStr = preg_replace('/^\((.*)\)$/s', '$1', trim($q['or']));
+        $ors = [];
+        foreach (explode(',', $orStr) as $cond) {
+            if (preg_match('/^([a-zA-Z_][a-zA-Z0-9_]*)\.ilike\.(.*)$/s', trim($cond), $mm)) {
+                $ph = ':o' . ($pi++);
+                $ors[] = pgQuoteIdent($mm[1]) . ' ILIKE ' . $ph;
+                $params[$ph] = str_replace('*', '%', $mm[2]);
+            }
+        }
+        if ($ors) $where[] = '(' . implode(' OR ', $ors) . ')';
+    }
+    $whereSql = $where ? (' WHERE ' . implode(' AND ', $where)) : '';
+
+    try {
+        if ($method === 'GET') {
+            $cols = '*';
+            if (!empty($q['select'])) {
+                $sel = preg_replace('/[^a-zA-Z0-9_,]/', '', (string)$q['select']);
+                $names = array_filter(explode(',', $sel));
+                if ($names) $cols = implode(', ', array_map('pgQuoteIdent', $names));
+            }
+            $sql = "SELECT $cols FROM $table" . $whereSql;
+            if (!empty($q['order'])) {
+                $ords = [];
+                foreach (explode(',', (string)$q['order']) as $o) {
+                    if (preg_match('/^([a-zA-Z_][a-zA-Z0-9_]*)(?:\.(asc|desc))?$/', trim($o), $om)) {
+                        $dir = (isset($om[2]) && strtolower($om[2]) === 'desc') ? 'DESC' : 'ASC';
+                        $ords[] = pgQuoteIdent($om[1]) . ' ' . $dir;
+                    }
+                }
+                if ($ords) $sql .= ' ORDER BY ' . implode(', ', $ords);
+            }
+            if (isset($q['limit'])  && is_numeric($q['limit']))  $sql .= ' LIMIT '  . (int)$q['limit'];
+            if (isset($q['offset']) && is_numeric($q['offset'])) $sql .= ' OFFSET ' . (int)$q['offset'];
+
+            $st = $pdo->prepare($sql);
+            $st->execute($params);
+            return [200, json_encode(pgFetchAllTyped($st), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), ''];
+        }
+
+        if ($method === 'POST') {
+            $row = is_array($body) ? $body : [];
+            if ($row !== [] && array_is_list($row)) $row = $row[0] ?? [];
+            $cols = [];
+            $phs  = [];
+            $ins  = [];
+            $i = 0;
+            foreach ($row as $c => $v) {
+                if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', (string)$c)) continue;
+                $ph = ':i' . ($i++);
+                $cols[] = pgQuoteIdent($c);
+                $phs[]  = $ph;
+                $ins[$ph] = pgBindValue($v);
+            }
+            if (!$cols) return [400, json_encode(['message' => 'empty_insert']), 'empty_insert'];
+            $sql = "INSERT INTO $table (" . implode(', ', $cols) . ") VALUES (" . implode(', ', $phs) . ") RETURNING *";
+            $st = $pdo->prepare($sql);
+            $st->execute($ins);
+            return [201, json_encode(pgFetchAllTyped($st), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), ''];
+        }
+
+        if ($method === 'PATCH') {
+            $row = is_array($body) ? $body : [];
+            $sets = [];
+            $i = 0;
+            foreach ($row as $c => $v) {
+                if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', (string)$c)) continue;
+                $ph = ':s' . ($i++);
+                $sets[] = pgQuoteIdent($c) . ' = ' . $ph;
+                $params[$ph] = pgBindValue($v);
+            }
+            if (!$sets) return [400, json_encode(['message' => 'empty_update']), 'empty_update'];
+            $sql = "UPDATE $table SET " . implode(', ', $sets) . $whereSql . " RETURNING *";
+            $st = $pdo->prepare($sql);
+            $st->execute($params);
+            return [200, json_encode(pgFetchAllTyped($st), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), ''];
+        }
+
+        if ($method === 'DELETE') {
+            $sql = "DELETE FROM $table" . $whereSql;
+            $st = $pdo->prepare($sql);
+            $st->execute($params);
+            return [204, '', ''];
+        }
+
+        return [405, json_encode(['message' => 'method_not_allowed']), 'method_not_allowed'];
+    } catch (Throwable $e) {
+        return [pgErrorHttp($e), json_encode(['message' => $e->getMessage()]), $e->getMessage()];
+    }
+}
+
+function supabaseHttpRequest($method, $url, $body = null) {
     global $supabase_key, $supabase_db_key;
 
     $key = $supabase_db_key ?: $supabase_key;
@@ -165,8 +370,105 @@ function deleteOwnedPasteById($id, $userId) {
     return !$error && $http >= 200 && $http < 300;
 }
 
+// ---------------------------------------------------------
+// S3 / MinIO STORAGE DRIVER (AWS Signature V4, streaming PUT)
+// ---------------------------------------------------------
+function s3PublicUrl($key) {
+    global $s3_public_base, $s3_endpoint, $s3_bucket, $s3_use_path_style;
+    $encodedKey = str_replace('%2F', '/', rawurlencode((string)$key));
+    if ($s3_public_base !== '') {
+        return $s3_public_base . '/' . $encodedKey;
+    }
+    if ($s3_use_path_style) {
+        return $s3_endpoint . '/' . rawurlencode($s3_bucket) . '/' . $encodedKey;
+    }
+    $ep = parse_url($s3_endpoint);
+    $scheme = $ep['scheme'] ?? 'http';
+    $host = $ep['host'] ?? '';
+    if (isset($ep['port'])) $host .= ':' . $ep['port'];
+    return $scheme . '://' . rawurlencode($s3_bucket) . '.' . $host . '/' . $encodedKey;
+}
+
+function s3PutObject($key, $tmpPath, $mime, $size) {
+    global $s3_endpoint, $s3_region, $s3_bucket, $s3_access_key, $s3_secret_key, $s3_use_path_style;
+
+    if ($s3_endpoint === '' || $s3_access_key === '' || $s3_secret_key === '') {
+        return [false, 's3_not_configured'];
+    }
+
+    $ep = parse_url($s3_endpoint);
+    $scheme = $ep['scheme'] ?? 'http';
+    $host = $ep['host'] ?? '';
+    if (isset($ep['port'])) $host .= ':' . $ep['port'];
+
+    $encodedKey = str_replace('%2F', '/', rawurlencode((string)$key));
+    if ($s3_use_path_style) {
+        $sigHost      = $host;
+        $canonicalUri = '/' . rawurlencode($s3_bucket) . '/' . $encodedKey;
+    } else {
+        $sigHost      = rawurlencode($s3_bucket) . '.' . $host;
+        $canonicalUri = '/' . $encodedKey;
+    }
+    $url = $scheme . '://' . $sigHost . $canonicalUri;
+
+    $amzDate     = gmdate('Ymd\THis\Z');
+    $dateStamp   = gmdate('Ymd');
+    $payloadHash = 'UNSIGNED-PAYLOAD';
+
+    $canonicalHeaders = "host:$sigHost\nx-amz-content-sha256:$payloadHash\nx-amz-date:$amzDate\n";
+    $signedHeaders    = 'host;x-amz-content-sha256;x-amz-date';
+    $canonicalRequest = "PUT\n$canonicalUri\n\n$canonicalHeaders\n$signedHeaders\n$payloadHash";
+
+    $algo  = 'AWS4-HMAC-SHA256';
+    $scope = "$dateStamp/$s3_region/s3/aws4_request";
+    $stringToSign = "$algo\n$amzDate\n$scope\n" . hash('sha256', $canonicalRequest);
+
+    $kDate    = hash_hmac('sha256', $dateStamp, 'AWS4' . $s3_secret_key, true);
+    $kRegion  = hash_hmac('sha256', $s3_region, $kDate, true);
+    $kService = hash_hmac('sha256', 's3', $kRegion, true);
+    $kSigning = hash_hmac('sha256', 'aws4_request', $kService, true);
+    $signature = hash_hmac('sha256', $stringToSign, $kSigning);
+
+    $authorization = "$algo Credential=$s3_access_key/$scope, SignedHeaders=$signedHeaders, Signature=$signature";
+
+    $fp = fopen($tmpPath, 'rb');
+    if (!$fp) return [false, 'tmp_file_read_failed'];
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Host: $sigHost",
+        "x-amz-content-sha256: $payloadHash",
+        "x-amz-date: $amzDate",
+        "Authorization: $authorization",
+        "Content-Type: $mime",
+        "Content-Length: " . (int)$size,
+        "Expect:",
+    ]);
+    curl_setopt($ch, CURLOPT_UPLOAD, true);
+    curl_setopt($ch, CURLOPT_INFILE, $fp);
+    curl_setopt($ch, CURLOPT_INFILESIZE, (int)$size);
+    curl_setopt($ch, CURLOPT_BUFFERSIZE, 131072);
+    curl_setopt($ch, CURLOPT_TCP_NODELAY, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 300);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+
+    $response = curl_exec($ch);
+    $error = curl_error($ch);
+    $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    fclose($fp);
+
+    if ($error || $http < 200 || $http >= 300) {
+        return [false, storageErrorCodeFromResponse($http, $response, $error)];
+    }
+    return [true, null];
+}
+
 function uploadToSupabaseStorage($file) {
     global $supabase_url, $supabase_storage_key, $file_upload_bucket, $file_upload_max_mb;
+    global $storage_driver, $s3_bucket;
 
     if (empty($file) || !isset($file['error']) || $file['error'] === UPLOAD_ERR_NO_FILE) {
         return [false, 'file_missing', null];
@@ -224,8 +526,26 @@ function uploadToSupabaseStorage($file) {
         return [false, 'file_type', null];
     }
 
-    $bucket = preg_replace('/[^a-zA-Z0-9._-]/', '', (string)$file_upload_bucket) ?: 'files';
     $path = gmdate('Y/m/d') . '/' . bin2hex(random_bytes(16)) . '.' . $ext;
+
+    // --- S3 / MinIO driver ---
+    if (($storage_driver ?? 'supabase') === 's3') {
+        [$okS3, $s3Err] = s3PutObject($path, $file['tmp_name'], $mime, (int)$file['size']);
+        if (!$okS3) {
+            return [false, $s3Err ?: 'upload_failed', null];
+        }
+        return [true, null, [
+            'bucket' => $s3_bucket,
+            'path' => $path,
+            'public_url' => s3PublicUrl($path),
+            'mime' => $mime,
+            'size' => (int)$file['size'],
+            'original_name' => (string)($file['name'] ?? ''),
+        ]];
+    }
+
+    // --- Supabase Storage driver (default) ---
+    $bucket = preg_replace('/[^a-zA-Z0-9._-]/', '', (string)$file_upload_bucket) ?: 'files';
     $uploadUrl = rtrim($supabase_url, '/') . '/storage/v1/object/' . rawurlencode($bucket) . '/' . str_replace('%2F', '/', rawurlencode($path));
 
     $headers = [

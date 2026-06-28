@@ -917,24 +917,33 @@ function storageErrorCodeFromResponse($http, $response, $curlError = '') {
 }
 
 
-function isHostedFileStorageUrl($url) {
-    global $supabase_url;
+// Public URL prefixes we are willing to serve/proxy. Keeps the proxy from
+// becoming an open relay: only our own storage backends are allowed.
+function storagePublicPrefixes() {
+    global $supabase_url, $storage_driver;
 
+    $prefixes = [];
+    if (!empty($supabase_url)) {
+        $prefixes[] = rtrim((string)$supabase_url, '/') . '/storage/v1/object/public/';
+    }
+    if (($storage_driver ?? 'supabase') === 's3' && function_exists('s3PublicUrl')) {
+        $base = s3PublicUrl('');
+        if ($base !== '' && $base !== '/') $prefixes[] = $base;
+    }
+    return array_values(array_filter($prefixes));
+}
+
+function isHostedFileStorageUrl($url) {
     $url = trim((string)$url);
     if ($url === '' || !filter_var($url, FILTER_VALIDATE_URL)) return false;
 
-    $supabaseHost = parse_url((string)$supabase_url, PHP_URL_HOST);
-    $targetHost = parse_url($url, PHP_URL_HOST);
+    $matched = false;
+    foreach (storagePublicPrefixes() as $prefix) {
+        if (strncmp($url, $prefix, strlen($prefix)) === 0) { $matched = true; break; }
+    }
+    if (!$matched) return false;
+
     $path = parse_url($url, PHP_URL_PATH) ?: '';
-
-    if (!$supabaseHost || !$targetHost || strtolower($supabaseHost) !== strtolower($targetHost)) {
-        return false;
-    }
-
-    if (strpos($path, '/storage/v1/object/public/') === false) {
-        return false;
-    }
-
     $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
     return in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'zip'], true);
 }
