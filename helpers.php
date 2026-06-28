@@ -933,6 +933,15 @@ function storagePublicPrefixes() {
     return array_values(array_filter($prefixes));
 }
 
+// Coarse device classification from a User-Agent string.
+function detectDeviceType($ua) {
+    $ua = strtolower((string)$ua);
+    if ($ua === '') return 'other';
+    if (preg_match('/bot|crawl|spider|slurp|preview|facebookexternalhit|discord|telegram|whatsapp|curl|wget|python-requests/', $ua)) return 'bot';
+    if (preg_match('/mobile|android|iphone|ipod|ipad|tablet|windows phone/', $ua)) return 'mobile';
+    return 'desktop';
+}
+
 function isHostedFileStorageUrl($url) {
     $url = trim((string)$url);
     if ($url === '' || !filter_var($url, FILTER_VALIDATE_URL)) return false;

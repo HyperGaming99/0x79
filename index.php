@@ -92,6 +92,17 @@ if ($request_path === 'account') {
     renderUserAccountPage($_GET['notice'] ?? '');
 }
 
+if ($request_path === 'account/stats') {
+    if (!isUserLoggedIn()) { header('Location: /login'); exit; }
+    $code = (string)($_GET['code'] ?? '');
+    if (!preg_match('/^[A-Za-z0-9]{1,32}$/', $code) || !linkOwnedByUser($code, currentUserId())) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=utf-8');
+        exit('not found');
+    }
+    renderLinkStatsPage($code, fetchRecentClicks($code));
+}
+
 if ($request_path === 'account/action') {
     if (!isUserLoggedIn()) { header('Location: /login'); exit; }
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit('method not allowed'); }
@@ -921,6 +932,15 @@ if ($path_code !== '' || isset($_GET['c'])) {
             }
 
             incrementClickCount($row);
+
+            $refHost = strtolower((string)parse_url((string)($_SERVER['HTTP_REFERER'] ?? ''), PHP_URL_HOST));
+            $refHost = preg_replace('/^www\./', '', $refHost);
+            logLinkClick(
+                $code,
+                $refHost,
+                detectDeviceType($_SERVER['HTTP_USER_AGENT'] ?? ''),
+                strtoupper(substr((string)($_SERVER['HTTP_CF_IPCOUNTRY'] ?? ''), 0, 2))
+            );
 
             if ($is_hosted_file) {
                 proxyHostedFile($target);

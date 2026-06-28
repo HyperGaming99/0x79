@@ -67,6 +67,17 @@ CREATE TABLE IF NOT EXISTS abuse_reports (
     created_at    timestamptz NOT NULL DEFAULT now()
 );
 
+-- Per-click analytics events (optional; logging fails silently if absent).
+CREATE TABLE IF NOT EXISTS link_clicks (
+    id            bigserial PRIMARY KEY,
+    short_code    text NOT NULL,
+    clicked_at    timestamptz NOT NULL DEFAULT now(),
+    referrer_host text,
+    device        text,   -- mobile | desktop | bot | other
+    country       text    -- 2-letter ISO (e.g. from Cloudflare CF-IPCountry)
+);
+CREATE INDEX IF NOT EXISTS link_clicks_code_idx ON link_clicks(short_code, clicked_at DESC);
+
 -- RSS / blog posts.
 CREATE TABLE IF NOT EXISTS posts (
     id          bigserial PRIMARY KEY,

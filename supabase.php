@@ -360,6 +360,56 @@ function deleteOwnedLinkById($id, $userId) {
     return !$error && $http >= 200 && $http < 300;
 }
 
+// Best-effort click logging. Never throws / blocks the redirect on failure
+// (e.g. if the link_clicks table does not exist).
+function logLinkClick($code, $referrerHost, $device, $country) {
+    global $supabase_url;
+    $code = trim((string)$code);
+    if ($code === '') return;
+    try {
+        supabaseRequest('POST', $supabase_url . '/rest/v1/link_clicks', [
+            'short_code'    => $code,
+            'referrer_host' => $referrerHost !== '' ? $referrerHost : null,
+            'device'        => $device !== '' ? $device : null,
+            'country'       => $country !== '' ? $country : null,
+        ]);
+    } catch (Throwable $e) {
+        // ignore — analytics is non-critical
+    }
+}
+
+// Recent click events for a code (newest first), capped. Empty on any error.
+function fetchRecentClicks($code, $limit = 5000) {
+    global $supabase_url;
+    $code = trim((string)$code);
+    if ($code === '') return [];
+    $limit = max(1, min((int)$limit, 20000));
+    $url = $supabase_url . "/rest/v1/link_clicks?short_code=eq." . urlencode($code)
+        . "&select=clicked_at,referrer_host,device,country&order=clicked_at.desc&limit=" . $limit;
+    try {
+        [$http, $response, $error] = supabaseRequest('GET', $url);
+        if ($error || $http < 200 || $http >= 300) return [];
+        $rows = json_decode($response, true);
+        return is_array($rows) ? $rows : [];
+    } catch (Throwable $e) {
+        return [];
+    }
+}
+
+// True if the short_code belongs to the given user.
+function linkOwnedByUser($code, $userId) {
+    global $supabase_url;
+    $code = trim((string)$code);
+    $userId = trim((string)$userId);
+    if ($code === '' || $userId === '') return false;
+    $url = $supabase_url . "/rest/v1/urls?short_code=eq." . urlencode($code)
+        . "&owner_user_id=eq." . urlencode($userId) . "&select=id&limit=1";
+    [$http, $response, $error] = supabaseRequest('GET', $url);
+    if ($error || $http < 200 || $http >= 300) return false;
+    $rows = json_decode($response, true);
+    return !empty($rows) && isset($rows[0]['id']);
+}
+
 // Update a link the user owns. Only the provided fields are changed.
 function updateOwnedLink($id, $userId, $fields) {
     global $supabase_url;

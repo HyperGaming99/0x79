@@ -142,10 +142,72 @@ function renderUserAccountPage($notice = '') {
         <text x="<?= h((string)($px+9)) ?>" y="<?= h((string)($py-9)) ?>" font-size="12"><?= h((string)$clicks) ?></text>
     <?php endforeach; ?>
 </svg></div><div class="chartlegend"><?php foreach($chartLinks as $i=>$l): $code=$l['short_code']??''; $color=$palette[$i % count($palette)]; ?><span class="legenditem"><span class="legendswatch" style="background:<?= h($color) ?>"></span><?= h($code) ?></span><?php endforeach; ?></div></div><p class="muted tiny">Design wie eine ruhige Line-Chart-Preview. Die Daten sind echte Gesamt-Clicks pro Link/File; historische Quartale gibt es erst, wenn Click-Events separat gespeichert werden.</p><?php endif; ?></section>
-<section class="card"><h2>deine links & dateien</h2><?php if(!$linksOk): ?><p class="err">urls migration fehlt evtl. owner_user_id.</p><?php elseif(empty($links)): ?><p class="muted">noch nichts erstellt.</p><?php else: ?><?php $palette = ['#7dd3fc','#86efac','#fde68a','#fca5a5','#c4b5fd','#f9a8d4','#67e8f9','#fdba74','#a7f3d0','#d8b4fe']; ?><table><thead><tr><th>code</th><th>ziel</th><th>clicks</th><th>expires</th><th></th></tr></thead><tbody><?php foreach($links as $i=>$l): $code=$l['short_code']??''; $color=$palette[$i % count($palette)]; ?><tr><td><span class="swatch" style="background:<?= h($color) ?>"></span><a href="/<?= h($code) ?>"><code><?= h($code) ?></code></a><?php if(!empty($l['preview_enabled'])): ?> <span class="muted tiny">preview</span><?php endif; ?></td><td class="url"><?= h($l['long_url']??'') ?></td><td><?= h((string)($l['click_count']??0)) ?></td><td><?= !empty($l['expires_at']) ? h(formatDateTime($l['expires_at'])) : '<span class="muted">never</span>' ?></td><td><div class="inline"><a class="btn ghost tiny" href="/qr?d=<?= h(rawurlencode('https://' . $host . '/' . $code)) ?>" target="_blank" rel="noopener">QR</a><details><summary class="btn ghost tiny" style="cursor:pointer;list-style:none">edit</summary><form method="POST" action="/account/action" style="margin-top:10px;min-width:240px"><input type="hidden" name="action" value="edit_link"><input type="hidden" name="id" value="<?= h($l['id']??'') ?>"><label class="tiny muted">ziel-url</label><input name="long_url" value="<?= h($l['long_url']??'') ?>"><label class="tiny muted">expires (leer = nie)</label><input type="datetime-local" name="expires_at" value="<?= !empty($l['expires_at']) ? h(date('Y-m-d\TH:i', (int)strtotime((string)$l['expires_at']))) : '' ?>"><label class="tiny muted">max clicks (leer = ∞)</label><input type="number" min="1" name="max_clicks" value="<?= h((string)($l['max_clicks'] ?? '')) ?>"><label class="tiny muted">neues passwort</label><input type="password" name="password" placeholder="leer = unverändert"><label class="tiny" style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="clear_password" value="1" style="width:auto;margin:0"> passwort entfernen</label><button type="submit">speichern</button></form></details><form method="POST" action="/account/action" onsubmit="return confirm('wirklich löschen?')" style="display:inline"><input type="hidden" name="action" value="delete_link"><input type="hidden" name="id" value="<?= h($l['id']??'') ?>"><button class="danger tiny" type="submit">löschen</button></form></div></td></tr><?php endforeach; ?></tbody></table><?php endif; ?></section>
+<section class="card"><h2>deine links & dateien</h2><?php if(!$linksOk): ?><p class="err">urls migration fehlt evtl. owner_user_id.</p><?php elseif(empty($links)): ?><p class="muted">noch nichts erstellt.</p><?php else: ?><?php $palette = ['#7dd3fc','#86efac','#fde68a','#fca5a5','#c4b5fd','#f9a8d4','#67e8f9','#fdba74','#a7f3d0','#d8b4fe']; ?><table><thead><tr><th>code</th><th>ziel</th><th>clicks</th><th>expires</th><th></th></tr></thead><tbody><?php foreach($links as $i=>$l): $code=$l['short_code']??''; $color=$palette[$i % count($palette)]; ?><tr><td><span class="swatch" style="background:<?= h($color) ?>"></span><a href="/<?= h($code) ?>"><code><?= h($code) ?></code></a><?php if(!empty($l['preview_enabled'])): ?> <span class="muted tiny">preview</span><?php endif; ?></td><td class="url"><?= h($l['long_url']??'') ?></td><td><?= h((string)($l['click_count']??0)) ?></td><td><?= !empty($l['expires_at']) ? h(formatDateTime($l['expires_at'])) : '<span class="muted">never</span>' ?></td><td><div class="inline"><a class="btn ghost tiny" href="/account/stats?code=<?= h(rawurlencode($code)) ?>">stats</a><a class="btn ghost tiny" href="/qr?d=<?= h(rawurlencode('https://' . $host . '/' . $code)) ?>" target="_blank" rel="noopener">QR</a><details><summary class="btn ghost tiny" style="cursor:pointer;list-style:none">edit</summary><form method="POST" action="/account/action" style="margin-top:10px;min-width:240px"><input type="hidden" name="action" value="edit_link"><input type="hidden" name="id" value="<?= h($l['id']??'') ?>"><label class="tiny muted">ziel-url</label><input name="long_url" value="<?= h($l['long_url']??'') ?>"><label class="tiny muted">expires (leer = nie)</label><input type="datetime-local" name="expires_at" value="<?= !empty($l['expires_at']) ? h(date('Y-m-d\TH:i', (int)strtotime((string)$l['expires_at']))) : '' ?>"><label class="tiny muted">max clicks (leer = ∞)</label><input type="number" min="1" name="max_clicks" value="<?= h((string)($l['max_clicks'] ?? '')) ?>"><label class="tiny muted">neues passwort</label><input type="password" name="password" placeholder="leer = unverändert"><label class="tiny" style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="clear_password" value="1" style="width:auto;margin:0"> passwort entfernen</label><button type="submit">speichern</button></form></details><form method="POST" action="/account/action" onsubmit="return confirm('wirklich löschen?')" style="display:inline"><input type="hidden" name="action" value="delete_link"><input type="hidden" name="id" value="<?= h($l['id']??'') ?>"><button class="danger tiny" type="submit">löschen</button></form></div></td></tr><?php endforeach; ?></tbody></table><?php endif; ?></section>
 <section class="card"><h2>deine pastes</h2><?php if(!$pastesOk): ?><p class="err">pastes migration fehlt evtl. owner_user_id.</p><?php elseif(empty($pastes)): ?><p class="muted">noch keine pastes.</p><?php else: ?><table><thead><tr><th>code</th><th>views</th><th>expires</th><th></th></tr></thead><tbody><?php foreach($pastes as $pa): $code=$pa['paste_code']??''; ?><tr><td><a href="/<?= h($code) ?>"><code><?= h($code) ?></code></a> <a class="muted" href="/raw/<?= h($code) ?>">raw</a></td><td><?= h((string)($pa['view_count']??0)) ?></td><td><?= !empty($pa['expires_at']) ? h(formatDateTime($pa['expires_at'])) : '<span class="muted">never</span>' ?></td><td><form method="POST" action="/account/action" onsubmit="return confirm('paste löschen?')"><input type="hidden" name="action" value="delete_paste"><input type="hidden" name="id" value="<?= h($pa['id']??'') ?>"><button class="danger" type="submit">löschen</button></form></td></tr><?php endforeach; ?></tbody></table><?php endif; ?></section>
 </main></body></html>
     <?php
+    exit;
+}
+
+function renderLinkStatsPage($code, $clicks) {
+    global $t;
+    $host = cleanHost($_SERVER['HTTP_HOST'] ?? '0x79.one');
+    $shortUrl = 'https://' . $host . '/' . $code;
+
+    $total = count($clicks);
+    $days = 30;
+    $byDay = [];
+    for ($i = $days - 1; $i >= 0; $i--) $byDay[gmdate('Y-m-d', time() - $i * 86400)] = 0;
+    $byRef = []; $byDevice = []; $byCountry = [];
+    foreach ($clicks as $c) {
+        $ts = strtotime((string)($c['clicked_at'] ?? ''));
+        if ($ts) { $d = gmdate('Y-m-d', $ts); if (isset($byDay[$d])) $byDay[$d]++; }
+        $r = (string)($c['referrer_host'] ?? ''); $r = $r !== '' ? $r : '(direct)';
+        $byRef[$r] = ($byRef[$r] ?? 0) + 1;
+        $dev = (string)($c['device'] ?? '') ?: 'other';
+        $byDevice[$dev] = ($byDevice[$dev] ?? 0) + 1;
+        $co = strtoupper((string)($c['country'] ?? ''));
+        if ($co !== '') $byCountry[$co] = ($byCountry[$co] ?? 0) + 1;
+    }
+    arsort($byRef); arsort($byDevice); arsort($byCountry);
+    $last30 = array_sum($byDay);
+    $maxDay = max(1, $byDay ? max($byDay) : 1);
+
+    // Bar chart geometry
+    $bw = 18; $gap = 4; $chartH = 120; $padL = 4; $padT = 8;
+    $chartW = $padL * 2 + count($byDay) * ($bw + $gap);
+
+    header('Content-Type: text/html; charset=utf-8');
+    ?><!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="/logo.png" type="image/jpeg"><title>stats /<?= h($code) ?> — 0x79</title><?= userPageCss() ?></head><body><div class="wrap">
+    <div class="nav"><a class="brand" href="/">0x79</a><a class="btn ghost" href="/account">← account</a></div>
+    <h1 style="margin:0 0 6px">stats · <code><?= h($code) ?></code></h1>
+    <p class="muted"><a href="<?= h($shortUrl) ?>" target="_blank" rel="noopener"><?= h($shortUrl) ?></a></p>
+
+    <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="card"><div class="muted tiny">clicks total</div><div style="font-size:30px"><?= h((string)$total) ?></div></div>
+        <div class="card"><div class="muted tiny">last 30 days</div><div style="font-size:30px"><?= h((string)$last30) ?></div></div>
+        <div class="card"><div class="muted tiny">unique referrers</div><div style="font-size:30px"><?= h((string)count($byRef)) ?></div></div>
+    </div>
+
+    <div class="card"><h2 style="margin:0 0 12px">clicks · last 30 days</h2>
+    <?php if ($total === 0): ?>
+        <p class="muted">noch keine click-daten. (falls gerade frisch deployed: die <code>link_clicks</code>-tabelle muss existieren — siehe schema.sql.)</p>
+    <?php else: ?>
+        <div style="overflow-x:auto"><svg width="<?= h((string)$chartW) ?>" height="<?= h((string)($chartH + 26)) ?>" viewBox="0 0 <?= h((string)$chartW) ?> <?= h((string)($chartH + 26)) ?>">
+        <?php $x = $padL; foreach ($byDay as $d => $cnt): $bh = (int)round(($cnt / $maxDay) * $chartH); $y = $padT + $chartH - $bh; ?>
+            <rect x="<?= h((string)$x) ?>" y="<?= h((string)$y) ?>" width="<?= h((string)$bw) ?>" height="<?= h((string)max(1, $bh)) ?>" fill="#86efac"><title><?= h($d) ?>: <?= h((string)$cnt) ?></title></rect>
+            <?php if ((int)substr($d, 8, 2) === 1 || $d === array_key_first($byDay) || $d === array_key_last($byDay)): ?><text x="<?= h((string)($x + $bw / 2)) ?>" y="<?= h((string)($chartH + 22)) ?>" font-size="9" fill="#888" text-anchor="middle"><?= h(substr($d, 5)) ?></text><?php endif; ?>
+        <?php $x += $bw + $gap; endforeach; ?>
+        </svg></div>
+    <?php endif; ?>
+    </div>
+
+    <div class="grid">
+        <div class="card"><h2 style="margin:0 0 12px">top referrers</h2><?php if (!$byRef): ?><p class="muted">—</p><?php else: ?><table><tbody><?php foreach (array_slice($byRef, 0, 10, true) as $r => $n): ?><tr><td><?= h($r) ?></td><td style="text-align:right;width:60px"><?= h((string)$n) ?></td></tr><?php endforeach; ?></tbody></table><?php endif; ?></div>
+        <div class="card"><h2 style="margin:0 0 12px">devices</h2><?php if (!$byDevice): ?><p class="muted">—</p><?php else: ?><table><tbody><?php foreach ($byDevice as $dev => $n): ?><tr><td><?= h($dev) ?></td><td style="text-align:right;width:60px"><?= h((string)$n) ?></td></tr><?php endforeach; ?></tbody></table><?php endif; ?>
+        <?php if ($byCountry): ?><h2 style="margin:18px 0 12px">top countries</h2><table><tbody><?php foreach (array_slice($byCountry, 0, 8, true) as $co => $n): ?><tr><td><?= h($co) ?></td><td style="text-align:right;width:60px"><?= h((string)$n) ?></td></tr><?php endforeach; ?></tbody></table><?php endif; ?></div>
+    </div>
+    </div></body></html><?php
     exit;
 }
 
