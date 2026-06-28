@@ -102,6 +102,18 @@ if ($request_path === 'account/action') {
         header('Location: /account?notice=' . rawurlencode('link gelöscht'));
         exit;
     }
+    if ($action === 'edit_link') {
+        [$okEdit, $editErr] = updateOwnedLink($_POST['id'] ?? '', $uid, [
+            'long_url'       => $_POST['long_url'] ?? '',
+            'expires_at'     => $_POST['expires_at'] ?? '',
+            'max_clicks'     => $_POST['max_clicks'] ?? '',
+            'password'       => $_POST['password'] ?? '',
+            'clear_password' => !empty($_POST['clear_password']),
+        ]);
+        $msg = $okEdit ? 'link aktualisiert' : ($editErr === 'invalid_url' ? 'ziel-url ungültig' : ($editErr === 'invalid_expiry' ? 'ablaufdatum liegt in der vergangenheit' : ($editErr === 'no_changes' ? 'keine änderungen' : 'speichern fehlgeschlagen')));
+        header('Location: /account?notice=' . rawurlencode($msg));
+        exit;
+    }
     if ($action === 'delete_paste') {
         deleteOwnedPasteById($_POST['id'] ?? '', $uid);
         header('Location: /account?notice=' . rawurlencode('paste gelöscht'));

@@ -360,6 +360,42 @@ function deleteOwnedLinkById($id, $userId) {
     return !$error && $http >= 200 && $http < 300;
 }
 
+// Update a link the user owns. Only the provided fields are changed.
+function updateOwnedLink($id, $userId, $fields) {
+    global $supabase_url;
+    $id = trim((string)$id);
+    $userId = trim((string)$userId);
+    if ($id === '' || $userId === '') return [false, 'invalid'];
+
+    $payload = [];
+    if (array_key_exists('long_url', $fields)) {
+        $u = trim((string)$fields['long_url']);
+        if ($u !== '') {
+            if (!isAllowedShortenerTarget($u)) return [false, 'invalid_url'];
+            $payload['long_url'] = $u;
+        }
+    }
+    if (array_key_exists('expires_at', $fields)) {
+        $exp = parseOptionalExpiresAt($fields['expires_at']); // empty -> null (clears expiry)
+        if ($exp !== null && strtotime($exp) <= time()) return [false, 'invalid_expiry'];
+        $payload['expires_at'] = $exp;
+    }
+    if (array_key_exists('max_clicks', $fields)) {
+        $payload['max_clicks'] = parseOptionalMaxClicks($fields['max_clicks']);
+    }
+    if (!empty($fields['clear_password'])) {
+        $payload['password_hash'] = null;
+    } elseif (array_key_exists('password', $fields) && (string)$fields['password'] !== '') {
+        $payload['password_hash'] = password_hash((string)$fields['password'], PASSWORD_DEFAULT);
+    }
+
+    if (empty($payload)) return [false, 'no_changes'];
+
+    $url = $supabase_url . "/rest/v1/urls?id=eq." . urlencode($id) . "&owner_user_id=eq." . urlencode($userId);
+    [$http, $response, $error] = supabaseRequest('PATCH', $url, $payload);
+    return (!$error && $http >= 200 && $http < 300) ? [true, null] : [false, 'save_failed'];
+}
+
 function deleteOwnedPasteById($id, $userId) {
     global $supabase_url;
     $id = trim((string)$id);
