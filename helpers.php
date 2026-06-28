@@ -663,30 +663,33 @@ function isValidCustomCode($code) {
     return isValidCode($code) && !isReservedCode($code);
 }
 
-function clientRateLimitKey() {
+function clientIp() {
     $ip = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-    $ip = trim(explode(',', (string)$ip)[0]);
-    return hash('sha256', 'create-link|' . $ip);
+    return trim(explode(',', (string)$ip)[0]);
 }
 
-function checkCreateRateLimit($max = 10, $windowSeconds = 3600) {
+function clientRateLimitKey() {
+    return hash('sha256', 'create-link|' . clientIp());
+}
+
+// Generic file-based per-IP rate limiter. Returns false when the caller has
+// already made >= $max requests in the given scope within $windowSeconds.
+// Fail-open if the temp dir is not writable (never hard-block on infra issues).
+function rateLimit($scope, $max, $windowSeconds) {
     $dir = sys_get_temp_dir() . '/0x79_rate_limits';
     if (!is_dir($dir)) {
         @mkdir($dir, 0700, true);
     }
-
     if (!is_dir($dir) || !is_writable($dir)) {
-        // Fallback: wenn tmp nicht beschreibbar ist, nicht hart blockieren.
         return true;
     }
 
-    $file = $dir . '/' . clientRateLimitKey() . '.json';
+    $file = $dir . '/' . hash('sha256', $scope . '|' . clientIp()) . '.json';
     $now = time();
     $timestamps = [];
 
     if (file_exists($file)) {
-        $raw = file_get_contents($file);
-        $data = json_decode($raw ?: '[]', true);
+        $data = json_decode(@file_get_contents($file) ?: '[]', true);
         if (is_array($data)) {
             $timestamps = array_values(array_filter($data, function ($ts) use ($now, $windowSeconds) {
                 return is_numeric($ts) && ((int)$ts) > ($now - $windowSeconds);
@@ -701,6 +704,10 @@ function checkCreateRateLimit($max = 10, $windowSeconds = 3600) {
     $timestamps[] = $now;
     @file_put_contents($file, json_encode($timestamps), LOCK_EX);
     return true;
+}
+
+function checkCreateRateLimit($max = 10, $windowSeconds = 3600) {
+    return rateLimit('create-link', $max, $windowSeconds);
 }
 
 function makeShortCode($length = 6) {
@@ -823,11 +830,11 @@ function fetchUserByApiKey($apiKey) {
     if ($apiKey === '') return null;
 
     $hash = userApiKeyHash($apiKey);
-    $url = $supabase_url . "/rest/v1/app_users?api_key_hash=eq." . urlencode($hash) . "&select=id,username,api_key_prefix,created_at&limit=1";
+    $url = $supabase_url . "/rest/v1/app_users?api_key_hash=eq." . urlencode($hash) . "&select=id,email,api_key_prefix,created_at&limit=1";
     [$http, $response, $error] = supabaseRequest('GET', $url);
     if ($error || $http < 200 || $http >= 300) return null;
     $data = json_decode($response, true);
-    return (!empty($data) && isset($data[0]['id'])) ? $data[0] : null;
+    return (!empty($data) && isset($data[0]['id'])) ? aliasUsername($data[0]) : null;
 }
 
 function getUserApiKeyFromRequest() {

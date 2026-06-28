@@ -65,6 +65,9 @@ if (preg_match('#^posts?/([0-9]+)$#', $request_path, $m)) {
 // ---------------------------------------------------------
 if ($request_path === 'register') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!rateLimit('register', 5, 3600)) {
+            renderUserAuthPage('register', 'zu viele registrierungen. bitte später erneut versuchen.');
+        }
         [$okUser, $userErr] = createUserAccount($_POST['username'] ?? '', $_POST['password'] ?? '');
         if ($okUser) { header('Location: /account'); exit; }
         $msg = $userErr === 'username_taken' ? 'username ist bereits vergeben.' : ($userErr === 'weak_password' ? 'passwort braucht mindestens 8 zeichen.' : ($userErr === 'invalid_username' ? 'username ungültig: 3-32 zeichen, nur a-z, 0-9, . _ -' : 'account konnte nicht erstellt werden. migration ausgeführt?'));
@@ -75,6 +78,9 @@ if ($request_path === 'register') {
 
 if ($request_path === 'login') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!rateLimit('login', 10, 900)) {
+            renderUserAuthPage('login', 'zu viele login-versuche. bitte ein paar minuten warten.');
+        }
         [$okUser, $userErr] = loginUserAccount($_POST['username'] ?? '', $_POST['password'] ?? '');
         if ($okUser) { header('Location: /account'); exit; }
         renderUserAuthPage('login', 'username oder passwort falsch.');

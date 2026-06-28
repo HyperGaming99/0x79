@@ -5,16 +5,16 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;   -- for gen_random_uuid()
 
 -- Registered user accounts (optional; guests can use the app without one).
+-- The `email` column stores the account's username (no separate username
+-- column, so existing email-based deployments need no migration).
 CREATE TABLE IF NOT EXISTS app_users (
     id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    username       text UNIQUE NOT NULL,
+    email          text UNIQUE NOT NULL,   -- holds the username
     password_hash  text NOT NULL,
     api_key_hash   text,
     api_key_prefix text,
     created_at     timestamptz NOT NULL DEFAULT now()
 );
--- Migrating an existing email-based table instead? Run:
---   ALTER TABLE app_users RENAME COLUMN email TO username;
 
 -- Short links + hosted files (files are stored as a long_url pointing at storage).
 CREATE TABLE IF NOT EXISTS urls (

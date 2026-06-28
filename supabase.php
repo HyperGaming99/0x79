@@ -246,11 +246,21 @@ function fetchUserById($id) {
     $id = trim((string)$id);
     if ($id === '') return null;
 
-    $url = $supabase_url . "/rest/v1/app_users?id=eq." . urlencode($id) . "&select=id,username,api_key_prefix,created_at&limit=1";
+    // NOTE: usernames are stored in the existing `email` column so no DB
+    // migration is needed. The column value is aliased back to `username`.
+    $url = $supabase_url . "/rest/v1/app_users?id=eq." . urlencode($id) . "&select=id,email,api_key_prefix,created_at&limit=1";
     [$http, $response, $error] = supabaseRequest('GET', $url);
     if ($error || $http < 200 || $http >= 300) return null;
     $data = json_decode($response, true);
-    return (!empty($data) && isset($data[0]['id'])) ? $data[0] : null;
+    return (!empty($data) && isset($data[0]['id'])) ? aliasUsername($data[0]) : null;
+}
+
+// Map the physical `email` column onto a `username` key for clean call sites.
+function aliasUsername($row) {
+    if (is_array($row) && array_key_exists('email', $row)) {
+        $row['username'] = $row['email'];
+    }
+    return $row;
 }
 
 function fetchUserByUsername($username) {
@@ -258,11 +268,11 @@ function fetchUserByUsername($username) {
     $username = normalizeUsername($username);
     if (!isValidUsername($username)) return null;
 
-    $url = $supabase_url . "/rest/v1/app_users?username=eq." . urlencode($username) . "&select=id,username,password_hash,api_key_prefix,created_at&limit=1";
+    $url = $supabase_url . "/rest/v1/app_users?email=eq." . urlencode($username) . "&select=id,email,password_hash,api_key_prefix,created_at&limit=1";
     [$http, $response, $error] = supabaseRequest('GET', $url);
     if ($error || $http < 200 || $http >= 300) return null;
     $data = json_decode($response, true);
-    return (!empty($data) && isset($data[0]['id'])) ? $data[0] : null;
+    return (!empty($data) && isset($data[0]['id'])) ? aliasUsername($data[0]) : null;
 }
 function createUserAccount($username, $password) {
     global $supabase_url;
@@ -275,7 +285,7 @@ function createUserAccount($username, $password) {
 
     $apiKey = generateUserApiKey();
     $payload = [
-        'username' => $username,
+        'email' => $username, // stored in the email column (no DB migration needed)
         'password_hash' => password_hash($password, PASSWORD_DEFAULT),
         'api_key_hash' => userApiKeyHash($apiKey),
         'api_key_prefix' => substr($apiKey, 0, 10),
@@ -284,7 +294,7 @@ function createUserAccount($username, $password) {
     [$http, $response, $error] = supabaseRequest('POST', $supabase_url . '/rest/v1/app_users', $payload);
     if ($error || $http < 200 || $http >= 300) return [false, 'save_failed', null, null];
     $data = json_decode($response, true);
-    $user = is_array($data) && isset($data[0]) ? $data[0] : null;
+    $user = is_array($data) && isset($data[0]) ? aliasUsername($data[0]) : null;
     if (!$user || empty($user['id'])) return [false, 'save_failed', null, null];
 
     $_SESSION['user_id'] = $user['id'];
