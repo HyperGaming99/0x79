@@ -1001,6 +1001,15 @@ function proxyHostedFile($url) {
 }
 
 
+// Rewrite a Supabase storage image URL to a same-origin proxy path so it
+// passes the strict img-src CSP. Non-hosted/other URLs are returned unchanged.
+function proxyImageUrl($url) {
+    $url = trim((string)$url);
+    if ($url === '') return '';
+    if (!isHostedImageStorageUrl($url)) return $url;
+    return '/img?u=' . urlencode($url);
+}
+
 function parseOptionalExpiresAt($value) {
     $value = trim((string)$value);
     if ($value === '') return null;

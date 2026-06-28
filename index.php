@@ -12,6 +12,19 @@ if ($request_path === 'preview-asset') {
     streamPreviewAsset();
 }
 
+// Same-origin image proxy for hosted Supabase images (keeps img-src CSP strict).
+if ($request_path === 'img') {
+    $proxyTarget = (string)($_GET['u'] ?? '');
+    if (!isHostedImageStorageUrl($proxyTarget)) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo 'not found';
+        exit;
+    }
+    proxyHostedFile($proxyTarget);
+    exit;
+}
+
 if ($request_path === 'rss') {
     require_once __DIR__ . '/rss.php';
     exit;

@@ -370,6 +370,10 @@ function renderMusicLandingPage($row) {
     $ogImage   = $coverUrl !== '' ? $coverUrl : ($bannerUrl !== '' ? $bannerUrl : '');
     $ogDesc    = ($artist !== '' ? $artist . ' — ' : '') . 'Jetzt auf allen Plattformen streamen.';
     $backdrop  = $coverUrl !== '' ? $coverUrl : $bannerUrl;
+    // Same-origin proxy URLs for on-page rendering (raw Supabase URLs are blocked by img-src CSP).
+    $coverSrc    = proxyImageUrl($coverUrl);
+    $bannerSrc   = proxyImageUrl($bannerUrl);
+    $backdropSrc = proxyImageUrl($backdrop);
 
     header('Content-Type: text/html; charset=utf-8');
     ?>
@@ -402,19 +406,19 @@ function renderMusicLandingPage($row) {
 </head>
 <body class="relative min-h-screen overflow-x-hidden bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
     <?php if ($backdrop !== ''): ?>
-    <div class="pointer-events-none fixed inset-0 -z-10 bg-cover bg-center opacity-25 blur-3xl saturate-150" style="background-image:url('<?= h($backdrop) ?>')"></div>
+    <div class="pointer-events-none fixed inset-0 -z-10 bg-cover bg-center opacity-25 blur-3xl saturate-150" style="background-image:url('<?= h($backdropSrc) ?>')"></div>
     <div class="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-[#0b0b0c]/60 via-[#0b0b0c]/85 to-[#0b0b0c]"></div>
     <?php endif; ?>
 
     <main class="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-5 py-10">
         <section class="rise overflow-hidden border border-white/10 bg-[#101011]/85 shadow-2xl backdrop-blur-xl">
             <?php if ($bannerUrl !== ''): ?>
-                <div class="aspect-[21/9] w-full bg-[#0b0b0c]"><img src="<?= h($bannerUrl) ?>" alt="" class="h-full w-full object-cover"></div>
+                <div class="aspect-[21/9] w-full bg-[#0b0b0c]"><img src="<?= h($bannerSrc) ?>" alt="" class="h-full w-full object-cover"></div>
             <?php endif; ?>
             <div class="p-6 sm:p-8">
                 <div class="mx-auto grid h-36 w-36 place-items-center overflow-hidden rounded-xl border border-white/15 bg-white/5 shadow-xl ring-1 ring-black/40 sm:h-44 sm:w-44">
                     <?php if ($coverUrl !== ''): ?>
-                        <img src="<?= h($coverUrl) ?>" alt="Cover" class="h-full w-full object-cover">
+                        <img src="<?= h($coverSrc) ?>" alt="Cover" class="h-full w-full object-cover">
                     <?php else: ?>
                         <span class="font-mono text-5xl text-white/70">♪</span>
                     <?php endif; ?>
