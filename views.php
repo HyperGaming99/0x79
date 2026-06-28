@@ -149,9 +149,25 @@ function renderUserAccountPage($notice = '') {
     exit;
 }
 
+function musicPlatformColors() {
+    return [
+        'spotify'       => '#1DB954',
+        'apple_music'   => '#FA2D48',
+        'youtube_music' => '#FF0000',
+        'soundcloud'    => '#FF5500',
+        'deezer'        => '#A238FF',
+        'tidal'         => '#00D6D6',
+        'amazon_music'  => '#25D1DA',
+        'bandcamp'      => '#629AA9',
+        'audiomack'     => '#FFA200',
+        'beatport'      => '#A8E00F',
+    ];
+}
+
 function renderMusicPromoterPage($error = '', $short_url = '', $music_url = '') {
     global $lang, $available_domains, $selected_domain, $supported_langs, $LANG_META;
     $platforms = musicPlatforms();
+    $colors    = musicPlatformColors();
     header('Content-Type: text/html; charset=utf-8');
     ?>
 <!DOCTYPE html>
@@ -163,9 +179,14 @@ function renderMusicPromoterPage($error = '', $short_url = '', $music_url = '') 
     <meta name="description" content="Promote one track or release with verified platform links in one short URL.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <style>
+        .pf-row{display:none}
+        .pf-input:not(:placeholder-shown) ~ .pf-dot,.pf-input:focus ~ .pf-dot{opacity:1}
+        input[type=file]::-webkit-file-upload-button{cursor:pointer}
+    </style>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
     <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-7 lg:px-8">
@@ -182,63 +203,153 @@ function renderMusicPromoterPage($error = '', $short_url = '', $music_url = '') 
             </nav>
         </header>
 
-        <section class="grid flex-1 items-start gap-8 py-10 lg:grid-cols-[.72fr_1.28fr] lg:py-12">
-            <div>
+        <section class="py-10 lg:py-12">
+            <div class="max-w-2xl">
                 <p class="font-mono text-xs uppercase tracking-[0.22em] text-white/35">tool 04</p>
-                <h1 class="mt-4 max-w-2xl text-4xl font-semibold tracking-[-0.045em] text-white sm:text-5xl">Music Promoter</h1>
-                <p class="mt-5 max-w-xl text-base leading-7 text-white/50">Ein Shortlink für Spotify, Apple Music, YouTube Music, SoundCloud, Deezer, TIDAL und weitere echte Musikplattformen. Links werden gegen die offiziellen Domains geprüft.</p>
-
-                <?php if ($error): ?><div class="mt-8 border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100"><?= h($error) ?></div><?php endif; ?>
-                <?php if ($short_url): ?>
-                    <div class="mt-8 border border-emerald-400/30 bg-emerald-400/10 p-5">
-                        <p class="font-mono text-xs uppercase tracking-[0.18em] text-emerald-200/70">music link ready</p>
-                        <a class="mt-3 block break-all text-xl font-semibold text-white" href="<?= h($short_url) ?>" target="_blank" rel="noopener"><?= h($short_url) ?></a>
-                        <button type="button" onclick="copyLink(this, '<?= h($short_url) ?>')" data-copy="copy link" data-copied="copied" class="mt-4 border border-white/15 px-4 py-2 font-mono text-xs text-white/80 transition hover:border-white/40">copy link</button>
-                        <?php if ($music_url): ?><p class="mt-3 break-all font-mono text-xs text-white/35">landing: <?= h($music_url) ?></p><?php endif; ?>
-                    </div>
-                <?php endif; ?>
+                <h1 class="mt-4 text-4xl font-semibold tracking-[-0.045em] text-white sm:text-5xl">Music Promoter</h1>
+                <p class="mt-5 text-base leading-7 text-white/50">Eine smarte Landing-Page mit allen Streaming-Links — Spotify, Apple Music, YouTube Music, SoundCloud, Deezer, TIDAL und mehr — hinter einem kurzen Link. Jeder Link wird gegen die echte Plattform-Domain geprüft.</p>
             </div>
 
-            <form method="POST" action="/music" enctype="multipart/form-data" class="grid gap-4 border border-white/10 bg-[#101011] p-5 sm:p-6">
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div><label class="font-mono text-xs text-white/40">title</label><input name="title" required maxlength="160" value="<?= h($_POST['title'] ?? '') ?>" placeholder="Song / Release" class="mt-2 w-full border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none focus:border-white/35"></div>
-                    <div><label class="font-mono text-xs text-white/40">artist</label><input name="artist" maxlength="160" value="<?= h($_POST['artist'] ?? '') ?>" placeholder="Artist Name" class="mt-2 w-full border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none focus:border-white/35"></div>
-                </div>
+            <?php if ($error): ?><div class="mt-7 max-w-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100"><?= h($error) ?></div><?php endif; ?>
 
-                <div class="grid gap-3 md:grid-cols-2">
-                    <label class="grid gap-2 border border-white/10 bg-white/[0.03] p-3">
-                        <span class="font-mono text-xs text-white/40">cover upload</span>
-                        <input type="file" name="cover_image" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" class="block w-full cursor-pointer border border-white/10 bg-[#0b0b0c] p-2 text-xs text-white file:mr-3 file:cursor-pointer file:border-0 file:bg-[#f5f2ea] file:px-3 file:py-2 file:font-mono file:text-xs file:font-semibold file:text-[#0b0b0c]">
-                    </label>
-                    <label class="grid gap-2 border border-white/10 bg-white/[0.03] p-3">
-                        <span class="font-mono text-xs text-white/40">banner upload</span>
-                        <input type="file" name="banner_image" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" class="block w-full cursor-pointer border border-white/10 bg-[#0b0b0c] p-2 text-xs text-white file:mr-3 file:cursor-pointer file:border-0 file:bg-[#f5f2ea] file:px-3 file:py-2 file:font-mono file:text-xs file:font-semibold file:text-[#0b0b0c]">
-                    </label>
+            <?php if ($short_url): ?>
+            <div class="mt-7 overflow-hidden border border-emerald-400/30 bg-emerald-400/[0.07]">
+                <div class="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="min-w-0">
+                        <p class="font-mono text-xs uppercase tracking-[0.18em] text-emerald-200/70">✓ music link ready</p>
+                        <a class="mt-2 block break-all text-2xl font-bold tracking-tight text-white" href="<?= h($short_url) ?>" target="_blank" rel="noopener"><?= h($short_url) ?></a>
+                        <?php if ($music_url): ?><p class="mt-2 break-all font-mono text-xs text-white/35">landing: <?= h($music_url) ?></p><?php endif; ?>
+                    </div>
+                    <div class="flex shrink-0 gap-3">
+                        <button type="button" onclick="copyLink(this, '<?= h($short_url) ?>')" data-copy="copy link" data-copied="✓ copied" class="border border-white/15 px-4 py-2.5 font-mono text-xs text-white/80 transition hover:border-white/40 hover:text-white">copy link</button>
+                        <a href="<?= h($short_url) ?>" target="_blank" rel="noopener" class="bg-[#f5f2ea] px-4 py-2.5 font-mono text-xs font-semibold text-[#0b0b0c] transition hover:bg-white">open →</a>
+                    </div>
                 </div>
+            </div>
+            <?php endif; ?>
 
-                <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                    <?php foreach ($platforms as $key => $meta): ?>
-                        <label class="grid gap-2">
-                            <span class="font-mono text-xs text-white/40"><?= h($meta['label']) ?></span>
-                            <input type="url" name="links[<?= h($key) ?>]" value="<?= h($_POST['links'][$key] ?? '') ?>" placeholder="<?= h($meta['hint']) ?>" class="w-full border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/20 focus:border-white/35">
-                        </label>
-                    <?php endforeach; ?>
+            <div class="mt-9 grid items-start gap-8 lg:grid-cols-[1.35fr_.95fr]">
+                <!-- Form -->
+                <form method="POST" action="/music" enctype="multipart/form-data" class="grid gap-6 border border-white/10 bg-[#101011] p-5 sm:p-6">
+                    <div>
+                        <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">1 · track</p>
+                        <div class="mt-3 grid gap-4 sm:grid-cols-2">
+                            <label class="grid gap-2"><span class="font-mono text-xs text-white/40">title *</span><input id="f-title" name="title" required maxlength="160" value="<?= h($_POST['title'] ?? '') ?>" placeholder="Song / Release" class="w-full border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none focus:border-white/35"></label>
+                            <label class="grid gap-2"><span class="font-mono text-xs text-white/40">artist</span><input id="f-artist" name="artist" maxlength="160" value="<?= h($_POST['artist'] ?? '') ?>" placeholder="Artist Name" class="w-full border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none focus:border-white/35"></label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">2 · artwork</p>
+                        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                            <label class="grid gap-2 border border-white/10 bg-white/[0.03] p-3">
+                                <span class="font-mono text-xs text-white/40">cover (square)</span>
+                                <input id="f-cover" type="file" name="cover_image" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" class="block w-full cursor-pointer border border-white/10 bg-[#0b0b0c] p-2 text-xs text-white file:mr-3 file:cursor-pointer file:border-0 file:bg-[#f5f2ea] file:px-3 file:py-2 file:font-mono file:text-xs file:font-semibold file:text-[#0b0b0c]">
+                            </label>
+                            <label class="grid gap-2 border border-white/10 bg-white/[0.03] p-3">
+                                <span class="font-mono text-xs text-white/40">banner (wide)</span>
+                                <input id="f-banner" type="file" name="banner_image" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" class="block w-full cursor-pointer border border-white/10 bg-[#0b0b0c] p-2 text-xs text-white file:mr-3 file:cursor-pointer file:border-0 file:bg-[#f5f2ea] file:px-3 file:py-2 file:font-mono file:text-xs file:font-semibold file:text-[#0b0b0c]">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">3 · streaming links</p>
+                        <p class="mt-1 font-mono text-[11px] text-white/25">Mindestens einen Link eintragen. Nur echte Plattform-Domains werden akzeptiert.</p>
+                        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                            <?php foreach ($platforms as $key => $meta): $c = $colors[$key] ?? '#ffffff'; ?>
+                                <label class="relative grid gap-2">
+                                    <span class="flex items-center gap-2 font-mono text-xs text-white/45"><span class="inline-block h-2 w-2 rounded-full" style="background:<?= h($c) ?>"></span><?= h($meta['label']) ?></span>
+                                    <span class="relative block">
+                                        <input type="url" data-platform="<?= h($key) ?>" data-label="<?= h($meta['label']) ?>" data-badge="<?= h($meta['badge']) ?>" data-color="<?= h($c) ?>" name="links[<?= h($key) ?>]" value="<?= h($_POST['links'][$key] ?? '') ?>" placeholder="<?= h($meta['hint']) ?>" class="pf-input w-full border border-white/10 bg-[#0b0b0c] px-3 py-2.5 pr-8 text-sm text-white outline-none placeholder:text-white/20 focus:border-white/35">
+                                        <span class="pf-dot pointer-events-none absolute right-3 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full opacity-0 transition" style="background:<?= h($c) ?>"></span>
+                                    </span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">4 · link options</p>
+                        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                            <label class="grid gap-2"><span class="font-mono text-xs text-white/40">domain</span><select name="domain" class="border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none focus:border-white/35"><?php foreach ($available_domains as $domain): ?><option value="<?= h($domain) ?>" <?= $selected_domain === $domain ? 'selected' : '' ?>><?= h($domain) ?></option><?php endforeach; ?></select></label>
+                            <label class="grid gap-2"><span class="font-mono text-xs text-white/40">custom alias (optional)</span><input name="custom_code" value="<?= h($_POST['custom_code'] ?? '') ?>" placeholder="mytrack" class="border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none focus:border-white/35"></label>
+                            <label class="grid gap-2"><span class="font-mono text-xs text-white/40">password (optional)</span><input type="password" name="password" autocomplete="new-password" class="border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none focus:border-white/35"></label>
+                            <label class="grid gap-2"><span class="font-mono text-xs text-white/40">expires (optional)</span><input type="datetime-local" name="expires_at" value="<?= h($_POST['expires_at'] ?? '') ?>" class="border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none [color-scheme:dark] focus:border-white/35"></label>
+                            <label class="grid gap-2 sm:col-span-2"><span class="font-mono text-xs text-white/40">burn after N clicks (optional)</span><input type="number" min="1" max="1000000" name="max_clicks" value="<?= h($_POST['max_clicks'] ?? '') ?>" placeholder="unlimited" class="border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none focus:border-white/35"></label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="flex items-center justify-between bg-[#f5f2ea] px-5 py-3.5 font-mono text-sm font-semibold text-[#0b0b0c] transition hover:bg-white"><span>create music link</span><span>→</span></button>
+                </form>
+
+                <!-- Live preview -->
+                <div class="lg:sticky lg:top-6">
+                    <p class="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">live preview</p>
+                    <div class="overflow-hidden border border-white/10 bg-[#101011] shadow-2xl">
+                        <div id="pv-banner" class="hidden aspect-[21/9] w-full bg-cover bg-center"></div>
+                        <div class="p-6">
+                            <div class="mx-auto grid h-28 w-28 place-items-center overflow-hidden rounded-md border border-white/15 bg-white/5 shadow-xl">
+                                <img id="pv-cover" alt="" class="hidden h-full w-full object-cover">
+                                <span id="pv-note" class="font-mono text-3xl text-white/70">♪</span>
+                            </div>
+                            <p class="mt-6 text-center font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">listen now</p>
+                            <h2 id="pv-title" class="mt-2 break-words text-center text-2xl font-bold tracking-tight text-white">Dein Titel</h2>
+                            <p id="pv-artist" class="mt-1 text-center text-sm text-white/45"></p>
+                            <div id="pv-links" class="mt-6 grid gap-2.5">
+                                <p id="pv-empty" class="text-center font-mono text-xs text-white/25">Füge Streaming-Links hinzu…</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mt-3 text-center font-mono text-[11px] text-white/25">So sieht deine Seite aus.</p>
                 </div>
-
-                <div class="grid gap-3 border-t border-white/10 pt-4 md:grid-cols-2 xl:grid-cols-3">
-                    <label class="grid gap-2"><span class="font-mono text-xs text-white/40">domain</span><select name="domain" class="border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none"><?php foreach ($available_domains as $domain): ?><option value="<?= h($domain) ?>" <?= $selected_domain === $domain ? 'selected' : '' ?>><?= h($domain) ?></option><?php endforeach; ?></select></label>
-                    <label class="grid gap-2"><span class="font-mono text-xs text-white/40">custom alias optional</span><input name="custom_code" value="<?= h($_POST['custom_code'] ?? '') ?>" placeholder="mytrack" class="border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none focus:border-white/35"></label>
-                    <label class="grid gap-2"><span class="font-mono text-xs text-white/40">password optional</span><input type="password" name="password" class="border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none focus:border-white/35"></label>
-                    <label class="grid gap-2"><span class="font-mono text-xs text-white/40">expires optional</span><input type="datetime-local" name="expires_at" value="<?= h($_POST['expires_at'] ?? '') ?>" class="border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none focus:border-white/35"></label>
-                    <label class="grid gap-2"><span class="font-mono text-xs text-white/40">burn after clicks optional</span><input type="number" min="1" max="1000000" name="max_clicks" value="<?= h($_POST['max_clicks'] ?? '') ?>" class="border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm text-white outline-none focus:border-white/35"></label>
-                </div>
-
-                <button type="submit" class="mt-2 bg-[#f5f2ea] px-5 py-3 font-mono text-sm font-semibold text-[#0b0b0c] transition hover:bg-white">create music link →</button>
-            </form>
+            </div>
         </section>
+
         <footer class="mt-8 flex flex-col justify-between gap-2 border-t border-white/10 py-5 font-mono text-xs text-white/30 sm:flex-row"><span>0x79.one</span><span>Music Promoter · <?= date('Y') ?></span></footer>
     </main>
-    <script>function copyLink(btn,url){navigator.clipboard.writeText(url).then(function(){btn.textContent=btn.dataset.copied;setTimeout(function(){btn.textContent=btn.dataset.copy},1600);});}</script>
+    <script>
+    function copyLink(btn,url){navigator.clipboard.writeText(url).then(function(){var o=btn.textContent;btn.textContent=btn.dataset.copied;setTimeout(function(){btn.textContent=btn.dataset.copy},1600);});}
+
+    (function(){
+        var title=document.getElementById('f-title'), artist=document.getElementById('f-artist');
+        var pvTitle=document.getElementById('pv-title'), pvArtist=document.getElementById('pv-artist');
+        var pvCover=document.getElementById('pv-cover'), pvNote=document.getElementById('pv-note');
+        var pvBanner=document.getElementById('pv-banner');
+        var pvLinks=document.getElementById('pv-links'), pvEmpty=document.getElementById('pv-empty');
+        var inputs=Array.prototype.slice.call(document.querySelectorAll('.pf-input'));
+
+        function txt(){ pvTitle.textContent=title.value.trim()||'Dein Titel'; pvArtist.textContent=artist.value.trim(); }
+        function img(file,imgEl,noteEl,bgEl){
+            if(!file){ return; }
+            var r=new FileReader();
+            r.onload=function(e){
+                if(bgEl){ bgEl.style.backgroundImage='url('+e.target.result+')'; bgEl.classList.remove('hidden'); }
+                else { imgEl.src=e.target.result; imgEl.classList.remove('hidden'); if(noteEl) noteEl.classList.add('hidden'); }
+            };
+            r.readAsDataURL(file);
+        }
+        function rows(){
+            var html='', n=0;
+            inputs.forEach(function(i){
+                if(i.value.trim()===''){ return; }
+                n++;
+                var c=i.dataset.color, label=i.dataset.label, badge=i.dataset.badge;
+                html+='<div class="flex items-center justify-between gap-3 border border-white/10 bg-[#0b0b0c] p-2.5">'
+                    +'<span class="flex items-center gap-2.5"><span class="grid h-7 w-7 place-items-center rounded-full font-mono text-[10px] font-bold text-black" style="background:'+c+'">'+badge+'</span>'
+                    +'<span class="text-sm font-semibold text-white">'+label+'</span></span>'
+                    +'<span class="font-mono text-xs text-white/30">→</span></div>';
+            });
+            if(n===0){ pvLinks.innerHTML=''; pvLinks.appendChild(pvEmpty); pvEmpty.style.display=''; }
+            else { pvLinks.innerHTML=html; }
+        }
+        title.addEventListener('input',txt); artist.addEventListener('input',txt);
+        inputs.forEach(function(i){ i.addEventListener('input',rows); });
+        document.getElementById('f-cover').addEventListener('change',function(){ img(this.files[0],pvCover,pvNote,null); });
+        document.getElementById('f-banner').addEventListener('change',function(){ img(this.files[0],null,null,pvBanner); });
+        txt(); rows();
+    })();
+    </script>
 </body>
 </html>
     <?php
@@ -251,8 +362,14 @@ function renderMusicLandingPage($row) {
         $decoded = json_decode($links, true);
         $links = is_array($decoded) ? $decoded : [];
     }
-    $coverUrl = trim((string)($row['cover_url'] ?? ''));
+    $colors    = musicPlatformColors();
+    $coverUrl  = trim((string)($row['cover_url'] ?? ''));
     $bannerUrl = trim((string)($row['banner_url'] ?? ''));
+    $title     = (string)($row['title'] ?? 'Music');
+    $artist    = trim((string)($row['artist'] ?? ''));
+    $ogImage   = $coverUrl !== '' ? $coverUrl : ($bannerUrl !== '' ? $bannerUrl : '');
+    $ogDesc    = ($artist !== '' ? $artist . ' — ' : '') . 'Jetzt auf allen Plattformen streamen.';
+    $backdrop  = $coverUrl !== '' ? $coverUrl : $bannerUrl;
 
     header('Content-Type: text/html; charset=utf-8');
     ?>
@@ -261,46 +378,97 @@ function renderMusicLandingPage($row) {
 <head><link rel="icon" href="/logo.png" type="image/jpeg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= h($row['title'] ?? 'Music') ?> — Music Promoter</title>
+    <title><?= h($title) ?><?= $artist !== '' ? ' · ' . h($artist) : '' ?> — listen now</title>
+    <meta name="description" content="<?= h($ogDesc) ?>">
     <meta name="robots" content="index,follow">
+    <meta property="og:type" content="music.song">
+    <meta property="og:title" content="<?= h($title . ($artist !== '' ? ' · ' . $artist : '')) ?>">
+    <meta property="og:description" content="<?= h($ogDesc) ?>">
+    <?php if ($ogImage !== ''): ?><meta property="og:image" content="<?= h($ogImage) ?>"><meta name="twitter:image" content="<?= h($ogImage) ?>"><?php endif; ?>
+    <meta name="twitter:card" content="<?= $ogImage !== '' ? 'summary_large_image' : 'summary' ?>">
+    <meta name="twitter:title" content="<?= h($title . ($artist !== '' ? ' · ' . $artist : '')) ?>">
+    <meta name="twitter:description" content="<?= h($ogDesc) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <style>
+        @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+        .rise{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+        .lk{transition:transform .15s ease, border-color .15s ease, background .15s ease}
+        .lk:hover{transform:translateY(-2px)}
+    </style>
 </head>
-<body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
-    <main class="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-5 py-10">
-        <section class="overflow-hidden border border-white/10 bg-[#101011] shadow-2xl">
+<body class="relative min-h-screen overflow-x-hidden bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
+    <?php if ($backdrop !== ''): ?>
+    <div class="pointer-events-none fixed inset-0 -z-10 bg-cover bg-center opacity-25 blur-3xl saturate-150" style="background-image:url('<?= h($backdrop) ?>')"></div>
+    <div class="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-[#0b0b0c]/60 via-[#0b0b0c]/85 to-[#0b0b0c]"></div>
+    <?php endif; ?>
+
+    <main class="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-5 py-10">
+        <section class="rise overflow-hidden border border-white/10 bg-[#101011]/85 shadow-2xl backdrop-blur-xl">
             <?php if ($bannerUrl !== ''): ?>
-                <div class="aspect-[21/9] w-full bg-[#0b0b0c]"><img src="<?= h($bannerUrl) ?>" alt="Banner" class="h-full w-full object-cover"></div>
+                <div class="aspect-[21/9] w-full bg-[#0b0b0c]"><img src="<?= h($bannerUrl) ?>" alt="" class="h-full w-full object-cover"></div>
             <?php endif; ?>
             <div class="p-6 sm:p-8">
-                <div class="mx-auto grid h-32 w-32 place-items-center overflow-hidden border border-white/15 bg-white/5 shadow-xl sm:h-40 sm:w-40">
+                <div class="mx-auto grid h-36 w-36 place-items-center overflow-hidden rounded-xl border border-white/15 bg-white/5 shadow-xl ring-1 ring-black/40 sm:h-44 sm:w-44">
                     <?php if ($coverUrl !== ''): ?>
                         <img src="<?= h($coverUrl) ?>" alt="Cover" class="h-full w-full object-cover">
                     <?php else: ?>
-                        <span class="font-mono text-4xl text-white/80">♪</span>
+                        <span class="font-mono text-5xl text-white/70">♪</span>
                     <?php endif; ?>
                 </div>
-                <p class="mt-8 text-center font-mono text-xs uppercase tracking-[0.22em] text-white/35">listen now</p>
-                <h1 class="mt-3 text-center text-4xl font-bold tracking-[-0.05em] text-white"><?= h($row['title'] ?? 'Music') ?></h1>
-                <?php if (!empty($row['artist'])): ?><p class="mt-3 text-center text-lg text-white/50"><?= h($row['artist']) ?></p><?php endif; ?>
+                <p class="mt-7 text-center font-mono text-[11px] uppercase tracking-[0.28em] text-white/35">listen now</p>
+                <h1 class="mt-2 break-words text-center text-3xl font-extrabold tracking-[-0.04em] text-white sm:text-4xl"><?= h($title) ?></h1>
+                <?php if ($artist !== ''): ?><p class="mt-2 text-center text-base text-white/55"><?= h($artist) ?></p><?php endif; ?>
 
-                <div class="mt-8 grid gap-3">
-                <?php foreach ($links as $link): ?>
-                    <?php $url = (string)($link['url'] ?? ''); $label = (string)($link['label'] ?? 'Music'); $badge = (string)($link['badge'] ?? '♪'); ?>
-                    <?php if ($url === '') continue; ?>
-                    <a href="<?= h($url) ?>" target="_blank" rel="noopener nofollow" class="group flex items-center justify-between gap-4 border border-white/10 bg-[#0b0b0c] p-4 transition hover:border-white/35 hover:bg-[#151517]">
-                        <span class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-white/5 font-mono text-xs font-semibold text-white"><?= h($badge) ?></span><span class="font-semibold text-white"><?= h($label) ?></span></span>
-                        <span class="font-mono text-white/35 transition group-hover:translate-x-1 group-hover:text-white">→</span>
+                <div class="mt-7 grid gap-2.5">
+                <?php $i = 0; foreach ($links as $link): ?>
+                    <?php
+                        $url = (string)($link['url'] ?? '');
+                        if ($url === '') continue;
+                        $label = (string)($link['label'] ?? 'Music');
+                        $badge = (string)($link['badge'] ?? '♪');
+                        $key   = (string)($link['key'] ?? '');
+                        $c     = $colors[$key] ?? '#ffffff';
+                        $i++;
+                    ?>
+                    <a href="<?= h($url) ?>" target="_blank" rel="noopener nofollow" class="lk group rise flex items-center justify-between gap-4 border border-white/10 bg-[#0b0b0c]/70 p-3.5 hover:border-white/30 hover:bg-[#151517]" style="animation-delay:<?= $i * 60 ?>ms; border-left:3px solid <?= h($c) ?>">
+                        <span class="flex items-center gap-3">
+                            <span class="grid h-9 w-9 place-items-center rounded-full font-mono text-[11px] font-bold text-black" style="background:<?= h($c) ?>"><?= h($badge) ?></span>
+                            <span class="font-semibold text-white"><?= h($label) ?></span>
+                        </span>
+                        <span class="font-mono text-sm font-semibold text-white/40 transition group-hover:translate-x-1 group-hover:text-white">play →</span>
                     </a>
                 <?php endforeach; ?>
                 </div>
-                <p class="mt-7 text-center font-mono text-xs text-white/25">powered by 0x79 Music Promoter</p>
+
+                <div class="mt-6 flex items-center justify-center">
+                    <button type="button" id="shareBtn" data-copied="✓ link kopiert" class="flex items-center gap-2 border border-white/10 px-4 py-2 font-mono text-xs text-white/60 transition hover:border-white/30 hover:text-white">
+                        <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M7.2 11.2a2.8 2.8 0 1 0 0 1.6m0-1.6 9.6-5.4m-9.6 7 9.6 5.4m0 0a2.8 2.8 0 1 0 .1-.1m-.1-12.6a2.8 2.8 0 1 0 .1-.1"/></svg>
+                        <span>teilen</span>
+                    </button>
+                </div>
+
+                <p class="mt-7 text-center font-mono text-[11px] text-white/25">powered by <a href="/music" class="text-white/40 underline decoration-white/15 underline-offset-2 hover:text-white">0x79 Music Promoter</a></p>
             </div>
         </section>
     </main>
+    <script>
+    (function(){
+        var b=document.getElementById('shareBtn');
+        b.addEventListener('click',function(){
+            var data={title:document.title,url:location.href};
+            if(navigator.share){ navigator.share(data).catch(function(){}); return; }
+            navigator.clipboard.writeText(location.href).then(function(){
+                var s=b.querySelector('span'), o=s.textContent;
+                s.textContent=b.dataset.copied;
+                setTimeout(function(){ s.textContent=o; },1600);
+            });
+        });
+    })();
+    </script>
 </body>
 </html>
     <?php

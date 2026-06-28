@@ -204,28 +204,54 @@ if ($request_path === 'secure-share') {
 // MUSIC PROMOTER
 // ---------------------------------------------------------
 if ($request_path === 'music') {
-    header('Content-Type: text/html; charset=utf-8');
-    ?>
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <link rel="icon" href="/logo.png" type="image/jpeg">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Promoter — Coming Soon</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] flex items-center justify-center font-mono">
-    <div class="text-center p-8 border border-white/10 bg-[#101011] max-w-sm w-full">
-        <span class="h-1.5 w-1.5 inline-block rounded-full bg-rose-500 shadow-[0_0_8px_#f43f5e] mb-4"></span>
-        <h1 class="text-xl font-bold mb-2">Music Promoter</h1>
-        <p class="text-white/50 mb-6 text-sm">Dieses Tool ist in Kürze verfügbar.</p>
-        <a href="/" class="border border-white/10 px-4 py-2 hover:bg-[#f5f2ea] hover:text-[#0b0b0c] transition text-sm">Zur Startseite</a>
-    </div>
-</body>
-</html>
-    <?php
-    exit;
+    $musicError = '';
+    $musicShortUrl = '';
+    $musicLandingUrl = '';
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (isset($_POST['domain']) && in_array($_POST['domain'], $available_domains, true)) {
+            $selected_domain = $_POST['domain'];
+        }
+
+        if (!checkCreateRateLimit()) {
+            $musicError = musicErrorText('rate_limited');
+        } else {
+            [$okCover, $coverErr, $coverUrl]   = uploadMusicImageFromField('cover_image');
+            [$okBanner, $bannerErr, $bannerUrl] = uploadMusicImageFromField('banner_image');
+
+            if (!$okCover) {
+                $musicError = musicErrorText($coverErr);
+            } elseif (!$okBanner) {
+                $musicError = musicErrorText($bannerErr);
+            } else {
+                $linksInput = $_POST['links'] ?? [];
+                if (!is_array($linksInput)) $linksInput = [];
+
+                [$okMusic, $musicErr, $result] = createMusicPromo(
+                    $_POST['title']       ?? '',
+                    $_POST['artist']      ?? '',
+                    $linksInput,
+                    $selected_domain,
+                    $_POST['password']    ?? '',
+                    $_POST['expires_at']  ?? '',
+                    $_POST['max_clicks']  ?? '',
+                    $_POST['custom_code'] ?? '',
+                    currentUserId(),
+                    (string)($coverUrl ?? ''),
+                    (string)($bannerUrl ?? '')
+                );
+
+                if ($okMusic) {
+                    $musicShortUrl   = $result['short_url'];
+                    $musicLandingUrl = $result['music_url'];
+                } else {
+                    $musicError = musicErrorText($musicErr);
+                }
+            }
+        }
+    }
+
+    renderMusicPromoterPage($musicError, $musicShortUrl, $musicLandingUrl);
 }
 
 if (preg_match('#^music/([A-Za-z0-9]{1,32})$#', $request_path, $m)) {
@@ -952,6 +978,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
                 <span class="mx-1 h-4 w-px bg-white/10"></span>
                 <a href="/shorten" class="px-2.5 py-1.5 text-white">url</a>
                 <a href="/upload" class="px-2.5 py-1.5 transition hover:text-white"><?= h($t['upload']) ?></a>
+                <a href="/music" class="px-2.5 py-1.5 transition hover:text-white">music</a>
                 <a href="/api/docs" class="px-2.5 py-1.5 transition hover:text-white">api</a>
                 <a href="/abuse" class="px-2.5 py-1.5 transition hover:text-white"><?= h($t['abuse']) ?></a>
                 <?php if (isUserLoggedIn()): ?><a href="/account" class="px-2.5 py-1.5 transition hover:text-white">account</a><?php else: ?><a href="/login" class="px-2.5 py-1.5 transition hover:text-white">login</a><?php endif; ?>
@@ -1234,28 +1261,28 @@ $homePosts = fetchRssPosts(10);
                     </a>
 
                     <!-- Tool 04 -->
-                    <div class="relative flex flex-col justify-between border border-white/5 bg-[#111113]/50 p-4 opacity-50 select-none">
+                    <a href="/music" class="group relative flex flex-col justify-between border border-white/5 bg-[#111113] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#141417] hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
                         <div>
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-rose-500/50 shadow-[0_0_8px_#f43f5e50]"></span>
-                                    <span class="font-mono text-[10px] uppercase tracking-widest text-white/20">Tool 04</span>
+                                    <span class="h-1.5 w-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_#f43f5e]"></span>
+                                    <span class="font-mono text-[10px] uppercase tracking-widest text-white/30">Tool 04</span>
                                 </div>
-                                <span class="font-mono text-[10px] uppercase tracking-widest text-rose-400/80 font-semibold border border-rose-500/20 px-1.5 py-0.5">coming soon</span>
+                                <span class="font-mono text-sm text-white/25 transition-all duration-300 group-hover:translate-x-1 group-hover:text-rose-400">→</span>
                             </div>
-                            <h2 class="mt-3 text-lg font-medium tracking-tight text-white/60">
+                            <h2 class="mt-3 text-lg font-medium tracking-tight text-white transition-colors duration-300 group-hover:text-rose-400">
                                 <?= h($t['home_tool4_title']) ?>
                             </h2>
-                            <p class="mt-2 text-xs leading-relaxed text-white/30">
+                            <p class="mt-2 text-xs leading-relaxed text-white/45">
                                 <?= h($t['home_tool4_desc']) ?>
                             </p>
                         </div>
                         <div class="mt-5 flex flex-wrap gap-1.5">
-                            <span class="rounded bg-white/[0.01] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/25">spotify</span>
-                            <span class="rounded bg-white/[0.01] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/25">apple</span>
-                            <span class="rounded bg-white/[0.01] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/25">youtube</span>
+                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">spotify</span>
+                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">apple</span>
+                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">youtube</span>
                         </div>
-                    </div>
+                    </a>
 
                     <!-- Tool 05 -->
                     <a href="/metadata" class="group relative flex flex-col justify-between border border-white/5 bg-[#111113] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#141417] hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
