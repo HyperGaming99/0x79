@@ -1,0 +1,23 @@
+# Secrets / environment
+.env
+.env.*
+*.env
+
+# PHP dependencies
+/vendor/
+
+# Logs & caches
+*.log
+*.cache
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Temp / scratch
+/tmp/
+*.tmp
