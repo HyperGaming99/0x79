@@ -101,50 +101,266 @@ function renderUserAccountPage($notice = '') {
     [$pastesOk, $pastes] = fetchUserPastes($user['id'], 100, 0);
     $lastKey = $_SESSION['last_api_key'] ?? '';
     unset($_SESSION['last_api_key']);
+
+    $totalClicks = 0;
+    foreach ($links as $l) $totalClicks += (int)($l['click_count'] ?? 0);
+    $topLinks = $links;
+    usort($topLinks, function ($a, $b) { return (int)($b['click_count'] ?? 0) <=> (int)($a['click_count'] ?? 0); });
+    $topLinks = array_slice($topLinks, 0, 8);
+    $maxClicks = 0;
+    foreach ($topLinks as $l) $maxClicks = max($maxClicks, (int)($l['click_count'] ?? 0));
+
     header('Content-Type: text/html; charset=utf-8');
     ?>
-<!DOCTYPE html><html lang="de"><head><link rel="icon" href="/logo.png" type="image/jpeg"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>account — 0x79</title><?= userPageCss() ?></head>
-<body><main class="wrap"><div class="nav"><a class="brand" href="/" style="display:inline-flex;align-items:center;gap:6px"><img src="/logo.png" alt="Logo" class="h-10 w-10 rounded-lg object-cover">0x79</a><div class="inline"><a href="/shorten">shorten</a><a href="/upload">upload</a><a href="/paste">paste</a><a href="/music">music</a><a href="/logout">logout</a></div></div>
-<h1>account</h1><p class="muted">@<?= h($user['username'] ?? '') ?></p><?php if($notice): ?><p class="ok"><?= h($notice) ?></p><?php endif; ?>
-<?php if($lastKey): ?><div class="card"><h2>dein neuer API-Key</h2><p class="muted">Nur jetzt sichtbar. Kopieren und sicher speichern.</p><code style="display:block;white-space:normal;word-break:break-all"><?= h($lastKey) ?></code></div><?php endif; ?>
-<div class="grid"><section class="card"><h2>API</h2><p class="muted">Public Create-API braucht jetzt deinen API-Key.</p><p>Prefix: <code><?= h($user['api_key_prefix'] ?? '') ?>…</code></p><form method="POST" action="/account/action"><input type="hidden" name="action" value="regen_api_key"><button type="submit">API-Key neu generieren</button></form><pre class="muted">curl -X POST https://<?= h($host) ?>/api/paste \
+<!DOCTYPE html>
+<html lang="de">
+<head><link rel="icon" href="/logo.png" type="image/jpeg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>account — 0x79</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <style>
+        details.rowedit summary{list-style:none;cursor:pointer}
+        details.rowedit summary::-webkit-details-marker{display:none}
+        details.rowedit[open] summary{color:#fff;border-color:rgba(255,255,255,.4)}
+    </style>
+</head>
+<body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
+<main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-7 lg:px-8">
+
+    <header class="flex items-center justify-between border-b border-white/10 pb-5">
+        <a href="/" class="flex items-center gap-2">
+            <img src="/logo.png" alt="Logo" class="h-10 w-10 rounded-lg border border-white/10 object-cover">
+            <span class="font-mono text-sm tracking-tight text-white">0x79</span>
+        </a>
+        <nav class="flex items-center gap-1 font-mono text-xs text-white/45">
+            <a href="/shorten" class="px-2.5 py-1.5 transition hover:text-white">shorten</a>
+            <a href="/upload" class="px-2.5 py-1.5 transition hover:text-white">file</a>
+            <a href="/paste" class="px-2.5 py-1.5 transition hover:text-white">paste</a>
+            <a href="/music" class="px-2.5 py-1.5 transition hover:text-white">music</a>
+            <span class="mx-1 h-4 w-px bg-white/10"></span>
+            <a href="/account" class="px-2.5 py-1.5 text-white">account</a>
+            <a href="/logout" class="px-2.5 py-1.5 transition hover:text-white">logout</a>
+        </nav>
+    </header>
+
+    <section class="flex flex-col gap-2 py-9 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <p class="font-mono text-xs uppercase tracking-[0.22em] text-white/35">account</p>
+            <h1 class="mt-2 text-4xl font-semibold tracking-[-0.045em] text-white">@<?= h($user['username'] ?? '') ?></h1>
+        </div>
+        <p class="font-mono text-xs text-white/35">dabei seit <?= h(formatDateTime($user['created_at'] ?? '')) ?></p>
+    </section>
+
+    <?php if ($notice): ?>
+    <div class="mb-6 flex items-center gap-3 border border-emerald-400/25 bg-emerald-500/10 px-4 py-3">
+        <span class="font-mono text-xs text-emerald-300">✓</span>
+        <p class="text-sm text-emerald-100"><?= h($notice) ?></p>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($lastKey): ?>
+    <div class="mb-6 border border-emerald-400/25 bg-emerald-500/10 p-5">
+        <p class="font-mono text-xs uppercase tracking-[0.22em] text-emerald-300/60">dein neuer api-key — nur jetzt sichtbar</p>
+        <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <code id="new-key" class="min-w-0 flex-1 break-all border border-white/10 bg-black/30 px-3.5 py-3 font-mono text-sm text-white"><?= h($lastKey) ?></code>
+            <button type="button" onclick="copyText(this, document.getElementById('new-key').textContent)" data-copy="copy" data-copied="✓ copied" class="h-11 shrink-0 border border-white/15 px-4 font-mono text-xs text-white transition hover:border-white/40">copy</button>
+        </div>
+        <p class="mt-2 font-mono text-[11px] text-emerald-200/50">kopieren und sicher speichern — er wird nicht noch einmal angezeigt.</p>
+    </div>
+    <?php endif; ?>
+
+    <!-- Stat tiles -->
+    <section class="grid gap-3 sm:grid-cols-3">
+        <div class="border border-white/10 bg-[#101011] p-5">
+            <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">links & dateien</p>
+            <p class="mt-2 text-3xl font-semibold tracking-tight text-white"><?= h((string)count($links)) ?></p>
+        </div>
+        <div class="border border-white/10 bg-[#101011] p-5">
+            <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">clicks gesamt</p>
+            <p class="mt-2 text-3xl font-semibold tracking-tight text-white"><?= h((string)$totalClicks) ?></p>
+        </div>
+        <div class="border border-white/10 bg-[#101011] p-5">
+            <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">pastes</p>
+            <p class="mt-2 text-3xl font-semibold tracking-tight text-white"><?= h((string)count($pastes)) ?></p>
+        </div>
+    </section>
+
+    <div class="mt-3 grid items-start gap-3 lg:grid-cols-[1.2fr_.8fr]">
+        <!-- Top links chart -->
+        <section class="border border-white/10 bg-[#101011]">
+            <div class="border-b border-white/10 px-5 py-4">
+                <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">analytics</p>
+                <h2 class="mt-1 text-lg font-medium tracking-tight text-white">top links nach clicks</h2>
+            </div>
+            <div class="grid gap-3 p-5">
+            <?php if (!$linksOk): ?>
+                <p class="text-sm text-red-300">urls migration fehlt evtl. owner_user_id.</p>
+            <?php elseif (empty($topLinks) || $maxClicks === 0): ?>
+                <p class="font-mono text-xs text-white/35">noch keine clicks.</p>
+            <?php else: foreach ($topLinks as $l): $code = $l['short_code'] ?? ''; $clicks = (int)($l['click_count'] ?? 0); $pct = max(2, (int)round(($clicks / max(1, $maxClicks)) * 100)); ?>
+                <div class="grid grid-cols-[90px_1fr_50px] items-center gap-3">
+                    <a href="/account/stats?code=<?= h(rawurlencode($code)) ?>" class="truncate font-mono text-xs text-white/70 transition hover:text-white"><?= h($code) ?></a>
+                    <div class="h-5 w-full bg-white/[0.04]">
+                        <div class="h-5 bg-[#f5f2ea]/80 transition-all" style="width:<?= h((string)$pct) ?>%"></div>
+                    </div>
+                    <span class="text-right font-mono text-xs text-white/45"><?= h((string)$clicks) ?></span>
+                </div>
+            <?php endforeach; endif; ?>
+            </div>
+        </section>
+
+        <!-- API card -->
+        <section class="border border-white/10 bg-[#101011]">
+            <div class="border-b border-white/10 px-5 py-4">
+                <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">api</p>
+                <h2 class="mt-1 text-lg font-medium tracking-tight text-white">dein api-key</h2>
+            </div>
+            <div class="grid gap-4 p-5">
+                <p class="text-sm leading-6 text-white/50">Die Create-API braucht deinen Key im <code class="border border-white/10 bg-[#0b0b0c] px-1.5 py-0.5 font-mono text-xs text-white/70">X-API-Key</code> Header.</p>
+                <p class="font-mono text-xs text-white/45">prefix: <code class="border border-white/10 bg-[#0b0b0c] px-1.5 py-0.5 text-white/70"><?= h($user['api_key_prefix'] ?? '') ?>…</code></p>
+                <pre class="overflow-x-auto border border-white/10 bg-[#0b0b0c] p-3.5 font-mono text-[11px] leading-5 text-white/45">curl -X POST https://<?= h($host) ?>/api/paste \
   -H "X-API-Key: YOUR_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"content":"hello"}'</pre></section><section class="card"><h2>guest-regel</h2><p class="muted">Ohne Login bekommen neue Links, Uploads und Pastes automatisch ein Ablaufdatum in 14 Tagen. Mit Account nur, wenn du selbst eins setzt.</p></section></div>
-<section class="card"><h2>analytics</h2><?php if(!$linksOk): ?><p class="err">urls migration fehlt evtl. owner_user_id.</p><?php elseif(empty($links)): ?><p class="muted">noch keine daten.</p><?php else: ?><?php
-    $chartLinks = array_slice($links, 0, 10);
-    $palette = ['#0f7a3d','#09aeea','#f59e0b','#0b70b7','#dc2626','#7c3aed','#0891b2','#16a34a','#db2777','#ca8a04'];
-    $values = array_map(function($x){ return max(0, (int)($x['click_count'] ?? 0)); }, $chartLinks);
-    $maxClicks = max(1, ...$values);
-    $w = 900; $h = 430; $left = 68; $right = 34; $top = 42; $bottom = 72;
-    $plotW = $w - $left - $right; $plotH = $h - $top - $bottom;
-    $count = max(1, count($chartLinks));
-    $points = [];
-    foreach ($chartLinks as $i => $l) {
-        $x = $count === 1 ? $left + ($plotW / 2) : $left + (($plotW / ($count - 1)) * $i);
-        $y = $top + $plotH - (((int)($l['click_count'] ?? 0) / $maxClicks) * $plotH);
-        $points[] = [round($x, 1), round($y, 1)];
-    }
-    $poly = implode(' ', array_map(function($p){ return $p[0] . ',' . $p[1]; }, $points));
-?><div class="chartbox"><p class="charttitle">Clicks by Link</p><div class="chartwrap"><svg class="chart" viewBox="0 0 <?= h((string)$w) ?> <?= h((string)$h) ?>" role="img" aria-label="Clicks by link chart">
-    <?php for($g=0;$g<=5;$g++): $gy=$top+($plotH/5)*$g; $val=(int)round($maxClicks - ($maxClicks/5)*$g); ?>
-        <line class="gridline" x1="<?= h((string)$left) ?>" y1="<?= h((string)round($gy,1)) ?>" x2="<?= h((string)($w-$right)) ?>" y2="<?= h((string)round($gy,1)) ?>"></line>
-        <text x="<?= h((string)($left-15)) ?>" y="<?= h((string)(round($gy,1)+5)) ?>" text-anchor="end" font-size="13"><?= h((string)$val) ?></text>
-    <?php endfor; ?>
-    <line class="axis" x1="<?= h((string)$left) ?>" y1="<?= h((string)($top+$plotH)) ?>" x2="<?= h((string)($w-$right)) ?>" y2="<?= h((string)($top+$plotH)) ?>"></line>
-    <line class="axis" x1="<?= h((string)$left) ?>" y1="<?= h((string)$top) ?>" x2="<?= h((string)$left) ?>" y2="<?= h((string)($top+$plotH)) ?>"></line>
-    <text x="22" y="<?= h((string)($top+$plotH/2)) ?>" transform="rotate(-90 22 <?= h((string)($top+$plotH/2)) ?>)" text-anchor="middle" font-size="15">Clicks</text>
-    <text x="<?= h((string)($left+$plotW/2)) ?>" y="<?= h((string)($h-20)) ?>" text-anchor="middle" font-size="15">Links / Files</text>
-    <polyline class="mainline" points="<?= h($poly) ?>"></polyline>
-    <?php foreach($chartLinks as $i=>$l): $code=$l['short_code']??''; $clicks=(int)($l['click_count']??0); $color=$palette[$i % count($palette)]; $px=$points[$i][0]; $py=$points[$i][1]; ?>
-        <circle class="point" cx="<?= h((string)$px) ?>" cy="<?= h((string)$py) ?>" r="6" fill="<?= h($color) ?>"></circle>
-        <text x="<?= h((string)$px) ?>" y="<?= h((string)($top+$plotH+27)) ?>" text-anchor="middle" font-size="12"><?= h(mb_strlen($code) > 8 ? mb_substr($code,0,8).'…' : $code) ?></text>
-        <text x="<?= h((string)($px+9)) ?>" y="<?= h((string)($py-9)) ?>" font-size="12"><?= h((string)$clicks) ?></text>
-    <?php endforeach; ?>
-</svg></div><div class="chartlegend"><?php foreach($chartLinks as $i=>$l): $code=$l['short_code']??''; $color=$palette[$i % count($palette)]; ?><span class="legenditem"><span class="legendswatch" style="background:<?= h($color) ?>"></span><?= h($code) ?></span><?php endforeach; ?></div></div><p class="muted tiny">Design wie eine ruhige Line-Chart-Preview. Die Daten sind echte Gesamt-Clicks pro Link/File; historische Quartale gibt es erst, wenn Click-Events separat gespeichert werden.</p><?php endif; ?></section>
-<section class="card"><h2>deine links & dateien</h2><?php if(!$linksOk): ?><p class="err">urls migration fehlt evtl. owner_user_id.</p><?php elseif(empty($links)): ?><p class="muted">noch nichts erstellt.</p><?php else: ?><?php $palette = ['#7dd3fc','#86efac','#fde68a','#fca5a5','#c4b5fd','#f9a8d4','#67e8f9','#fdba74','#a7f3d0','#d8b4fe']; ?><table><thead><tr><th>code</th><th>ziel</th><th>clicks</th><th>expires</th><th></th></tr></thead><tbody><?php foreach($links as $i=>$l): $code=$l['short_code']??''; $color=$palette[$i % count($palette)]; ?><tr><td><span class="swatch" style="background:<?= h($color) ?>"></span><a href="/<?= h($code) ?>"><code><?= h($code) ?></code></a><?php if(!empty($l['preview_enabled'])): ?> <span class="muted tiny">preview</span><?php endif; ?></td><td class="url"><?= h($l['long_url']??'') ?></td><td><?= h((string)($l['click_count']??0)) ?></td><td><?= !empty($l['expires_at']) ? h(formatDateTime($l['expires_at'])) : '<span class="muted">never</span>' ?></td><td><div class="inline"><a class="btn ghost tiny" href="/account/stats?code=<?= h(rawurlencode($code)) ?>">stats</a><a class="btn ghost tiny" href="/qr?d=<?= h(rawurlencode('https://' . $host . '/' . $code)) ?>" target="_blank" rel="noopener">QR</a><details><summary class="btn ghost tiny" style="cursor:pointer;list-style:none">edit</summary><form method="POST" action="/account/action" style="margin-top:10px;min-width:240px"><input type="hidden" name="action" value="edit_link"><input type="hidden" name="id" value="<?= h($l['id']??'') ?>"><label class="tiny muted">ziel-url</label><input name="long_url" value="<?= h($l['long_url']??'') ?>"><label class="tiny muted">expires (leer = nie)</label><input type="datetime-local" name="expires_at" value="<?= !empty($l['expires_at']) ? h(date('Y-m-d\TH:i', (int)strtotime((string)$l['expires_at']))) : '' ?>"><label class="tiny muted">max clicks (leer = ∞)</label><input type="number" min="1" name="max_clicks" value="<?= h((string)($l['max_clicks'] ?? '')) ?>"><label class="tiny muted">neues passwort</label><input type="password" name="password" placeholder="leer = unverändert"><label class="tiny" style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="clear_password" value="1" style="width:auto;margin:0"> passwort entfernen</label><button type="submit">speichern</button></form></details><form method="POST" action="/account/action" onsubmit="return confirm('wirklich löschen?')" style="display:inline"><input type="hidden" name="action" value="delete_link"><input type="hidden" name="id" value="<?= h($l['id']??'') ?>"><button class="danger tiny" type="submit">löschen</button></form></div></td></tr><?php endforeach; ?></tbody></table><?php endif; ?></section>
-<section class="card"><h2>deine pastes</h2><?php if(!$pastesOk): ?><p class="err">pastes migration fehlt evtl. owner_user_id.</p><?php elseif(empty($pastes)): ?><p class="muted">noch keine pastes.</p><?php else: ?><table><thead><tr><th>code</th><th>views</th><th>expires</th><th></th></tr></thead><tbody><?php foreach($pastes as $pa): $code=$pa['paste_code']??''; ?><tr><td><a href="/<?= h($code) ?>"><code><?= h($code) ?></code></a> <a class="muted" href="/raw/<?= h($code) ?>">raw</a></td><td><?= h((string)($pa['view_count']??0)) ?></td><td><?= !empty($pa['expires_at']) ? h(formatDateTime($pa['expires_at'])) : '<span class="muted">never</span>' ?></td><td><form method="POST" action="/account/action" onsubmit="return confirm('paste löschen?')"><input type="hidden" name="action" value="delete_paste"><input type="hidden" name="id" value="<?= h($pa['id']??'') ?>"><button class="danger" type="submit">löschen</button></form></td></tr><?php endforeach; ?></tbody></table><?php endif; ?></section>
-</main></body></html>
+  -d '{"content":"hello"}'</pre>
+                <form method="POST" action="/account/action">
+                    <input type="hidden" name="action" value="regen_api_key">
+                    <button type="submit" class="flex h-10 w-full items-center justify-between border border-white/15 px-4 font-mono text-xs text-white transition hover:border-white/40"><span>api-key neu generieren</span><span>↻</span></button>
+                </form>
+                <p class="border-l border-white/15 pl-3 font-mono text-[11px] leading-5 text-white/30">gast-regel: ohne login laufen neue links, uploads und pastes automatisch nach 14 tagen ab. mit account nur, wenn du selbst ein ablaufdatum setzt.</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Links table -->
+    <section class="mt-3 border border-white/10 bg-[#101011]">
+        <div class="flex items-center justify-between border-b border-white/10 px-5 py-4">
+            <div>
+                <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">verwalten</p>
+                <h2 class="mt-1 text-lg font-medium tracking-tight text-white">deine links & dateien</h2>
+            </div>
+            <span class="font-mono text-xs text-white/30"><?= h((string)count($links)) ?></span>
+        </div>
+        <?php if (!$linksOk): ?>
+            <p class="p-5 text-sm text-red-300">urls migration fehlt evtl. owner_user_id.</p>
+        <?php elseif (empty($links)): ?>
+            <p class="p-5 font-mono text-xs text-white/35">noch nichts erstellt. <a href="/shorten" class="text-white underline decoration-white/25 underline-offset-2">ersten link erstellen →</a></p>
+        <?php else: ?>
+        <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead><tr class="border-b border-white/10 font-mono text-[11px] uppercase tracking-[0.15em] text-white/30">
+                <th class="px-5 py-3 font-medium">code</th><th class="px-3 py-3 font-medium">ziel</th><th class="px-3 py-3 font-medium">clicks</th><th class="px-3 py-3 font-medium">expires</th><th class="px-5 py-3"></th>
+            </tr></thead>
+            <tbody>
+            <?php foreach ($links as $l): $code = $l['short_code'] ?? ''; ?>
+                <tr class="border-b border-white/5 align-top transition hover:bg-white/[0.02]">
+                    <td class="px-5 py-3.5">
+                        <a href="/<?= h($code) ?>" class="font-mono text-white underline decoration-white/15 underline-offset-4 hover:decoration-white/50"><?= h($code) ?></a>
+                        <?php if (!empty($l['preview_enabled'])): ?><span class="ml-1.5 border border-white/10 px-1.5 py-0.5 font-mono text-[10px] text-white/35">preview</span><?php endif; ?>
+                        <?php if (!empty($l['password_hash'])): ?><span class="ml-1.5 border border-white/10 px-1.5 py-0.5 font-mono text-[10px] text-white/35">🔒</span><?php endif; ?>
+                    </td>
+                    <td class="max-w-[340px] truncate px-3 py-3.5 text-white/50"><?= h($l['long_url'] ?? '') ?></td>
+                    <td class="px-3 py-3.5 font-mono text-white/70"><?= h((string)($l['click_count'] ?? 0)) ?></td>
+                    <td class="whitespace-nowrap px-3 py-3.5 font-mono text-xs text-white/45"><?= !empty($l['expires_at']) ? h(formatDateTime($l['expires_at'])) : '<span class="text-white/25">nie</span>' ?></td>
+                    <td class="px-5 py-3.5">
+                        <div class="flex flex-wrap items-start justify-end gap-1.5">
+                            <a class="border border-white/10 px-2.5 py-1 font-mono text-[11px] text-white/60 transition hover:border-white/35 hover:text-white" href="/account/stats?code=<?= h(rawurlencode($code)) ?>">stats</a>
+                            <a class="border border-white/10 px-2.5 py-1 font-mono text-[11px] text-white/60 transition hover:border-white/35 hover:text-white" href="/qr?d=<?= h(rawurlencode('https://' . $host . '/' . $code)) ?>" target="_blank" rel="noopener">qr</a>
+                            <details class="rowedit relative">
+                                <summary class="border border-white/10 px-2.5 py-1 font-mono text-[11px] text-white/60 transition hover:border-white/35 hover:text-white">edit</summary>
+                                <form method="POST" action="/account/action" class="absolute right-0 z-10 mt-2 grid w-72 gap-2.5 border border-white/15 bg-[#141416] p-4 shadow-2xl">
+                                    <input type="hidden" name="action" value="edit_link">
+                                    <input type="hidden" name="id" value="<?= h($l['id'] ?? '') ?>">
+                                    <label class="grid gap-1.5"><span class="font-mono text-[11px] text-white/40">ziel-url</span>
+                                        <input name="long_url" value="<?= h($l['long_url'] ?? '') ?>" class="h-9 w-full border border-white/10 bg-[#0b0b0c] px-2.5 font-mono text-xs text-white outline-none focus:border-white/35"></label>
+                                    <label class="grid gap-1.5"><span class="font-mono text-[11px] text-white/40">expires (leer = nie)</span>
+                                        <input type="datetime-local" name="expires_at" value="<?= !empty($l['expires_at']) ? h(date('Y-m-d\TH:i', (int)strtotime((string)$l['expires_at']))) : '' ?>" class="h-9 w-full border border-white/10 bg-[#0b0b0c] px-2.5 font-mono text-xs text-white outline-none [color-scheme:dark] focus:border-white/35"></label>
+                                    <label class="grid gap-1.5"><span class="font-mono text-[11px] text-white/40">max clicks (leer = ∞)</span>
+                                        <input type="number" min="1" name="max_clicks" value="<?= h((string)($l['max_clicks'] ?? '')) ?>" class="h-9 w-full border border-white/10 bg-[#0b0b0c] px-2.5 font-mono text-xs text-white outline-none focus:border-white/35"></label>
+                                    <label class="grid gap-1.5"><span class="font-mono text-[11px] text-white/40">neues passwort</span>
+                                        <input type="password" name="password" placeholder="leer = unverändert" autocomplete="new-password" class="h-9 w-full border border-white/10 bg-[#0b0b0c] px-2.5 text-xs text-white outline-none placeholder:text-white/20 focus:border-white/35"></label>
+                                    <label class="flex items-center gap-2 font-mono text-[11px] text-white/40"><input type="checkbox" name="clear_password" value="1" class="h-3.5 w-3.5 accent-[#f5f2ea]"> passwort entfernen</label>
+                                    <button type="submit" class="mt-1 h-9 bg-[#f5f2ea] font-mono text-xs font-semibold text-[#0b0b0c] transition hover:bg-white">speichern</button>
+                                </form>
+                            </details>
+                            <form method="POST" action="/account/action" onsubmit="return confirm('wirklich löschen?')">
+                                <input type="hidden" name="action" value="delete_link">
+                                <input type="hidden" name="id" value="<?= h($l['id'] ?? '') ?>">
+                                <button type="submit" class="border border-red-400/20 px-2.5 py-1 font-mono text-[11px] text-red-300/70 transition hover:border-red-400/50 hover:text-red-200">löschen</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        </div>
+        <?php endif; ?>
+    </section>
+
+    <!-- Pastes table -->
+    <section class="mt-3 border border-white/10 bg-[#101011]">
+        <div class="flex items-center justify-between border-b border-white/10 px-5 py-4">
+            <div>
+                <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">verwalten</p>
+                <h2 class="mt-1 text-lg font-medium tracking-tight text-white">deine pastes</h2>
+            </div>
+            <span class="font-mono text-xs text-white/30"><?= h((string)count($pastes)) ?></span>
+        </div>
+        <?php if (!$pastesOk): ?>
+            <p class="p-5 text-sm text-red-300">pastes migration fehlt evtl. owner_user_id.</p>
+        <?php elseif (empty($pastes)): ?>
+            <p class="p-5 font-mono text-xs text-white/35">noch keine pastes. <a href="/paste" class="text-white underline decoration-white/25 underline-offset-2">ersten paste erstellen →</a></p>
+        <?php else: ?>
+        <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead><tr class="border-b border-white/10 font-mono text-[11px] uppercase tracking-[0.15em] text-white/30">
+                <th class="px-5 py-3 font-medium">code</th><th class="px-3 py-3 font-medium">views</th><th class="px-3 py-3 font-medium">expires</th><th class="px-5 py-3"></th>
+            </tr></thead>
+            <tbody>
+            <?php foreach ($pastes as $pa): $code = $pa['paste_code'] ?? ''; ?>
+                <tr class="border-b border-white/5 transition hover:bg-white/[0.02]">
+                    <td class="px-5 py-3.5">
+                        <a href="/<?= h($code) ?>" class="font-mono text-white underline decoration-white/15 underline-offset-4 hover:decoration-white/50"><?= h($code) ?></a>
+                        <a href="/raw/<?= h($code) ?>" class="ml-2 font-mono text-[11px] text-white/35 hover:text-white">raw</a>
+                    </td>
+                    <td class="px-3 py-3.5 font-mono text-white/70"><?= h((string)($pa['view_count'] ?? 0)) ?></td>
+                    <td class="whitespace-nowrap px-3 py-3.5 font-mono text-xs text-white/45"><?= !empty($pa['expires_at']) ? h(formatDateTime($pa['expires_at'])) : '<span class="text-white/25">nie</span>' ?></td>
+                    <td class="px-5 py-3.5 text-right">
+                        <form method="POST" action="/account/action" onsubmit="return confirm('paste löschen?')" class="inline">
+                            <input type="hidden" name="action" value="delete_paste">
+                            <input type="hidden" name="id" value="<?= h($pa['id'] ?? '') ?>">
+                            <button type="submit" class="border border-red-400/20 px-2.5 py-1 font-mono text-[11px] text-red-300/70 transition hover:border-red-400/50 hover:text-red-200">löschen</button>
+                        </form>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        </div>
+        <?php endif; ?>
+    </section>
+
+    <footer class="mt-auto flex flex-col justify-between gap-2 border-t border-white/10 py-5 pt-8 font-mono text-xs text-white/30 sm:flex-row">
+        <span>0x79.one</span>
+        <span>account · <?= date('Y') ?></span>
+    </footer>
+</main>
+<script>
+function copyText(btn, text){
+    navigator.clipboard.writeText(text).then(function(){
+        var o = btn.textContent;
+        btn.textContent = btn.dataset.copied;
+        setTimeout(function(){ btn.textContent = btn.dataset.copy; }, 1600);
+    });
+}
+</script>
+</body>
+</html>
     <?php
     exit;
 }
@@ -172,42 +388,165 @@ function renderLinkStatsPage($code, $clicks) {
     arsort($byRef); arsort($byDevice); arsort($byCountry);
     $last30 = array_sum($byDay);
     $maxDay = max(1, $byDay ? max($byDay) : 1);
+    $maxRef = max(1, $byRef ? max($byRef) : 1);
+    $deviceTotal = max(1, array_sum($byDevice));
+    $deviceColors = ['desktop' => '#7dd3fc', 'mobile' => '#86efac', 'bot' => '#fca5a5', 'other' => '#c4b5fd'];
 
     // Bar chart geometry
-    $bw = 18; $gap = 4; $chartH = 120; $padL = 4; $padT = 8;
+    $bw = 18; $gap = 5; $chartH = 150; $padL = 4; $padT = 10;
     $chartW = $padL * 2 + count($byDay) * ($bw + $gap);
 
     header('Content-Type: text/html; charset=utf-8');
-    ?><!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="/logo.png" type="image/jpeg"><title>stats /<?= h($code) ?> — 0x79</title><?= userPageCss() ?></head><body><div class="wrap">
-    <div class="nav"><a class="brand" href="/">0x79</a><a class="btn ghost" href="/account">← account</a></div>
-    <h1 style="margin:0 0 6px">stats · <code><?= h($code) ?></code></h1>
-    <p class="muted"><a href="<?= h($shortUrl) ?>" target="_blank" rel="noopener"><?= h($shortUrl) ?></a></p>
+    ?>
+<!DOCTYPE html>
+<html lang="de">
+<head><link rel="icon" href="/logo.png" type="image/jpeg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>stats /<?= h($code) ?> — 0x79</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+</head>
+<body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
+<main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-7 lg:px-8">
 
-    <div class="grid" style="grid-template-columns:repeat(3,1fr)">
-        <div class="card"><div class="muted tiny">clicks total</div><div style="font-size:30px"><?= h((string)$total) ?></div></div>
-        <div class="card"><div class="muted tiny">last 30 days</div><div style="font-size:30px"><?= h((string)$last30) ?></div></div>
-        <div class="card"><div class="muted tiny">unique referrers</div><div style="font-size:30px"><?= h((string)count($byRef)) ?></div></div>
+    <header class="flex items-center justify-between border-b border-white/10 pb-5">
+        <a href="/" class="flex items-center gap-2">
+            <img src="/logo.png" alt="Logo" class="h-10 w-10 rounded-lg border border-white/10 object-cover">
+            <span class="font-mono text-sm tracking-tight text-white">0x79</span>
+        </a>
+        <nav class="flex items-center gap-1 font-mono text-xs text-white/45">
+            <a href="/account" class="px-2.5 py-1.5 transition hover:text-white">← account</a>
+            <span class="mx-1 h-4 w-px bg-white/10"></span>
+            <a href="/logout" class="px-2.5 py-1.5 transition hover:text-white">logout</a>
+        </nav>
+    </header>
+
+    <section class="flex flex-col gap-2 py-9 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <p class="font-mono text-xs uppercase tracking-[0.22em] text-white/35">stats</p>
+            <h1 class="mt-2 font-mono text-4xl font-semibold tracking-[-0.045em] text-white">/<?= h($code) ?></h1>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="<?= h($shortUrl) ?>" target="_blank" rel="noopener" class="font-mono text-xs text-white/45 underline decoration-white/15 underline-offset-4 transition hover:text-white"><?= h($shortUrl) ?></a>
+            <a href="/qr?d=<?= h(rawurlencode($shortUrl)) ?>" target="_blank" rel="noopener" class="border border-white/10 px-2.5 py-1 font-mono text-[11px] text-white/60 transition hover:border-white/35 hover:text-white">qr</a>
+        </div>
+    </section>
+
+    <!-- Stat tiles -->
+    <section class="grid gap-3 sm:grid-cols-3">
+        <div class="border border-white/10 bg-[#101011] p-5">
+            <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">clicks erfasst</p>
+            <p class="mt-2 text-3xl font-semibold tracking-tight text-white"><?= h((string)$total) ?></p>
+        </div>
+        <div class="border border-white/10 bg-[#101011] p-5">
+            <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">letzte 30 tage</p>
+            <p class="mt-2 text-3xl font-semibold tracking-tight text-white"><?= h((string)$last30) ?></p>
+        </div>
+        <div class="border border-white/10 bg-[#101011] p-5">
+            <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">referrer</p>
+            <p class="mt-2 text-3xl font-semibold tracking-tight text-white"><?= h((string)count($byRef)) ?></p>
+        </div>
+    </section>
+
+    <!-- 30-day chart -->
+    <section class="mt-3 border border-white/10 bg-[#101011]">
+        <div class="border-b border-white/10 px-5 py-4">
+            <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">verlauf</p>
+            <h2 class="mt-1 text-lg font-medium tracking-tight text-white">clicks · letzte 30 tage</h2>
+        </div>
+        <div class="p-5">
+        <?php if ($total === 0): ?>
+            <p class="font-mono text-xs leading-6 text-white/35">noch keine click-daten. falls frisch deployed: die <code class="border border-white/10 bg-[#0b0b0c] px-1.5 py-0.5 text-white/60">link_clicks</code>-tabelle muss existieren — siehe schema.sql.</p>
+        <?php else: ?>
+            <div class="overflow-x-auto">
+            <svg width="<?= h((string)$chartW) ?>" height="<?= h((string)($chartH + 30)) ?>" viewBox="0 0 <?= h((string)$chartW) ?> <?= h((string)($chartH + 30)) ?>">
+            <?php for ($g = 1; $g <= 3; $g++): $gy = $padT + ($chartH / 4) * $g; ?>
+                <line x1="0" y1="<?= h((string)round($gy, 1)) ?>" x2="<?= h((string)$chartW) ?>" y2="<?= h((string)round($gy, 1)) ?>" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+            <?php endfor; ?>
+            <?php $x = $padL; foreach ($byDay as $d => $cnt): $bh = (int)round(($cnt / $maxDay) * $chartH); $y = $padT + $chartH - $bh; ?>
+                <rect x="<?= h((string)$x) ?>" y="<?= h((string)$padT) ?>" width="<?= h((string)$bw) ?>" height="<?= h((string)$chartH) ?>" fill="rgba(255,255,255,.03)"/>
+                <rect x="<?= h((string)$x) ?>" y="<?= h((string)$y) ?>" width="<?= h((string)$bw) ?>" height="<?= h((string)max(2, $bh)) ?>" fill="<?= $cnt > 0 ? '#f5f2ea' : 'rgba(255,255,255,.08)' ?>" opacity="<?= $cnt > 0 ? '0.85' : '1' ?>"><title><?= h($d) ?>: <?= h((string)$cnt) ?></title></rect>
+                <?php if ((int)substr($d, 8, 2) === 1 || $d === array_key_first($byDay) || $d === array_key_last($byDay)): ?>
+                <text x="<?= h((string)($x + $bw / 2)) ?>" y="<?= h((string)($padT + $chartH + 18)) ?>" font-size="10" fill="rgba(255,255,255,.3)" font-family="JetBrains Mono,monospace" text-anchor="middle"><?= h(substr($d, 5)) ?></text>
+                <?php endif; ?>
+            <?php $x += $bw + $gap; endforeach; ?>
+            </svg>
+            </div>
+        <?php endif; ?>
+        </div>
+    </section>
+
+    <div class="mt-3 grid items-start gap-3 lg:grid-cols-2">
+        <!-- Referrers -->
+        <section class="border border-white/10 bg-[#101011]">
+            <div class="border-b border-white/10 px-5 py-4">
+                <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">herkunft</p>
+                <h2 class="mt-1 text-lg font-medium tracking-tight text-white">top referrer</h2>
+            </div>
+            <div class="grid gap-3 p-5">
+            <?php if (!$byRef): ?>
+                <p class="font-mono text-xs text-white/35">—</p>
+            <?php else: foreach (array_slice($byRef, 0, 10, true) as $r => $n): $pct = max(2, (int)round(($n / $maxRef) * 100)); ?>
+                <div class="grid grid-cols-[130px_1fr_44px] items-center gap-3">
+                    <span class="truncate font-mono text-xs text-white/70"><?= h($r) ?></span>
+                    <div class="h-4 w-full bg-white/[0.04]"><div class="h-4 bg-[#f5f2ea]/70" style="width:<?= h((string)$pct) ?>%"></div></div>
+                    <span class="text-right font-mono text-xs text-white/45"><?= h((string)$n) ?></span>
+                </div>
+            <?php endforeach; endif; ?>
+            </div>
+        </section>
+
+        <!-- Devices + countries -->
+        <section class="border border-white/10 bg-[#101011]">
+            <div class="border-b border-white/10 px-5 py-4">
+                <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">besucher</p>
+                <h2 class="mt-1 text-lg font-medium tracking-tight text-white">geräte & länder</h2>
+            </div>
+            <div class="grid gap-5 p-5">
+                <?php if (!$byDevice): ?>
+                    <p class="font-mono text-xs text-white/35">—</p>
+                <?php else: ?>
+                    <div class="flex h-5 w-full overflow-hidden bg-white/[0.04]">
+                    <?php foreach ($byDevice as $dev => $n): $pct = ($n / $deviceTotal) * 100; ?>
+                        <div class="h-5" style="width:<?= h((string)round($pct, 2)) ?>%;background:<?= h($deviceColors[$dev] ?? '#c4b5fd') ?>" title="<?= h($dev) ?>: <?= h((string)$n) ?>"></div>
+                    <?php endforeach; ?>
+                    </div>
+                    <div class="flex flex-wrap gap-x-5 gap-y-2">
+                    <?php foreach ($byDevice as $dev => $n): ?>
+                        <span class="flex items-center gap-2 font-mono text-xs text-white/60">
+                            <span class="h-2.5 w-2.5 rounded-full" style="background:<?= h($deviceColors[$dev] ?? '#c4b5fd') ?>"></span>
+                            <?= h($dev) ?> <span class="text-white/35"><?= h((string)$n) ?></span>
+                        </span>
+                    <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($byCountry): ?>
+                <div class="border-t border-white/10 pt-4">
+                    <p class="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">top länder</p>
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
+                    <?php foreach (array_slice($byCountry, 0, 8, true) as $co => $n): ?>
+                        <span class="flex items-center justify-between font-mono text-xs text-white/60"><span><?= h($co) ?></span><span class="text-white/35"><?= h((string)$n) ?></span></span>
+                    <?php endforeach; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+        </section>
     </div>
 
-    <div class="card"><h2 style="margin:0 0 12px">clicks · last 30 days</h2>
-    <?php if ($total === 0): ?>
-        <p class="muted">noch keine click-daten. (falls gerade frisch deployed: die <code>link_clicks</code>-tabelle muss existieren — siehe schema.sql.)</p>
-    <?php else: ?>
-        <div style="overflow-x:auto"><svg width="<?= h((string)$chartW) ?>" height="<?= h((string)($chartH + 26)) ?>" viewBox="0 0 <?= h((string)$chartW) ?> <?= h((string)($chartH + 26)) ?>">
-        <?php $x = $padL; foreach ($byDay as $d => $cnt): $bh = (int)round(($cnt / $maxDay) * $chartH); $y = $padT + $chartH - $bh; ?>
-            <rect x="<?= h((string)$x) ?>" y="<?= h((string)$y) ?>" width="<?= h((string)$bw) ?>" height="<?= h((string)max(1, $bh)) ?>" fill="#86efac"><title><?= h($d) ?>: <?= h((string)$cnt) ?></title></rect>
-            <?php if ((int)substr($d, 8, 2) === 1 || $d === array_key_first($byDay) || $d === array_key_last($byDay)): ?><text x="<?= h((string)($x + $bw / 2)) ?>" y="<?= h((string)($chartH + 22)) ?>" font-size="9" fill="#888" text-anchor="middle"><?= h(substr($d, 5)) ?></text><?php endif; ?>
-        <?php $x += $bw + $gap; endforeach; ?>
-        </svg></div>
-    <?php endif; ?>
-    </div>
-
-    <div class="grid">
-        <div class="card"><h2 style="margin:0 0 12px">top referrers</h2><?php if (!$byRef): ?><p class="muted">—</p><?php else: ?><table><tbody><?php foreach (array_slice($byRef, 0, 10, true) as $r => $n): ?><tr><td><?= h($r) ?></td><td style="text-align:right;width:60px"><?= h((string)$n) ?></td></tr><?php endforeach; ?></tbody></table><?php endif; ?></div>
-        <div class="card"><h2 style="margin:0 0 12px">devices</h2><?php if (!$byDevice): ?><p class="muted">—</p><?php else: ?><table><tbody><?php foreach ($byDevice as $dev => $n): ?><tr><td><?= h($dev) ?></td><td style="text-align:right;width:60px"><?= h((string)$n) ?></td></tr><?php endforeach; ?></tbody></table><?php endif; ?>
-        <?php if ($byCountry): ?><h2 style="margin:18px 0 12px">top countries</h2><table><tbody><?php foreach (array_slice($byCountry, 0, 8, true) as $co => $n): ?><tr><td><?= h($co) ?></td><td style="text-align:right;width:60px"><?= h((string)$n) ?></td></tr><?php endforeach; ?></tbody></table><?php endif; ?></div>
-    </div>
-    </div></body></html><?php
+    <footer class="mt-auto flex flex-col justify-between gap-2 border-t border-white/10 py-5 pt-8 font-mono text-xs text-white/30 sm:flex-row">
+        <span>0x79.one</span>
+        <span>stats · <?= date('Y') ?></span>
+    </footer>
+</main>
+</body>
+</html>
+    <?php
     exit;
 }
 
