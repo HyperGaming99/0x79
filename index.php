@@ -1029,8 +1029,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
             }
         };
     </script>
+    <style>
+        @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+        .rise{animation:rise .55s cubic-bezier(.2,.7,.2,1) both}
+        .glow-grid{background-image:linear-gradient(rgba(245,242,234,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(245,242,234,.03) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse 85% 55% at 50% 0%,#000 30%,transparent 100%)}
+    </style>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
+    <div class="pointer-events-none fixed inset-0 -z-10"><div class="glow-grid absolute inset-0"></div></div>
     <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-7 lg:px-8">
         <header class="flex items-center justify-between border-b border-white/10 pb-5">
             <a href="/" class="flex items-center gap-2">
@@ -1065,7 +1071,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
                     <?= h($t['lead']) ?>
                 </p>
 
-                <div class="mt-8 grid max-w-md grid-cols-3 border border-white/10 text-center font-mono text-xs text-white/45">
+                <div class="mt-8 grid max-w-md grid-cols-3 overflow-hidden rounded-xl border border-white/10 text-center font-mono text-xs text-white/45">
                     <div class="border-r border-white/10 p-4">
                         <div class="mb-1 text-base font-semibold text-white">alias</div>
                         custom
@@ -1081,7 +1087,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
                 </div>
             </div>
 
-            <div class="border border-white/10 bg-[#101011]">
+            <div class="rounded-xl border border-white/[0.08] bg-[#101011]">
                 <div class="flex items-center justify-between border-b border-white/10 px-5 py-4 sm:px-6">
                     <div>
                         <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">create</p>
@@ -1093,13 +1099,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
                 <form method="POST" action="/shorten" class="grid gap-4 p-5 sm:p-6">
                     <label class="grid gap-2">
                         <span class="font-mono text-xs text-white/45"><?= h($t['url_label']) ?></span>
-                        <input class="h-12 w-full border border-white/10 bg-[#0b0b0c] px-3.5 font-mono text-sm text-white outline-none transition placeholder:text-white/20 focus:border-white/35" type="text" name="long_url" placeholder="https://example.com / mailto:name@example.com / tg://…" required autofocus>
+                        <input class="h-12 w-full rounded-lg border border-white/10 bg-[#0b0b0c] px-3.5 font-mono text-sm text-white outline-none transition placeholder:text-white/20 focus:border-white/35" type="text" name="long_url" placeholder="https://example.com / mailto:name@example.com / tg://…" required autofocus>
                     </label>
 
                     <div class="grid gap-4 sm:grid-cols-2">
                         <label class="grid gap-2">
                             <span class="font-mono text-xs text-white/45"><?= h($t['domain_label']) ?></span>
-                            <select name="domain" class="h-12 w-full border border-white/10 bg-[#0b0b0c] px-3.5 font-mono text-sm text-white outline-none transition focus:border-white/35">
+                            <select name="domain" class="h-12 w-full rounded-lg border border-white/10 bg-[#0b0b0c] px-3.5 font-mono text-sm text-white outline-none transition focus:border-white/35">
                                 <?php foreach ($available_domains as $d): ?>
                                     <option class="bg-[#0b0b0c] text-white" value="<?= h($d) ?>" <?= $d === $selected_domain ? 'selected' : '' ?>><?= h($d) ?></option>
                                 <?php endforeach; ?>
@@ -1108,28 +1114,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
 
                         <label class="grid gap-2">
                             <span class="font-mono text-xs text-white/45"><?= h($t['alias_label']) ?></span>
-                            <input class="h-12 w-full border border-white/10 bg-[#0b0b0c] px-3.5 font-mono text-sm text-white outline-none transition placeholder:text-white/20 focus:border-white/35" type="text" name="custom_code" maxlength="32" pattern="[A-Za-z0-9]{1,32}" placeholder="optional">
+                            <input class="h-12 w-full rounded-lg border border-white/10 bg-[#0b0b0c] px-3.5 font-mono text-sm text-white outline-none transition placeholder:text-white/20 focus:border-white/35" type="text" name="custom_code" maxlength="32" pattern="[A-Za-z0-9]{1,32}" placeholder="optional">
                         </label>
                     </div>
 
                     <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                         <label class="grid gap-2">
                             <span class="font-mono text-xs text-white/45"><?= h($t['password_label']) ?></span>
-                            <input class="h-12 w-full border border-white/10 bg-[#0b0b0c] px-3.5 text-sm text-white outline-none transition placeholder:text-white/20 focus:border-white/35" type="password" name="password" placeholder="optional" autocomplete="new-password">
+                            <input class="h-12 w-full rounded-lg border border-white/10 bg-[#0b0b0c] px-3.5 text-sm text-white outline-none transition placeholder:text-white/20 focus:border-white/35" type="password" name="password" placeholder="optional" autocomplete="new-password">
                         </label>
 
                         <label class="grid gap-2">
                             <span class="font-mono text-xs text-white/45"><?= h($t['expires_label']) ?></span>
-                            <input class="h-12 w-full border border-white/10 bg-[#0b0b0c] px-3.5 font-mono text-sm text-white outline-none transition [color-scheme:dark] focus:border-white/35" type="datetime-local" name="expires_at">
+                            <input class="h-12 w-full rounded-lg border border-white/10 bg-[#0b0b0c] px-3.5 font-mono text-sm text-white outline-none transition [color-scheme:dark] focus:border-white/35" type="datetime-local" name="expires_at">
                         </label>
 
                         <label class="grid gap-2">
                             <span class="font-mono text-xs text-white/45"><?= h($t['burn_label']) ?></span>
-                            <input class="h-12 w-full border border-white/10 bg-[#0b0b0c] px-3.5 font-mono text-sm text-white outline-none transition placeholder:text-white/20 focus:border-white/35" type="number" name="max_clicks" min="1" max="1000000" step="1" inputmode="numeric" placeholder="<?= h($t['burn_placeholder']) ?>">
+                            <input class="h-12 w-full rounded-lg border border-white/10 bg-[#0b0b0c] px-3.5 font-mono text-sm text-white outline-none transition placeholder:text-white/20 focus:border-white/35" type="number" name="max_clicks" min="1" max="1000000" step="1" inputmode="numeric" placeholder="<?= h($t['burn_placeholder']) ?>">
                         </label>
                     </div>
 
-                    <label class="flex cursor-pointer items-start gap-3 border border-white/10 bg-[#0b0b0c] p-4 transition hover:border-white/30">
+                    <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-white/10 bg-[#0b0b0c] p-4 transition hover:border-white/30">
                         <input class="mt-1 h-4 w-4 accent-[#f5f2ea]" type="checkbox" name="preview_enabled" value="1">
                         <span>
                             <span class="block font-mono text-xs text-white"><?= h($t['preview_label']) ?></span>
@@ -1137,7 +1143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
                         </span>
                     </label>
 
-                    <button type="submit" class="mt-2 flex h-12 items-center justify-between bg-[#f5f2ea] px-4 font-mono text-sm font-semibold text-[#0b0b0c] transition hover:bg-white">
+                    <button type="submit" class="mt-2 flex h-12 items-center justify-between rounded-lg bg-[#f5f2ea] px-4 font-mono text-sm font-semibold text-[#0b0b0c] transition hover:bg-white">
                         <span><?= h($t['submit']) ?></span>
                         <span>→</span>
                     </button>
@@ -1146,23 +1152,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
         </section>
 
         <?php if (!empty($error)): ?>
-            <div class="mb-5 border border-red-400/25 bg-red-500/10 p-4 text-sm text-red-200">
+            <div class="mb-5 rounded-xl border border-red-400/25 bg-red-500/10 p-4 text-sm text-red-200">
                 <div class="mb-1 font-mono text-xs uppercase tracking-[0.22em] text-red-300/60"><?= h($t['err']) ?></div>
                 <?= h($error) ?>
             </div>
         <?php endif; ?>
 
         <?php if (!empty($short_url)): ?>
-            <div class="mb-5 border border-emerald-400/25 bg-emerald-500/10 p-4 text-sm text-emerald-100">
+            <div class="mb-5 rounded-xl border border-emerald-400/25 bg-emerald-500/10 p-4 text-sm text-emerald-100">
                 <div class="mb-3 font-mono text-xs uppercase tracking-[0.22em] text-emerald-300/60"><?= h($t['short_link']) ?></div>
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <a class="min-w-0 flex-1 truncate border border-white/10 bg-black/20 px-3.5 py-3 font-mono text-sm text-white underline decoration-white/20 underline-offset-4" href="<?= h($short_url) ?>" target="_blank" rel="noopener"><?= h($short_url) ?></a>
-                    <button type="button" class="copy h-11 border border-white/15 px-4 font-mono text-sm text-white transition hover:border-white/35" data-copy="<?= h($t['copy']) ?>" data-copied="<?= h($t['copied']) ?>" onclick="copyLink(this, '<?= h($short_url) ?>')">
+                    <a class="min-w-0 flex-1 truncate rounded-lg border border-white/10 bg-black/20 px-3.5 py-3 font-mono text-sm text-white underline decoration-white/20 underline-offset-4" href="<?= h($short_url) ?>" target="_blank" rel="noopener"><?= h($short_url) ?></a>
+                    <button type="button" class="copy h-11 rounded-lg border border-white/15 px-4 font-mono text-sm text-white transition hover:border-white/35" data-copy="<?= h($t['copy']) ?>" data-copied="<?= h($t['copied']) ?>" onclick="copyLink(this, '<?= h($short_url) ?>')">
                         <?= h($t['copy']) ?>
                     </button>
                 </div>
                 <div class="mt-4 flex items-center gap-4">
-                    <img src="/qr?d=<?= h(rawurlencode($short_url)) ?>" alt="QR code" width="104" height="104" class="border border-white/10 bg-white p-1">
+                    <img src="/qr?d=<?= h(rawurlencode($short_url)) ?>" alt="QR code" width="104" height="104" class="rounded-lg border border-white/10 bg-white p-1">
                     <div class="font-mono text-xs text-white/45">
                         <p>scan or <a href="/qr?d=<?= h(rawurlencode($short_url)) ?>" download="qr.svg" class="text-white underline decoration-white/25 underline-offset-2">download QR</a></p>
                     </div>
@@ -1171,19 +1177,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
         <?php endif; ?>
 
         <section class="grid gap-3 border-t border-white/10 pt-5 sm:grid-cols-4">
-            <a href="/upload" class="border border-white/10 p-4 transition hover:border-white/30">
+            <a href="/upload" class="rounded-xl border border-white/10 bg-[#101011]/60 p-4 transition hover:border-white/30">
                 <div class="font-mono text-xs uppercase tracking-[0.18em] text-white/35"><?= h($t['upload_title']) ?></div>
                 <p class="mt-2 text-sm leading-6 text-white/55"><?= h($t['upload_lead']) ?></p>
             </a>
-            <a href="/api/docs" class="border border-white/10 p-4 transition hover:border-white/30">
+            <a href="/api/docs" class="rounded-xl border border-white/10 bg-[#101011]/60 p-4 transition hover:border-white/30">
                 <div class="font-mono text-xs uppercase tracking-[0.18em] text-white/35"><?= h($t['api_card_label']) ?></div>
                 <p class="mt-2 text-sm leading-6 text-white/55"><?= h($t['api_card_text']) ?></p>
             </a>
-            <div class="border border-white/10 p-4">
+            <div class="rounded-xl border border-white/10 bg-[#101011]/60 p-4">
                 <div class="font-mono text-xs uppercase tracking-[0.18em] text-white/35">options</div>
                 <p class="mt-2 text-sm leading-6 text-white/55">password, expiry, custom alias, burn-after clicks.</p>
             </div>
-            <a href="/abuse" class="border border-white/10 p-4 transition hover:border-white/30">
+            <a href="/abuse" class="rounded-xl border border-white/10 bg-[#101011]/60 p-4 transition hover:border-white/30">
                 <div class="font-mono text-xs uppercase tracking-[0.18em] text-white/35"><?= h($t['abuse']) ?></div>
                 <p class="mt-2 text-sm leading-6 text-white/55">report phishing, malware or spam links.</p>
             </a>
@@ -1227,26 +1233,23 @@ $homePosts = fetchRssPosts(10);
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','sans-serif'], mono: ['JetBrains Mono','ui-monospace','monospace'] } } } };
     </script>
     <style>
-        @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-        .rise{animation:rise .6s cubic-bezier(.2,.7,.2,1) both}
+        @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+        .rise{animation:rise .55s cubic-bezier(.2,.7,.2,1) both}
         @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.35}}
         .pulse-dot{animation:pulse-dot 2.2s ease-in-out infinite}
-        .glow-grid{background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 40%,transparent 100%)}
-        .card-glow{transition:transform .3s cubic-bezier(.2,.7,.2,1),border-color .3s,box-shadow .3s,background .3s}
-        .card-glow:hover{transform:translateY(-4px)}
+        .glow-grid{background-image:linear-gradient(rgba(245,242,234,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(245,242,234,.03) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse 85% 55% at 50% 0%,#000 30%,transparent 100%)}
+        .card-glow{transition:transform .3s cubic-bezier(.2,.7,.2,1),border-color .3s,background .3s}
+        .card-glow:hover{transform:translateY(-3px)}
     </style>
 </head>
-<body class="min-h-screen bg-[#050508] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#050508]">
-    <!-- Ambient background -->
+<body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
+    <!-- Subtle technical grid -->
     <div class="pointer-events-none fixed inset-0 -z-10">
         <div class="glow-grid absolute inset-0"></div>
-        <div class="absolute -top-40 left-1/2 h-[480px] w-[720px] -translate-x-1/2 rounded-full bg-violet-600/20 blur-[140px]"></div>
-        <div class="absolute top-1/3 -left-40 h-[380px] w-[380px] rounded-full bg-cyan-500/10 blur-[120px]"></div>
-        <div class="absolute bottom-0 right-0 h-[320px] w-[420px] rounded-full bg-emerald-500/10 blur-[130px]"></div>
     </div>
 
-    <!-- Sticky glass header -->
-    <header class="sticky top-0 z-40 border-b border-white/5 bg-[#050508]/70 backdrop-blur-xl">
+    <!-- Sticky header -->
+    <header class="sticky top-0 z-40 border-b border-white/[0.07] bg-[#0b0b0c]/85 backdrop-blur-xl">
         <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-3.5 sm:px-7 lg:px-8">
             <a href="/" class="flex items-center gap-2.5">
                 <img src="/logo.png" alt="Logo" class="h-9 w-9 rounded-xl border border-white/10 object-cover">
@@ -1278,7 +1281,7 @@ $homePosts = fetchRssPosts(10);
                 <span class="pulse-dot h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]"></span>
                 <span class="font-mono text-[11px] tracking-wide text-white/50">no tracking · free · open source</span>
             </div>
-            <h1 class="rise mx-auto mt-6 max-w-3xl bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-5xl font-bold tracking-[-0.05em] text-transparent sm:text-6xl lg:text-7xl" style="animation-delay:.08s">
+            <h1 class="rise mx-auto mt-6 max-w-3xl text-5xl font-semibold tracking-[-0.05em] text-white sm:text-6xl lg:text-7xl" style="animation-delay:.08s">
                 <?= h($t['home_h1']) ?>
             </h1>
             <p class="rise mx-auto mt-6 max-w-xl text-base leading-7 text-white/45 sm:text-lg" style="animation-delay:.16s">
@@ -1288,9 +1291,9 @@ $homePosts = fetchRssPosts(10);
             <!-- Quick shorten -->
             <form method="POST" action="/shorten" class="rise mx-auto mt-9 flex max-w-xl flex-col gap-2.5 sm:flex-row" style="animation-delay:.24s">
                 <input type="url" name="long_url" required placeholder="https://very-long-url.example.com/paste/here"
-                       class="h-[52px] min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3.5 font-mono text-sm text-white outline-none backdrop-blur transition placeholder:text-white/25 focus:border-violet-400/50 focus:bg-white/[0.06] focus:shadow-[0_0_24px_rgba(139,92,246,0.15)]">
+                       class="h-[52px] min-w-0 flex-1 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 font-mono text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/40 focus:bg-white/[0.05]">
                 <button type="submit"
-                        class="group flex h-[52px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-cyan-400 px-6 py-3.5 font-mono text-sm font-bold text-[#050508] transition hover:shadow-[0_0_32px_rgba(139,92,246,0.4)]">
+                        class="group flex h-[52px] items-center justify-center gap-2 rounded-lg bg-[#f5f2ea] px-6 py-3.5 font-mono text-sm font-semibold text-[#0b0b0c] transition hover:bg-white">
                     <span><?= h($t['shorten_submit'] ?? 'shorten') ?></span>
                     <span class="transition-transform group-hover:translate-x-0.5">→</span>
                 </button>
@@ -1321,11 +1324,11 @@ $homePosts = fetchRssPosts(10);
                      'icon' => 'M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z'],
                 ];
                 foreach ($toolCards as $i => $tc): ?>
-                <a href="<?= h($tc['href']) ?>" class="card-glow rise group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5 backdrop-blur hover:border-white/20 hover:bg-white/[0.045]" style="animation-delay:<?= 0.05 * $i + 0.1 ?>s" onmouseover="this.style.boxShadow='0 12px 40px rgba(0,0,0,.5), 0 0 32px <?= h($tc['color']) ?>18'" onmouseout="this.style.boxShadow=''">
+                <a href="<?= h($tc['href']) ?>" class="card-glow rise group relative flex flex-col justify-between overflow-hidden rounded-xl border border-white/[0.08] bg-[#101011] p-5 hover:border-white/25 hover:bg-[#131315]" style="animation-delay:<?= 0.05 * $i + 0.1 ?>s">
                     <div>
                         <div class="flex items-start justify-between">
-                            <span class="grid h-11 w-11 place-items-center rounded-xl border border-white/10" style="background:<?= h($tc['color']) ?>14">
-                                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="<?= h($tc['color']) ?>" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="<?= h($tc['icon']) ?>"/></svg>
+                            <span class="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/[0.03]">
+                                <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="<?= h($tc['color']) ?>" stroke-opacity="0.9" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="<?= h($tc['icon']) ?>"/></svg>
                             </span>
                             <span class="font-mono text-[10px] tracking-widest text-white/20"><?= h($tc['num']) ?></span>
                         </div>
@@ -1335,10 +1338,10 @@ $homePosts = fetchRssPosts(10);
                     <div class="mt-5 flex items-center justify-between">
                         <div class="flex flex-wrap gap-1.5">
                             <?php foreach ($tc['tags'] as $tag): ?>
-                            <span class="rounded-md border border-white/[0.06] bg-white/[0.03] px-2 py-0.5 font-mono text-[10px] text-white/35"><?= h($tag) ?></span>
+                            <span class="rounded border border-white/[0.06] bg-white/[0.03] px-2 py-0.5 font-mono text-[10px] text-white/35"><?= h($tag) ?></span>
                             <?php endforeach; ?>
                         </div>
-                        <span class="font-mono text-sm text-white/20 transition-all duration-300 group-hover:translate-x-1">→</span>
+                        <span class="font-mono text-sm text-white/20 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white/60">→</span>
                     </div>
                 </a>
                 <?php endforeach; ?>
@@ -1367,7 +1370,7 @@ $homePosts = fetchRssPosts(10);
             </div>
 
             <?php if (empty($homePosts)): ?>
-                <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-10 text-center font-mono text-xs text-white/30">
+                <div class="rounded-xl border border-white/[0.08] bg-[#101011] p-10 text-center font-mono text-xs text-white/30">
                     <?= h($t['news_no_posts']) ?>
                 </div>
             <?php else: ?>
@@ -1377,9 +1380,9 @@ $homePosts = fetchRssPosts(10);
                         $pubDate = (int)($post['pub_date'] ?? 0);
                         $dateStr = $pubDate ? date('d.m.Y', $pubDate) : '';
                     ?>
-                        <a href="<?= h($postUrl) ?>" class="card-glow group flex gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4 backdrop-blur hover:border-white/20 hover:bg-white/[0.045]">
+                        <a href="<?= h($postUrl) ?>" class="card-glow group flex gap-4 rounded-xl border border-white/[0.08] bg-[#101011] p-4 hover:border-white/25 hover:bg-[#131315]">
                             <?php if (!empty($post['image'])): ?>
-                                <img src="<?= h($post['image']) ?>" alt="Post Thumbnail" class="h-20 w-28 shrink-0 rounded-xl border border-white/10 bg-black/40 object-cover">
+                                <img src="<?= h($post['image']) ?>" alt="Post Thumbnail" class="h-20 w-28 shrink-0 rounded-lg border border-white/10 bg-black/40 object-cover">
                             <?php endif; ?>
                             <div class="flex min-w-0 flex-col justify-between">
                                 <div>
