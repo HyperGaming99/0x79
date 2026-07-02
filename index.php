@@ -1221,203 +1221,143 @@ $homePosts = fetchRssPosts(10);
     <meta name="description" content="URL shortener, file/image host and paste host.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','sans-serif'], mono: ['JetBrains Mono','ui-monospace','monospace'] } } } };
     </script>
+    <style>
+        @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+        .rise{animation:rise .6s cubic-bezier(.2,.7,.2,1) both}
+        @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.35}}
+        .pulse-dot{animation:pulse-dot 2.2s ease-in-out infinite}
+        .glow-grid{background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 40%,transparent 100%)}
+        .card-glow{transition:transform .3s cubic-bezier(.2,.7,.2,1),border-color .3s,box-shadow .3s,background .3s}
+        .card-glow:hover{transform:translateY(-4px)}
+    </style>
 </head>
-<body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
-    <main class="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-5 py-5 sm:px-7 lg:px-8">
-        <header class="flex items-center justify-between border-b border-white/10 pb-5">
-            <a href="/" class="flex items-center gap-2">
-                <img src="/logo.png" alt="Logo" class="h-10 w-10 rounded-lg border border-white/10 object-cover">
-                <span class="font-mono text-sm tracking-tight text-white">0x79</span>
+<body class="min-h-screen bg-[#050508] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#050508]">
+    <!-- Ambient background -->
+    <div class="pointer-events-none fixed inset-0 -z-10">
+        <div class="glow-grid absolute inset-0"></div>
+        <div class="absolute -top-40 left-1/2 h-[480px] w-[720px] -translate-x-1/2 rounded-full bg-violet-600/20 blur-[140px]"></div>
+        <div class="absolute top-1/3 -left-40 h-[380px] w-[380px] rounded-full bg-cyan-500/10 blur-[120px]"></div>
+        <div class="absolute bottom-0 right-0 h-[320px] w-[420px] rounded-full bg-emerald-500/10 blur-[130px]"></div>
+    </div>
+
+    <!-- Sticky glass header -->
+    <header class="sticky top-0 z-40 border-b border-white/5 bg-[#050508]/70 backdrop-blur-xl">
+        <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-3.5 sm:px-7 lg:px-8">
+            <a href="/" class="flex items-center gap-2.5">
+                <img src="/logo.png" alt="Logo" class="h-9 w-9 rounded-xl border border-white/10 object-cover">
+                <span class="font-mono text-sm font-semibold tracking-tight text-white">0x79</span>
             </a>
             <nav class="flex items-center gap-1 font-mono text-xs text-white/45">
                 <?php renderLangSelect($lang, $supported_langs, $LANG_META); ?>
-                <span class="mx-1 h-4 w-px bg-white/10"></span>
-                <a href="/api/docs" class="px-2.5 py-1.5 transition hover:text-white">api</a>
-                <a href="/abuse" class="px-2.5 py-1.5 transition hover:text-white"><?= h($t['abuse']) ?></a>
-                <?php if (isUserLoggedIn()): ?><a href="/account" class="px-2.5 py-1.5 transition hover:text-white">account</a><?php else: ?><a href="/login" class="px-2.5 py-1.5 transition hover:text-white">login</a><?php endif; ?>
-                <span class="mx-1 h-4 w-px bg-white/10"></span>
-                <a href="https://github.com/HyperGaming99/0x79" target="_blank" rel="noopener" aria-label="GitHub" title="Source on GitHub" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 transition hover:text-white">
+                <span class="mx-1 hidden h-4 w-px bg-white/10 sm:block"></span>
+                <a href="/api/docs" class="rounded-lg px-2.5 py-1.5 transition hover:bg-white/5 hover:text-white">api</a>
+                <a href="/abuse" class="rounded-lg px-2.5 py-1.5 transition hover:bg-white/5 hover:text-white"><?= h($t['abuse']) ?></a>
+                <a href="https://github.com/HyperGaming99/0x79" target="_blank" rel="noopener" aria-label="GitHub" title="Source on GitHub" class="rounded-lg px-2.5 py-1.5 transition hover:bg-white/5 hover:text-white">
                     <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.55-.29-5.23-1.27-5.23-5.67 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.17a10.9 10.9 0 0 1 5.74 0c2.18-1.48 3.14-1.17 3.14-1.17.63 1.58.24 2.75.12 3.04.74.8 1.18 1.82 1.18 3.07 0 4.41-2.69 5.38-5.25 5.66.42.36.8 1.08.8 2.18v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
-                    <span>github</span>
                 </a>
+                <span class="mx-1 h-4 w-px bg-white/10"></span>
+                <?php if (isUserLoggedIn()): ?>
+                    <a href="/account" class="rounded-lg border border-white/15 px-3.5 py-1.5 text-white transition hover:border-white/40 hover:bg-white/5">account</a>
+                <?php else: ?>
+                    <a href="/login" class="rounded-lg border border-white/15 px-3.5 py-1.5 text-white transition hover:border-white/40 hover:bg-white/5">login</a>
+                <?php endif; ?>
             </nav>
-        </header>
+        </div>
+    </header>
 
-        <section class="flex flex-1 items-center py-14 sm:py-20">
-            <div class="w-full">
-                <p class="mb-5 font-mono text-xs uppercase tracking-[0.22em] text-white/35">choose tool</p>
-                <h1 class="max-w-2xl text-4xl font-semibold tracking-[-0.045em] text-white sm:text-5xl lg:text-6xl">
-                    <?= h($t['home_h1']) ?>
-                </h1>
-                <p class="mt-5 max-w-xl text-base leading-7 text-white/50 sm:text-lg">
-                    <?= h($t['home_lead']) ?>
-                </p>
+    <main class="mx-auto flex w-full max-w-6xl flex-col px-5 sm:px-7 lg:px-8">
 
-                <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    <!-- Tool 01 -->
-                    <a href="/shorten" class="group relative flex flex-col justify-between border border-white/5 bg-[#111113] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#141417] hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></span>
-                                    <span class="font-mono text-[10px] uppercase tracking-widest text-white/30">Tool 01</span>
-                                </div>
-                                <span class="font-mono text-sm text-white/25 transition-all duration-300 group-hover:translate-x-1 group-hover:text-blue-400">→</span>
-                            </div>
-                            <h2 class="mt-3 text-lg font-medium tracking-tight text-white transition-colors duration-300 group-hover:text-blue-400">
-                                <?= h($t['home_tool1_title']) ?>
-                            </h2>
-                            <p class="mt-2 text-xs leading-relaxed text-white/45">
-                                <?= h($t['home_tool1_desc']) ?>
-                            </p>
-                        </div>
-                        <div class="mt-5 flex flex-wrap gap-1.5">
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">alias</span>
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">password</span>
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">burn</span>
-                        </div>
-                    </a>
+        <!-- Hero -->
+        <section class="pt-16 pb-10 text-center sm:pt-24 sm:pb-14">
+            <div class="rise mx-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 backdrop-blur">
+                <span class="pulse-dot h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]"></span>
+                <span class="font-mono text-[11px] tracking-wide text-white/50">no tracking · free · open source</span>
+            </div>
+            <h1 class="rise mx-auto mt-6 max-w-3xl bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-5xl font-bold tracking-[-0.05em] text-transparent sm:text-6xl lg:text-7xl" style="animation-delay:.08s">
+                <?= h($t['home_h1']) ?>
+            </h1>
+            <p class="rise mx-auto mt-6 max-w-xl text-base leading-7 text-white/45 sm:text-lg" style="animation-delay:.16s">
+                <?= h($t['home_lead']) ?>
+            </p>
 
-                    <!-- Tool 02 -->
-                    <a href="/upload" class="group relative flex flex-col justify-between border border-white/5 bg-[#111113] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#141417] hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
-                                    <span class="font-mono text-[10px] uppercase tracking-widest text-white/30">Tool 02</span>
-                                </div>
-                                <span class="font-mono text-sm text-white/25 transition-all duration-300 group-hover:translate-x-1 group-hover:text-emerald-400">→</span>
-                            </div>
-                            <h2 class="mt-3 text-lg font-medium tracking-tight text-white transition-colors duration-300 group-hover:text-emerald-400">
-                                <?= h($t['home_tool2_title']) ?>
-                            </h2>
-                            <p class="mt-2 text-xs leading-relaxed text-white/45">
-                                <?= h($t['home_tool2_desc']) ?>
-                            </p>
-                        </div>
-                        <div class="mt-5 flex flex-wrap gap-1.5">
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">zip</span>
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">images</span>
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">no svg</span>
-                        </div>
-                    </a>
+            <!-- Quick shorten -->
+            <form method="POST" action="/shorten" class="rise mx-auto mt-9 flex max-w-xl flex-col gap-2.5 sm:flex-row" style="animation-delay:.24s">
+                <input type="url" name="long_url" required placeholder="https://very-long-url.example.com/paste/here"
+                       class="h-[52px] min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3.5 font-mono text-sm text-white outline-none backdrop-blur transition placeholder:text-white/25 focus:border-violet-400/50 focus:bg-white/[0.06] focus:shadow-[0_0_24px_rgba(139,92,246,0.15)]">
+                <button type="submit"
+                        class="group flex h-[52px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-cyan-400 px-6 py-3.5 font-mono text-sm font-bold text-[#050508] transition hover:shadow-[0_0_32px_rgba(139,92,246,0.4)]">
+                    <span><?= h($t['shorten_submit'] ?? 'shorten') ?></span>
+                    <span class="transition-transform group-hover:translate-x-0.5">→</span>
+                </button>
+            </form>
+            <p class="rise mt-3 font-mono text-[11px] text-white/25" style="animation-delay:.3s">enter ↵ — <?= isUserLoggedIn() ? 'links bleiben dauerhaft' : 'als gast 14 tage gültig · mit <a href="/register" class="text-white/45 underline decoration-white/15 underline-offset-2 hover:text-white">account</a> dauerhaft' ?></p>
+        </section>
 
-                    <!-- Tool 03 -->
-                    <a href="/paste" class="group relative flex flex-col justify-between border border-white/5 bg-[#111113] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#141417] hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-violet-500 shadow-[0_0_8px_#8b5cf6]"></span>
-                                    <span class="font-mono text-[10px] uppercase tracking-widest text-white/30">Tool 03</span>
-                                </div>
-                                <span class="font-mono text-sm text-white/25 transition-all duration-300 group-hover:translate-x-1 group-hover:text-violet-400">→</span>
-                            </div>
-                            <h2 class="mt-3 text-lg font-medium tracking-tight text-white transition-colors duration-300 group-hover:text-violet-400">
-                                <?= h($t['home_tool3_title']) ?>
-                            </h2>
-                            <p class="mt-2 text-xs leading-relaxed text-white/45">
-                                <?= h($t['home_tool3_desc']) ?>
-                            </p>
+        <!-- Tools -->
+        <section class="pb-14">
+            <div class="mb-6 flex items-end justify-between">
+                <p class="font-mono text-xs uppercase tracking-[0.24em] text-white/30">tools</p>
+                <p class="font-mono text-[11px] text-white/20">06</p>
+            </div>
+            <div class="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+                <?php
+                $toolCards = [
+                    ['href' => '/shorten',      'num' => '01', 'color' => '#60a5fa', 'title' => $t['home_tool1_title'], 'desc' => $t['home_tool1_desc'], 'tags' => ['alias', 'password', 'burn'],
+                     'icon' => 'M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244'],
+                    ['href' => '/upload',       'num' => '02', 'color' => '#34d399', 'title' => $t['home_tool2_title'], 'desc' => $t['home_tool2_desc'], 'tags' => ['zip', 'images', 'qr'],
+                     'icon' => 'M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5'],
+                    ['href' => '/paste',        'num' => '03', 'color' => '#a78bfa', 'title' => $t['home_tool3_title'], 'desc' => $t['home_tool3_desc'], 'tags' => ['text', 'raw', 'burn'],
+                     'icon' => 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z'],
+                    ['href' => '/music',        'num' => '04', 'color' => '#fb7185', 'title' => $t['home_tool4_title'], 'desc' => $t['home_tool4_desc'], 'tags' => ['spotify', 'apple', 'youtube'],
+                     'icon' => 'M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z'],
+                    ['href' => '/metadata',     'num' => '05', 'color' => '#fbbf24', 'title' => $t['home_tool5_title'], 'desc' => $t['home_tool5_desc'], 'tags' => ['exif', 'privacy', 'local'],
+                     'icon' => 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z'],
+                    ['href' => '/secure-share', 'num' => '06', 'color' => '#22d3ee', 'title' => $t['home_tool6_title'], 'desc' => $t['home_tool6_desc'], 'tags' => ['aes-gcm', 'zero-knowledge', 'secure'],
+                     'icon' => 'M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z'],
+                ];
+                foreach ($toolCards as $i => $tc): ?>
+                <a href="<?= h($tc['href']) ?>" class="card-glow rise group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5 backdrop-blur hover:border-white/20 hover:bg-white/[0.045]" style="animation-delay:<?= 0.05 * $i + 0.1 ?>s" onmouseover="this.style.boxShadow='0 12px 40px rgba(0,0,0,.5), 0 0 32px <?= h($tc['color']) ?>18'" onmouseout="this.style.boxShadow=''">
+                    <div>
+                        <div class="flex items-start justify-between">
+                            <span class="grid h-11 w-11 place-items-center rounded-xl border border-white/10" style="background:<?= h($tc['color']) ?>14">
+                                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="<?= h($tc['color']) ?>" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="<?= h($tc['icon']) ?>"/></svg>
+                            </span>
+                            <span class="font-mono text-[10px] tracking-widest text-white/20"><?= h($tc['num']) ?></span>
                         </div>
-                        <div class="mt-5 flex flex-wrap gap-1.5">
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">text</span>
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">raw</span>
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">burn</span>
+                        <h2 class="mt-4 text-lg font-semibold tracking-tight text-white"><?= h($tc['title']) ?></h2>
+                        <p class="mt-1.5 text-[13px] leading-relaxed text-white/40"><?= h($tc['desc']) ?></p>
+                    </div>
+                    <div class="mt-5 flex items-center justify-between">
+                        <div class="flex flex-wrap gap-1.5">
+                            <?php foreach ($tc['tags'] as $tag): ?>
+                            <span class="rounded-md border border-white/[0.06] bg-white/[0.03] px-2 py-0.5 font-mono text-[10px] text-white/35"><?= h($tag) ?></span>
+                            <?php endforeach; ?>
                         </div>
-                    </a>
-
-                    <!-- Tool 04 -->
-                    <a href="/music" class="group relative flex flex-col justify-between border border-white/5 bg-[#111113] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#141417] hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_#f43f5e]"></span>
-                                    <span class="font-mono text-[10px] uppercase tracking-widest text-white/30">Tool 04</span>
-                                </div>
-                                <span class="font-mono text-sm text-white/25 transition-all duration-300 group-hover:translate-x-1 group-hover:text-rose-400">→</span>
-                            </div>
-                            <h2 class="mt-3 text-lg font-medium tracking-tight text-white transition-colors duration-300 group-hover:text-rose-400">
-                                <?= h($t['home_tool4_title']) ?>
-                            </h2>
-                            <p class="mt-2 text-xs leading-relaxed text-white/45">
-                                <?= h($t['home_tool4_desc']) ?>
-                            </p>
-                        </div>
-                        <div class="mt-5 flex flex-wrap gap-1.5">
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">spotify</span>
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">apple</span>
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">youtube</span>
-                        </div>
-                    </a>
-
-                    <!-- Tool 05 -->
-                    <a href="/metadata" class="group relative flex flex-col justify-between border border-white/5 bg-[#111113] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#141417] hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_#f59e0b]"></span>
-                                    <span class="font-mono text-[10px] uppercase tracking-widest text-white/30">Tool 05</span>
-                                </div>
-                                <span class="font-mono text-sm text-white/25 transition-all duration-300 group-hover:translate-x-1 group-hover:text-amber-400">→</span>
-                            </div>
-                            <h2 class="mt-3 text-lg font-medium tracking-tight text-white transition-colors duration-300 group-hover:text-amber-400">
-                                <?= h($t['home_tool5_title']) ?>
-                            </h2>
-                            <p class="mt-2 text-xs leading-relaxed text-white/45">
-                                <?= h($t['home_tool5_desc']) ?>
-                            </p>
-                        </div>
-                        <div class="mt-5 flex flex-wrap gap-1.5">
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">exif</span>
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">privacy</span>
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">local</span>
-                        </div>
-                    </a>
-
-                    <!-- Tool 06 -->
-                    <a href="/secure-share" class="group relative flex flex-col justify-between border border-white/5 bg-[#111113] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#141417] hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-cyan-500 shadow-[0_0_8px_#06b6d4]"></span>
-                                    <span class="font-mono text-[10px] uppercase tracking-widest text-white/30">Tool 06</span>
-                                </div>
-                                <span class="font-mono text-sm text-white/25 transition-all duration-300 group-hover:translate-x-1 group-hover:text-cyan-400">→</span>
-                            </div>
-                            <h2 class="mt-3 text-lg font-medium tracking-tight text-white transition-colors duration-300 group-hover:text-cyan-400">
-                                <?= h($t['home_tool6_title']) ?>
-                            </h2>
-                            <p class="mt-2 text-xs leading-relaxed text-white/45">
-                                <?= h($t['home_tool6_desc']) ?>
-                            </p>
-                        </div>
-                        <div class="mt-5 flex flex-wrap gap-1.5">
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">aes-gcm</span>
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">zero-knowledge</span>
-                            <span class="rounded bg-white/[0.03] border border-white/5 px-1.5 py-0.5 font-mono text-[9px] text-white/40">secure</span>
-                        </div>
-                    </a>
-                </div>
+                        <span class="font-mono text-sm text-white/20 transition-all duration-300 group-hover:translate-x-1">→</span>
+                    </div>
+                </a>
+                <?php endforeach; ?>
             </div>
         </section>
 
-        <!-- News Section -->
-        <section class="border-t border-white/10 py-10 sm:py-14">
-            <div class="flex items-center justify-between mb-8">
+        <!-- News -->
+        <section class="border-t border-white/[0.06] py-12 sm:py-16">
+            <div class="mb-8 flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-semibold text-white tracking-tight"><?= h($t['news_title']) ?></h2>
-                    <p class="mt-1 text-xs text-white/45"><?= h($t['news_lead']) ?></p>
+                    <p class="font-mono text-xs uppercase tracking-[0.24em] text-white/30">news</p>
+                    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-white"><?= h($t['news_title']) ?></h2>
+                    <p class="mt-1 text-sm text-white/40"><?= h($t['news_lead']) ?></p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <a href="/posts" class="border border-white/10 px-3.5 py-1.5 font-mono text-xs text-white/60 transition hover:border-white/30 hover:text-white bg-black/20">
+                    <a href="/posts" class="rounded-lg border border-white/10 bg-white/[0.03] px-3.5 py-2 font-mono text-xs text-white/60 backdrop-blur transition hover:border-white/30 hover:text-white">
                         <?= h($t['news_all_posts']) ?>
                     </a>
-                    <a href="/rss" target="_blank" class="flex items-center gap-2 border border-white/10 px-3.5 py-1.5 font-mono text-xs text-white/60 transition hover:border-orange-500/40 hover:text-orange-400 bg-black/20">
+                    <a href="/rss" target="_blank" class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3.5 py-2 font-mono text-xs text-white/60 backdrop-blur transition hover:border-orange-500/40 hover:text-orange-400">
                         <svg class="h-3 w-3 fill-current" viewBox="0 0 24 24">
                             <path d="M6.18 15.64a2.18 2.18 0 11-2.18 2.18 2.18 2.18 0 012.18-2.18zM3 3a18 18 0 0118 18h-2.91A15.09 15.09 0 003 5.91zm0 6.06a11.94 11.94 0 0111.94 11.94H12A9 9 0 003 12z"/>
                         </svg>
@@ -1427,25 +1367,25 @@ $homePosts = fetchRssPosts(10);
             </div>
 
             <?php if (empty($homePosts)): ?>
-                <div class="border border-white/5 bg-[#111113] p-8 text-center text-xs text-white/30 font-mono">
+                <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-10 text-center font-mono text-xs text-white/30">
                     <?= h($t['news_no_posts']) ?>
                 </div>
             <?php else: ?>
-                <div class="grid gap-4 md:grid-cols-2">
+                <div class="grid gap-3.5 md:grid-cols-2">
                     <?php foreach ($homePosts as $post):
                         $postUrl = '/post/' . $post['id'];
                         $pubDate = (int)($post['pub_date'] ?? 0);
                         $dateStr = $pubDate ? date('d.m.Y', $pubDate) : '';
                     ?>
-                        <a href="<?= h($postUrl) ?>" class="group flex gap-4 border border-white/5 bg-[#111113] p-4 transition duration-300 hover:border-white/15 hover:bg-[#141417]">
+                        <a href="<?= h($postUrl) ?>" class="card-glow group flex gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4 backdrop-blur hover:border-white/20 hover:bg-white/[0.045]">
                             <?php if (!empty($post['image'])): ?>
-                                <img src="<?= h($post['image']) ?>" alt="Post Thumbnail" class="h-20 w-28 shrink-0 object-cover border border-white/15 rounded bg-black/40">
+                                <img src="<?= h($post['image']) ?>" alt="Post Thumbnail" class="h-20 w-28 shrink-0 rounded-xl border border-white/10 bg-black/40 object-cover">
                             <?php endif; ?>
-                            <div class="flex flex-col justify-between min-w-0">
+                            <div class="flex min-w-0 flex-col justify-between">
                                 <div>
-                                    <span class="font-mono text-[9px] uppercase tracking-wider text-white/30"><?= h($dateStr) ?></span>
-                                    <h3 class="mt-1 text-sm font-medium text-white transition duration-300 group-hover:text-white/80 truncate"><?= h($post['title'] ?? '') ?></h3>
-                                    <p class="mt-1 text-xs text-white/45 line-clamp-2 leading-relaxed">
+                                    <span class="font-mono text-[10px] uppercase tracking-wider text-white/25"><?= h($dateStr) ?></span>
+                                    <h3 class="mt-1 truncate text-sm font-semibold text-white"><?= h($post['title'] ?? '') ?></h3>
+                                    <p class="mt-1 line-clamp-2 text-xs leading-relaxed text-white/40">
                                         <?= h($post['description'] ?? '') ?>
                                     </p>
                                 </div>
@@ -1456,9 +1396,12 @@ $homePosts = fetchRssPosts(10);
             <?php endif; ?>
         </section>
 
-        <footer class="mt-8 flex flex-col justify-between gap-2 border-t border-white/10 py-5 font-mono text-xs text-white/30 sm:flex-row">
-            <span>0x79.one</span>
-            <span>fftrclo.store · takeitdown.space · mydiscordiscool.store · fckdupfuture.com · <?= date('Y') ?></span>
+        <footer class="flex flex-col items-center justify-between gap-3 border-t border-white/[0.06] py-7 font-mono text-xs text-white/25 sm:flex-row">
+            <span class="flex items-center gap-2">
+                <img src="/logo.png" alt="" class="h-5 w-5 rounded-md border border-white/10 object-cover">
+                0x79.one · <?= date('Y') ?>
+            </span>
+            <span class="text-white/20">fftrclo.store · takeitdown.space · mydiscordiscool.store · fckdupfuture.com</span>
         </footer>
     </main>
 </body>
