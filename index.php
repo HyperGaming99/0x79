@@ -1,6 +1,15 @@
 <?php
 declare(strict_types=1);
 
+// Let PHP's development server deliver existing assets instead of routing them
+// through the application. Production web servers already handle this.
+if (PHP_SAPI === 'cli-server') {
+    $staticPath = __DIR__ . parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    if (is_file($staticPath)) {
+        return false;
+    }
+}
+
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/supabase.php';
@@ -8,6 +17,14 @@ require_once __DIR__ . '/views.php';
 require_once __DIR__ . '/qr.php';
 
 $request_path = trim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
+
+// Backwards-compatible logo path used across the older views.
+if ($request_path === 'logo.png') {
+    header('Content-Type: image/jpeg');
+    header('Cache-Control: public, max-age=86400');
+    readfile(__DIR__ . '/logomark_0x79.jpg');
+    exit;
+}
 
 // Same-origin QR code as SVG: /qr?d=<data>  (used by success pages & account)
 if ($request_path === 'qr') {
@@ -1029,6 +1046,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
             }
         };
     </script>
+    <?php renderProductTheme(); ?>
     <style>
         @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
         .rise{animation:rise .55s cubic-bezier(.2,.7,.2,1) both}
@@ -1215,7 +1233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
 </html>
 
 <?php else:
-$homePosts = fetchRssPosts(10);
+$homePosts = fetchRssPosts(4);
 ?>
 <!DOCTYPE html>
 <html lang="<?= h($lang) ?>">
@@ -1225,89 +1243,107 @@ $homePosts = fetchRssPosts(10);
     <title>0x79</title>
     <link rel="icon" href="/logo.png" type="image/jpeg">
     <meta name="description" content="URL shortener, file/image host and paste host.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','sans-serif'], mono: ['JetBrains Mono','ui-monospace','monospace'] } } } };
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Arial','Helvetica','sans-serif'], mono: ['SFMono-Regular','Consolas','Liberation Mono','monospace'] } } } };
     </script>
+    <?php renderProductTheme(); ?>
     <style>
-        @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-        .rise{animation:rise .55s cubic-bezier(.2,.7,.2,1) both}
-        @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.35}}
-        .pulse-dot{animation:pulse-dot 2.2s ease-in-out infinite}
-        .glow-grid{background-image:linear-gradient(rgba(245,242,234,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(245,242,234,.03) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse 85% 55% at 50% 0%,#000 30%,transparent 100%)}
-        .card-glow{transition:transform .3s cubic-bezier(.2,.7,.2,1),border-color .3s,background .3s}
-        .card-glow:hover{transform:translateY(-3px)}
+        :root{--paper:#e8e6df;--ink:#11110f;--acid:#b8ff31;--rule:rgba(17,17,15,.22)}
+        html[data-theme="dark"]{--paper:#11110f;--ink:#e8e6df;--acid:#b8ff31;--rule:rgba(232,230,223,.22)}
+        html{scroll-behavior:smooth}
+        body{background:var(--paper)!important;color:var(--ink)!important}
+        html[data-theme="dark"] body [class*="bg-[#e8e6df]"]{background-color:rgba(17,17,15,.95)!important}
+        html[data-theme="dark"] body [class*="text-black"]{color:var(--ink)!important}
+        html[data-theme="dark"] body [class*="bg-[#b8ff31]"]{color:#11110f!important}
+        html[data-theme="dark"] body [class*="border-black"]{border-color:var(--rule)!important}
+        html[data-theme="dark"] .nav-login,html[data-theme="dark"] .rss-button{background:var(--acid)!important;color:#11110f!important;border-color:var(--acid)!important}
+        html[data-theme="dark"] .nav-login:hover,html[data-theme="dark"] .rss-button:hover{background:var(--ink)!important;color:var(--paper)!important}
+        .wordmark{letter-spacing:-.08em}
+        .display{font-size:clamp(3.8rem,9vw,7.5rem);line-height:.8;letter-spacing:-.08em}
+        .utility-row{transition:background-color .16s,color .16s}
+        .utility-row:hover{background:var(--ink);color:var(--paper)}
+        .utility-row:hover .utility-arrow{transform:translate(5px,-2px)}
+        .utility-arrow{transition:transform .16s}
+        .ticker{animation:ticker 26s linear infinite}
+        @keyframes ticker{to{transform:translateX(-50%)}}
+        @media(prefers-reduced-motion:reduce){.ticker{animation:none}}
+        ::selection{background:var(--ink);color:var(--acid)}
     </style>
 </head>
-<body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
-    <!-- Subtle technical grid -->
-    <div class="pointer-events-none fixed inset-0 -z-10">
-        <div class="glow-grid absolute inset-0"></div>
-    </div>
-
-    <!-- Sticky header -->
-    <header class="sticky top-0 z-40 border-b border-white/[0.07] bg-[#0b0b0c]/85 backdrop-blur-xl">
-        <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-3.5 sm:px-7 lg:px-8">
-            <a href="/" class="flex items-center gap-2.5">
-                <img src="/logo.png" alt="Logo" class="h-9 w-9 rounded-xl border border-white/10 object-cover">
-                <span class="font-mono text-sm font-semibold tracking-tight text-white">0x79</span>
+<body class="min-h-screen font-sans antialiased">
+    <header class="sticky top-0 z-40 border-b border-black/20 bg-[#e8e6df]/95">
+        <div class="mx-auto flex w-full max-w-[1440px] items-stretch justify-between px-4 sm:px-7">
+            <a href="/" class="flex items-center gap-3 py-3">
+                <img src="/logomark_0x79.jpg" alt="0x79" class="h-8 w-8 object-cover grayscale">
+                <span class="wordmark text-xl font-black">0x79</span>
             </a>
-            <nav class="flex items-center gap-1 font-mono text-xs text-white/45">
+            <nav class="flex items-center gap-0 font-mono text-[11px] uppercase tracking-wider">
                 <?php renderLangSelect($lang, $supported_langs, $LANG_META); ?>
-                <span class="mx-1 hidden h-4 w-px bg-white/10 sm:block"></span>
-                <a href="/api/docs" class="rounded-lg px-2.5 py-1.5 transition hover:bg-white/5 hover:text-white">api</a>
-                <a href="/abuse" class="rounded-lg px-2.5 py-1.5 transition hover:bg-white/5 hover:text-white"><?= h($t['abuse']) ?></a>
-                <a href="https://github.com/HyperGaming99/0x79" target="_blank" rel="noopener" aria-label="GitHub" title="Source on GitHub" class="rounded-lg px-2.5 py-1.5 transition hover:bg-white/5 hover:text-white">
+                <a href="/api/docs" class="hidden border-l border-black/20 px-4 py-4 hover:bg-black hover:text-white sm:block">api</a>
+                <a href="/abuse" class="hidden border-l border-black/20 px-4 py-4 hover:bg-black hover:text-white md:block"><?= h($t['abuse']) ?></a>
+                <a href="https://github.com/HyperGaming99/0x79" target="_blank" rel="noopener" aria-label="GitHub" class="hidden items-center gap-2 border-l border-black/20 px-4 py-4 hover:bg-black hover:text-white lg:flex">
                     <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.55-.29-5.23-1.27-5.23-5.67 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.17a10.9 10.9 0 0 1 5.74 0c2.18-1.48 3.14-1.17 3.14-1.17.63 1.58.24 2.75.12 3.04.74.8 1.18 1.82 1.18 3.07 0 4.41-2.69 5.38-5.25 5.66.42.36.8 1.08.8 2.18v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
+                    <span>github</span>
                 </a>
-                <span class="mx-1 h-4 w-px bg-white/10"></span>
                 <?php if (isUserLoggedIn()): ?>
-                    <a href="/account" class="rounded-lg border border-white/15 px-3.5 py-1.5 text-white transition hover:border-white/40 hover:bg-white/5">account</a>
+                    <a href="/account" class="nav-login border-x border-black/20 bg-black px-4 py-4 text-white hover:bg-[#b8ff31] hover:text-black">account</a>
                 <?php else: ?>
-                    <a href="/login" class="rounded-lg border border-white/15 px-3.5 py-1.5 text-white transition hover:border-white/40 hover:bg-white/5">login</a>
+                    <a href="/login" class="nav-login border-x border-black/20 bg-black px-4 py-4 text-white hover:bg-[#b8ff31] hover:text-black">login</a>
                 <?php endif; ?>
             </nav>
         </div>
     </header>
 
-    <main class="mx-auto flex w-full max-w-6xl flex-col px-5 sm:px-7 lg:px-8">
+    <main class="mx-auto w-full max-w-[1440px] px-4 sm:px-7">
 
-        <!-- Hero -->
-        <section class="pt-16 pb-10 text-center sm:pt-24 sm:pb-14">
-            <div class="rise mx-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 backdrop-blur">
-                <span class="pulse-dot h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]"></span>
-                <span class="font-mono text-[11px] tracking-wide text-white/50">no tracking · free · open source</span>
-            </div>
-            <h1 class="rise mx-auto mt-6 max-w-3xl text-5xl font-semibold tracking-[-0.05em] text-white sm:text-6xl lg:text-7xl" style="animation-delay:.08s">
+        <section class="grid min-h-[460px] border-b border-black/25 lg:grid-cols-[minmax(0,1fr)_280px]">
+            <div class="flex flex-col justify-between border-black/25 py-8 lg:border-r lg:pr-10 lg:py-10">
+                <div class="flex items-center justify-between font-mono text-[10px] uppercase tracking-[.18em]">
+                    <span>independent web utility</span>
+                    <span class="flex items-center gap-2"><i class="h-2 w-2 bg-[#37b24d]"></i> online</span>
+                </div>
+                <h1 class="display my-10 max-w-[850px] font-black uppercase">
                 <?= h($t['home_h1']) ?>
-            </h1>
-            <p class="rise mx-auto mt-6 max-w-xl text-base leading-7 text-white/45 sm:text-lg" style="animation-delay:.16s">
-                <?= h($t['home_lead']) ?>
-            </p>
-
-            <!-- Quick shorten -->
-            <form method="POST" action="/shorten" class="rise mx-auto mt-9 flex max-w-xl flex-col gap-2.5 sm:flex-row" style="animation-delay:.24s">
-                <input type="url" name="long_url" required placeholder="https://very-long-url.example.com/paste/here"
-                       class="h-[52px] min-w-0 flex-1 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 font-mono text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/40 focus:bg-white/[0.05]">
-                <button type="submit"
-                        class="group flex h-[52px] items-center justify-center gap-2 rounded-lg bg-[#f5f2ea] px-6 py-3.5 font-mono text-sm font-semibold text-[#0b0b0c] transition hover:bg-white">
-                    <span><?= h($t['shorten_submit'] ?? 'shorten') ?></span>
-                    <span class="transition-transform group-hover:translate-x-0.5">→</span>
-                </button>
-            </form>
-            <p class="rise mt-3 font-mono text-[11px] text-white/25" style="animation-delay:.3s">enter ↵ — <?= isUserLoggedIn() ? 'links bleiben dauerhaft' : 'als gast 14 tage gültig · mit <a href="/register" class="text-white/45 underline decoration-white/15 underline-offset-2 hover:text-white">account</a> dauerhaft' ?></p>
+                </h1>
+                <div class="grid gap-6 sm:grid-cols-[minmax(0,560px)_1fr] sm:items-end">
+                    <form method="POST" action="/shorten" class="flex border-2 border-black bg-white">
+                        <label class="sr-only" for="quick-url"><?= h($t['url_label'] ?? 'URL') ?></label>
+                        <input id="quick-url" type="url" name="long_url" required placeholder="paste a long URL"
+                               class="h-16 min-w-0 flex-1 bg-transparent px-4 font-mono text-sm outline-none placeholder:text-black/35">
+                        <button type="submit" class="m-1 bg-[#b8ff31] px-5 font-mono text-xs font-bold uppercase tracking-wider hover:bg-black hover:text-white">
+                            <?= h($t['shorten_submit'] ?? 'shorten') ?> ↗
+                        </button>
+                    </form>
+                    <p class="max-w-xs text-sm leading-5 text-black/60"><?= h($t['home_lead']) ?></p>
+                </div>
+            </div>
+            <aside class="hidden flex-col justify-between px-6 py-10 lg:flex">
+                <p class="font-mono text-[10px] uppercase tracking-[.18em]">0x79 / utility stack</p>
+                <div class="relative mx-auto h-44 w-44">
+                    <img src="/logomark_0x79.jpg" alt="" class="h-full w-full object-cover grayscale contrast-125">
+                    <span class="absolute -bottom-4 -left-4 bg-[#b8ff31] px-3 py-2 font-mono text-[10px] font-bold uppercase">private by default</span>
+                </div>
+                <div class="border-t border-black/25 pt-4 font-mono text-[10px] uppercase leading-5 tracking-wider">
+                    no trackers<br>open source<br>six useful tools
+                </div>
+            </aside>
         </section>
 
-        <!-- Tools -->
-        <section class="pb-14">
-            <div class="mb-6 flex items-end justify-between">
-                <p class="font-mono text-xs uppercase tracking-[0.24em] text-white/30">tools</p>
-                <p class="font-mono text-[11px] text-white/20">06</p>
+        <div class="-mx-4 overflow-hidden border-b border-black bg-black py-2 text-[#e8e6df] sm:-mx-7">
+            <div class="ticker flex w-max font-mono text-[10px] uppercase tracking-[.2em]">
+                <span class="px-5">short links — file hosting — private pastes — clean metadata — music pages — encrypted sharing — </span>
+                <span class="px-5">short links — file hosting — private pastes — clean metadata — music pages — encrypted sharing — </span>
             </div>
-            <div class="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+        </div>
+
+        <section class="grid border-b border-black/25 py-10 lg:grid-cols-[220px_1fr] lg:gap-10 lg:py-12">
+            <div class="mb-7 lg:mb-0">
+                <p class="font-mono text-[10px] uppercase tracking-[.2em]">directory / 06</p>
+                <h2 class="mt-3 text-3xl font-black uppercase tracking-[-.06em]">Pick a utility.</h2>
+                <p class="mt-3 max-w-[220px] text-xs leading-5 text-black/55">Links, files and private sharing in one place.</p>
+            </div>
+            <div class="grid border-t-2 border-black md:grid-cols-2">
                 <?php
                 $toolCards = [
                     ['href' => '/shorten',      'num' => '01', 'color' => '#60a5fa', 'title' => $t['home_tool1_title'], 'desc' => $t['home_tool1_desc'], 'tags' => ['alias', 'password', 'burn'],
@@ -1323,44 +1359,32 @@ $homePosts = fetchRssPosts(10);
                     ['href' => '/secure-share', 'num' => '06', 'color' => '#22d3ee', 'title' => $t['home_tool6_title'], 'desc' => $t['home_tool6_desc'], 'tags' => ['aes-gcm', 'zero-knowledge', 'secure'],
                      'icon' => 'M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z'],
                 ];
-                foreach ($toolCards as $i => $tc): ?>
-                <a href="<?= h($tc['href']) ?>" class="card-glow rise group relative flex flex-col justify-between overflow-hidden rounded-xl border border-white/[0.08] bg-[#101011] p-5 hover:border-white/25 hover:bg-[#131315]" style="animation-delay:<?= 0.05 * $i + 0.1 ?>s">
+                foreach ($toolCards as $tc): ?>
+                <a href="<?= h($tc['href']) ?>" class="utility-row group grid min-h-[88px] grid-cols-[34px_1fr_auto] items-center gap-3 border-b border-black/25 px-2 py-3 md:odd:border-r md:px-4">
+                    <span class="font-mono text-[10px]"><?= h($tc['num']) ?></span>
                     <div>
-                        <div class="flex items-start justify-between">
-                            <span class="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/[0.03]">
-                                <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="<?= h($tc['color']) ?>" stroke-opacity="0.9" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="<?= h($tc['icon']) ?>"/></svg>
-                            </span>
-                            <span class="font-mono text-[10px] tracking-widest text-white/20"><?= h($tc['num']) ?></span>
-                        </div>
-                        <h2 class="mt-4 text-lg font-semibold tracking-tight text-white"><?= h($tc['title']) ?></h2>
-                        <p class="mt-1.5 text-[13px] leading-relaxed text-white/40"><?= h($tc['desc']) ?></p>
+                        <h3 class="text-base font-bold tracking-[-.03em]"><?= h($tc['title']) ?></h3>
+                        <p class="mt-1 line-clamp-1 text-xs opacity-55"><?= h($tc['desc']) ?></p>
                     </div>
-                    <div class="mt-5 flex items-center justify-between">
-                        <div class="flex flex-wrap gap-1.5">
-                            <?php foreach ($tc['tags'] as $tag): ?>
-                            <span class="rounded border border-white/[0.06] bg-white/[0.03] px-2 py-0.5 font-mono text-[10px] text-white/35"><?= h($tag) ?></span>
-                            <?php endforeach; ?>
-                        </div>
-                        <span class="font-mono text-sm text-white/20 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white/60">→</span>
-                    </div>
+                    <span class="utility-arrow text-xl">↗</span>
                 </a>
                 <?php endforeach; ?>
             </div>
         </section>
 
         <!-- News -->
-        <section class="border-t border-white/[0.06] py-12 sm:py-16">
+        <section class="py-10 sm:py-12">
             <div class="mb-8 flex items-center justify-between">
                 <div>
-                    <p class="font-mono text-xs uppercase tracking-[0.24em] text-white/30">news</p>
-                    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-white"><?= h($t['news_title']) ?></h2>
-                    <p class="mt-1 text-sm text-white/40"><?= h($t['news_lead']) ?></p>
+                    <p class="font-mono text-[10px] uppercase tracking-[.2em]">log / updates</p>
+                    <h2 class="mt-2 text-3xl font-black uppercase tracking-[-.05em]"><?= h($t['news_title']) ?></h2>
+                    <p class="mt-1 text-sm text-black/50"><?= h($t['news_lead']) ?></p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <a href="/posts" class="rounded-lg border border-white/10 bg-white/[0.03] px-3.5 py-2 font-mono text-xs text-white/60 backdrop-blur transition hover:border-white/30 hover:text-white">
+                    <a href="/posts" class="border border-black px-3.5 py-2 font-mono text-xs hover:bg-black hover:text-white">
                         <?= h($t['news_all_posts']) ?>
                     </a>
-                    <a href="/rss" target="_blank" class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3.5 py-2 font-mono text-xs text-white/60 backdrop-blur transition hover:border-orange-500/40 hover:text-orange-400">
+                    <a href="/rss" target="_blank" class="rss-button flex items-center gap-2 border border-black px-3.5 py-2 font-mono text-xs hover:bg-[#b8ff31]">
                         <svg class="h-3 w-3 fill-current" viewBox="0 0 24 24">
                             <path d="M6.18 15.64a2.18 2.18 0 11-2.18 2.18 2.18 2.18 0 012.18-2.18zM3 3a18 18 0 0118 18h-2.91A15.09 15.09 0 003 5.91zm0 6.06a11.94 11.94 0 0111.94 11.94H12A9 9 0 003 12z"/>
                         </svg>
@@ -1370,25 +1394,25 @@ $homePosts = fetchRssPosts(10);
             </div>
 
             <?php if (empty($homePosts)): ?>
-                <div class="rounded-xl border border-white/[0.08] bg-[#101011] p-10 text-center font-mono text-xs text-white/30">
+                <div class="border-y border-black/25 p-10 text-center font-mono text-xs text-black/40">
                     <?= h($t['news_no_posts']) ?>
                 </div>
             <?php else: ?>
-                <div class="grid gap-3.5 md:grid-cols-2">
+                <div class="grid border-t-2 border-black md:grid-cols-2">
                     <?php foreach ($homePosts as $post):
                         $postUrl = '/post/' . $post['id'];
                         $pubDate = (int)($post['pub_date'] ?? 0);
                         $dateStr = $pubDate ? date('d.m.Y', $pubDate) : '';
                     ?>
-                        <a href="<?= h($postUrl) ?>" class="card-glow group flex gap-4 rounded-xl border border-white/[0.08] bg-[#101011] p-4 hover:border-white/25 hover:bg-[#131315]">
+                        <a href="<?= h($postUrl) ?>" class="group flex gap-4 border-b border-black/25 p-4 hover:bg-black hover:text-white md:odd:border-r">
                             <?php if (!empty($post['image'])): ?>
-                                <img src="<?= h($post['image']) ?>" alt="Post Thumbnail" class="h-20 w-28 shrink-0 rounded-lg border border-white/10 bg-black/40 object-cover">
+                                <img src="<?= h($post['image']) ?>" alt="Post Thumbnail" class="h-20 w-28 shrink-0 border border-current bg-black/40 object-cover grayscale transition group-hover:grayscale-0">
                             <?php endif; ?>
                             <div class="flex min-w-0 flex-col justify-between">
                                 <div>
-                                    <span class="font-mono text-[10px] uppercase tracking-wider text-white/25"><?= h($dateStr) ?></span>
-                                    <h3 class="mt-1 truncate text-sm font-semibold text-white"><?= h($post['title'] ?? '') ?></h3>
-                                    <p class="mt-1 line-clamp-2 text-xs leading-relaxed text-white/40">
+                                    <span class="font-mono text-[10px] uppercase tracking-wider opacity-45"><?= h($dateStr) ?></span>
+                                    <h3 class="mt-1 truncate text-sm font-bold"><?= h($post['title'] ?? '') ?></h3>
+                                    <p class="mt-1 line-clamp-2 text-xs leading-relaxed opacity-55">
                                         <?= h($post['description'] ?? '') ?>
                                     </p>
                                 </div>
@@ -1399,12 +1423,12 @@ $homePosts = fetchRssPosts(10);
             <?php endif; ?>
         </section>
 
-        <footer class="flex flex-col items-center justify-between gap-3 border-t border-white/[0.06] py-7 font-mono text-xs text-white/25 sm:flex-row">
+        <footer class="flex flex-col items-center justify-between gap-3 border-t border-black/25 py-7 font-mono text-[10px] uppercase tracking-wider text-black/50 sm:flex-row">
             <span class="flex items-center gap-2">
-                <img src="/logo.png" alt="" class="h-5 w-5 rounded-md border border-white/10 object-cover">
+                <img src="/logomark_0x79.jpg" alt="" class="h-5 w-5 object-cover grayscale">
                 0x79.one · <?= date('Y') ?>
             </span>
-            <span class="text-white/20">fftrclo.store · takeitdown.space · mydiscordiscool.store · fckdupfuture.com</span>
+            <span class="text-black/35">fftrclo.store · takeitdown.space · mydiscordiscool.store · fckdupfuture.com</span>
         </footer>
     </main>
 </body>

@@ -1,6 +1,104 @@
 <?php
 declare(strict_types=1);
 
+/** Shared visual system and persistent light/dark switch for public tool pages. */
+function renderProductTheme(): void {
+    ?>
+    <script>
+        (function () {
+            var saved = localStorage.getItem('0x79-theme');
+            var preferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+            document.documentElement.dataset.theme = saved || preferred;
+            var isTool = /^\/(shorten|upload|paste|music|metadata|secure-share)\/?$/.test(location.pathname);
+            var isApp = /^\/(login|register|account(?:\/stats)?|api\/docs|admin(?:\/edit)?)\/?$/.test(location.pathname);
+            if (isTool || isApp) {
+                document.documentElement.classList.add('product-ui');
+            }
+            if (isTool) document.documentElement.classList.add('tool-ui');
+            if (isApp) document.documentElement.classList.add('app-ui');
+        })();
+    </script>
+    <style>
+        :root{--ui-bg:#0b0b0c;--ui-panel:#101011;--ui-ink:#f5f2ea;--ui-muted:rgba(255,255,255,.48);--ui-rule:rgba(255,255,255,.12);--ui-accent:#b8ff31}
+        html[data-theme="light"]{--ui-bg:#e8e6df;--ui-panel:#f4f2ec;--ui-ink:#11110f;--ui-muted:rgba(17,17,15,.56);--ui-rule:rgba(17,17,15,.2)}
+        html[data-theme="dark"] body [class*="bg-[#b8ff31]"]{color:#11110f!important}
+        body{background:var(--ui-bg)!important;color:var(--ui-ink)!important;transition:background-color .18s,color .18s}
+        body [class*="rounded-"]{border-radius:0!important}
+        html[data-theme="light"] body [class*="bg-[#0b0b0c]"]{background-color:var(--ui-bg)!important}
+        html[data-theme="light"] body [class*="bg-[#101011]"]{background-color:var(--ui-panel)!important}
+        html[data-theme="light"] body [class*="bg-black"]{background-color:rgba(17,17,15,.06)!important}
+        html[data-theme="light"] body [class*="text-white"]{color:var(--ui-ink)!important}
+        html[data-theme="light"] body [class*="border-white"]{border-color:var(--ui-rule)!important}
+        html[data-theme="light"] input,html[data-theme="light"] textarea,html[data-theme="light"] select{background:rgba(255,255,255,.42)!important;color:var(--ui-ink)!important;border-color:var(--ui-rule)!important;color-scheme:light!important}
+        html[data-theme="light"] input::placeholder,html[data-theme="light"] textarea::placeholder{color:rgba(17,17,15,.35)!important}
+        html[data-theme="light"] option{background:#f4f2ec!important;color:#11110f!important}
+        .product-ui body{font-family:Arial,Helvetica,sans-serif!important;background:var(--ui-bg)!important}
+        .product-ui body>main{width:100%!important;padding-top:0!important;padding-bottom:0!important}
+        .tool-ui body>main,.app-ui body>main:has(>header){max-width:1440px!important}
+        .product-ui body>main>header{min-height:58px!important;margin:0!important;padding:0!important;border-color:var(--ui-rule)!important}
+        .product-ui body>main>header>a{align-self:stretch;padding-right:22px}
+        .product-ui body>main>header>a img{width:32px!important;height:32px!important;border:0!important;filter:grayscale(1) contrast(1.2)}
+        .product-ui body>main>header>a span{font-family:Arial,Helvetica,sans-serif!important;font-size:20px!important;font-weight:900!important;letter-spacing:-.08em!important;color:var(--ui-ink)!important}
+        .product-ui body>main>header nav{align-self:stretch;gap:0!important;color:var(--ui-muted)!important}
+        .product-ui body>main>header nav>a{display:flex;align-items:center;border-left:1px solid var(--ui-rule);padding:0 14px!important;font-size:10px!important;text-transform:uppercase;letter-spacing:.08em}
+        .product-ui body>main>header nav>a:hover{background:var(--ui-ink)!important;color:var(--ui-bg)!important}
+        .product-ui body>main>section{align-items:start!important;gap:clamp(32px,6vw,88px)!important;padding-top:48px!important;padding-bottom:48px!important}
+        .product-ui body>main>section h1{max-width:760px;font-family:Arial,Helvetica,sans-serif!important;font-size:clamp(42px,6vw,82px)!important;font-weight:900!important;line-height:.88!important;letter-spacing:-.07em!important;text-transform:uppercase;color:var(--ui-ink)!important}
+        .product-ui body>main>h1{margin:40px 0 8px!important;font-family:Arial,Helvetica,sans-serif!important;font-size:clamp(44px,7vw,88px)!important;font-weight:900!important;line-height:.88!important;letter-spacing:-.07em!important;text-transform:uppercase;color:var(--ui-ink)!important}
+        .product-ui body>main>section>div:first-child>p:first-child{margin-bottom:16px!important;font-size:10px!important;color:var(--ui-muted)!important}
+        .product-ui body>main>section>div:first-child>h1+p{max-width:540px!important;margin-top:24px!important;font-size:15px!important;line-height:1.55!important;color:var(--ui-muted)!important}
+        .product-ui body [class*="bg-[#101011]"]{background-color:var(--ui-panel)!important}
+        .product-ui body [class*="border-white"]{border-color:var(--ui-rule)!important}
+        .product-ui body main form,.product-ui body main #dropzone{border-color:var(--ui-ink)!important}
+        .product-ui body main input,.product-ui body main textarea,.product-ui body main select{min-height:46px;border-color:var(--ui-rule)!important;background:var(--ui-bg)!important;color:var(--ui-ink)!important}
+        .product-ui body main textarea{min-height:180px}
+        .tool-ui body main button[type="submit"],.tool-ui body main a[id*="download"],.app-ui body>form button[type="submit"],.app-ui body main form[action="/login"] button[type="submit"],.app-ui body main form[action="/register"] button[type="submit"]{border:1px solid var(--ui-ink)!important;background:var(--ui-accent)!important;color:#11110f!important;font-weight:800!important;text-transform:uppercase;letter-spacing:.06em}
+        .tool-ui body main button[type="submit"]:hover,.tool-ui body main a[id*="download"]:hover,.app-ui body>form button[type="submit"]:hover,.app-ui body main form[action="/login"] button[type="submit"]:hover,.app-ui body main form[action="/register"] button[type="submit"]:hover{background:var(--ui-ink)!important;color:var(--ui-bg)!important}
+        .product-ui body>main>footer{border-color:var(--ui-rule)!important;color:var(--ui-muted)!important}
+        .product-ui body>form{width:min(100%,480px)!important;border:2px solid var(--ui-ink)!important;background:var(--ui-panel)!important;padding:30px!important;box-shadow:10px 10px 0 var(--ui-accent)}
+        .product-ui body>form h1{margin:0!important;font:900 clamp(38px,7vw,64px)/.9 Arial,Helvetica,sans-serif!important;letter-spacing:-.07em;text-transform:uppercase}
+        .product-ui .card,.product-ui .note,.product-ui pre{border-color:var(--ui-rule)!important;background:var(--ui-panel)!important}
+        .product-ui .tabs{border-color:var(--ui-rule)!important}
+        .product-ui .tab.active{background:var(--ui-accent)!important;color:#11110f!important;border-color:var(--ui-ink)!important}
+        .product-ui{--bg:var(--ui-bg);--fg:var(--ui-ink);--muted:var(--ui-muted);--rule:var(--ui-rule);--card:var(--ui-panel);--accent:var(--ui-accent)}
+        @media(min-width:1024px){.product-ui body>main>section{min-height:calc(100vh - 150px)}}
+        @media(max-width:760px){
+            .product-ui body>main{padding-left:16px!important;padding-right:16px!important}
+            .product-ui body>main>header nav>a:nth-of-type(n+4){display:none}
+            .product-ui body>main>header nav>a{padding:0 9px!important}
+            .product-ui body>main>section{padding-top:32px!important;padding-bottom:36px!important}
+        }
+        .ui-theme-switch{position:fixed;right:18px;bottom:18px;z-index:80;display:flex;align-items:center;gap:10px;height:40px;padding:0 13px;border:1px solid var(--ui-rule);background:var(--ui-ink);color:var(--ui-bg);font:600 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;box-shadow:4px 4px 0 var(--ui-accent)}
+        .ui-theme-switch:hover{background:var(--ui-accent);color:#11110f}
+        .ui-theme-switch-dot{width:8px;height:8px;border:1px solid currentColor;background:currentColor}
+        @media(max-width:640px){.ui-theme-switch{right:12px;bottom:12px;height:36px;padding:0 10px}.ui-theme-switch-label{display:none}}
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (document.querySelector('.ui-theme-switch')) return;
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'ui-theme-switch';
+            button.setAttribute('aria-label', 'Hell- oder Dunkelmodus wechseln');
+            button.innerHTML = '<span class="ui-theme-switch-dot"></span><span class="ui-theme-switch-label"></span>';
+            function sync() {
+                var light = document.documentElement.dataset.theme === 'light';
+                button.querySelector('.ui-theme-switch-label').textContent = light ? 'dark mode' : 'light mode';
+                button.setAttribute('aria-pressed', light ? 'true' : 'false');
+            }
+            button.addEventListener('click', function () {
+                var next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+                document.documentElement.dataset.theme = next;
+                localStorage.setItem('0x79-theme', next);
+                sync();
+            });
+            sync();
+            document.body.appendChild(button);
+        });
+    </script>
+    <?php
+}
+
 function userPageCss() {
     return '<style>
         body{margin:0;background:#0b0b0c;color:#f5f2ea;font:14px/1.5 Inter,ui-sans-serif,system-ui,sans-serif;padding:32px}a{color:#f5f2ea}.wrap{max-width:1060px;margin:0 auto}.nav{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.12);padding-bottom:16px;margin-bottom:28px}.brand{font-family:monospace;text-decoration:none}.card{border:1px solid rgba(255,255,255,.12);background:#101011;padding:22px;margin:16px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:760px){.grid{grid-template-columns:1fr}}input,button{font:inherit}input{width:100%;box-sizing:border-box;background:#0b0b0c;color:#fff;border:1px solid rgba(255,255,255,.16);padding:12px;margin:7px 0 14px}button,.btn{display:inline-block;background:#f5f2ea;color:#0b0b0c;border:0;padding:10px 14px;text-decoration:none;cursor:pointer}.ghost{background:transparent;color:#f5f2ea;border:1px solid rgba(255,255,255,.18)}.danger{background:#2b1010;color:#ffb4b4;border:1px solid #613030}.muted{color:rgba(255,255,255,.52)}.err{color:#ff9b9b}.ok{color:#9cffbd}table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid rgba(255,255,255,.1);padding:10px;text-align:left;vertical-align:top}code{font-family:JetBrains Mono,monospace;background:#0b0b0c;border:1px solid rgba(255,255,255,.12);padding:2px 5px}.url{max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.inline{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.swatch{display:inline-block;width:10px;height:10px;border-radius:999px;margin-right:7px;vertical-align:middle}.tiny{font-size:12px}.chartbox{background:#f7f7f4;color:#111;border:1px solid rgba(0,0,0,.14);padding:18px;overflow:hidden}.charttitle{text-align:center;font-family:"Comic Sans MS","Segoe Print",cursive;font-size:18px;margin:0 0 8px}.chartwrap{overflow-x:auto}.chart{min-width:760px;width:100%;height:auto;display:block}.chart text{font-family:"Comic Sans MS","Segoe Print",cursive;fill:#222}.chart .gridline{stroke:#d7d7d2;stroke-width:1}.chart .axis{stroke:#555;stroke-width:1.2}.chart .mainline{fill:none;stroke:#111;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.chart .point{stroke:#fff;stroke-width:2}.chartlegend{display:flex;flex-wrap:wrap;gap:14px 28px;justify-content:center;margin-top:14px}.legenditem{display:flex;align-items:center;gap:8px;font-family:"Comic Sans MS","Segoe Print",cursive;font-size:13px;color:#111}.legendswatch{width:19px;height:19px;border:1px solid rgba(0,0,0,.45);display:inline-block;transform:rotate(-4deg)}
@@ -26,6 +124,7 @@ function renderUserAuthPage($mode, $error = '') {
     <script>
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','sans-serif'], mono: ['JetBrains Mono','ui-monospace','monospace'] } } } };
     </script>
+    <?php renderProductTheme(); ?>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
     <main class="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-5 py-5 sm:px-7 lg:px-8">
@@ -128,6 +227,7 @@ function renderUserAccountPage($notice = '') {
         details.rowedit summary::-webkit-details-marker{display:none}
         details.rowedit[open] summary{color:#fff;border-color:rgba(255,255,255,.4)}
     </style>
+    <?php renderProductTheme(); ?>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
 <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-7 lg:px-8">
@@ -409,6 +509,7 @@ function renderLinkStatsPage($code, $clicks) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <?php renderProductTheme(); ?>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
 <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-7 lg:px-8">
@@ -610,6 +711,7 @@ function renderMusicPromoterPage($error = '', $short_url = '', $music_url = '') 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <?php renderProductTheme(); ?>
     <style>
         .pf-row{display:none}
         .pf-input:not(:placeholder-shown) ~ .pf-dot,.pf-input:focus ~ .pf-dot{opacity:1}
@@ -974,6 +1076,7 @@ function renderAdminLogin($error = '') {
         .err { color:#ff6b6b; }
         .muted { color:#a9a59c; }
     </style>
+    <?php renderProductTheme(); ?>
 </head>
 <body>
     <form method="POST" action="/admin" autocomplete="off">
@@ -1025,6 +1128,7 @@ function renderAdminEdit($id) {
         button:hover, .btn:hover { background:#ebe9e3; color:#0e0e10; }
         .muted { color:#a9a59c; }
     </style>
+    <?php renderProductTheme(); ?>
 </head>
 <body>
 <main>
@@ -1195,6 +1299,7 @@ function renderAdminDashboard() {
         .protocol-option small { color:var(--muted); display:block; margin-top:2px; }
         @media (max-width: 720px) { body { padding:20px 12px; } .panel-head { align-items:stretch; } .tools, .tools form { width:100%; } input[type="search"] { width:100%; } }
     </style>
+    <?php renderProductTheme(); ?>
 </head>
 <body>
 <main>
@@ -1667,10 +1772,21 @@ function renderApiDocs() {
         .pill { display:inline-block; border:1px solid var(--rule); padding:4px 8px; margin:0 6px 6px 0; color:var(--muted); }
         .note { border:1px solid var(--rule); background:var(--card); padding:14px; color:var(--muted); }
         .bad { color:var(--bad); }
+        .api-top { min-height:58px; margin-bottom:48px; border-bottom:1px solid var(--rule); display:flex; align-items:center; justify-content:space-between; }
+        .api-top a { text-decoration:none; }
+        .api-brand { font:900 20px/1 Arial,Helvetica,sans-serif; letter-spacing:-.08em; }
+        .api-links { display:flex; align-items:stretch; align-self:stretch; }
+        .api-links a { display:flex; align-items:center; border-left:1px solid var(--rule); padding:0 14px; font-size:10px; text-transform:uppercase; letter-spacing:.08em; }
+        .api-links a:hover { background:var(--fg); color:var(--bg); }
     </style>
+    <?php renderProductTheme(); ?>
 </head>
 <body>
 <main>
+    <nav class="api-top" aria-label="Hauptnavigation">
+        <a class="api-brand" href="/">0x79</a>
+        <span class="api-links"><a href="/shorten">tools</a><a href="/account">account</a><a href="/">home</a></span>
+    </nav>
     <h1>0x79 API Docs</h1>
     <p>API für URL Shortener, File/Image Host und Paste Host.</p>
 
@@ -1949,6 +2065,7 @@ function renderUploadPage($error = '', $short_url = '') {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <?php renderProductTheme(); ?>
     <style>
         #dz.over{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.04)}
         #dz .ico{transition:transform .15s}
@@ -2237,6 +2354,7 @@ function renderPastePage($error = '', $paste_url = '', $raw_url = '') {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <?php renderProductTheme(); ?>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
     <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-7 lg:px-8">
@@ -2746,6 +2864,7 @@ function renderMetadataStripperPage() {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <?php renderProductTheme(); ?>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
     <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-7 lg:px-8">
@@ -2954,6 +3073,7 @@ function renderSecureSharePage($error = '', $pasteUrl = '') {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <?php renderProductTheme(); ?>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
     <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-7 lg:px-8">
@@ -3196,5 +3316,3 @@ function renderSecureSharePage($error = '', $pasteUrl = '') {
     <?php
     exit;
 }
-
-
