@@ -70,6 +70,20 @@ php -S localhost:8000 index.php
 
 Open [localhost:8000](http://localhost:8000).
 
+## Docker
+
+Create the `.env` file described above, then run:
+
+```sh
+docker compose up --build
+```
+
+The app will be available at [localhost:8080](http://localhost:8080). Set `APP_PORT` to use a different host port:
+
+```sh
+APP_PORT=9000 docker compose up --build
+```
+
 ## API
 
 API documentation is available at `/api/docs`. Create an account to generate an API key.
