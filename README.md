@@ -84,6 +84,12 @@ The app will be available at [localhost:8080](http://localhost:8080). Set `APP_P
 APP_PORT=9000 docker compose up --build
 ```
 
+Prebuilt images are published to GitHub Container Registry on every push to `main`:
+
+```sh
+docker pull ghcr.io/hypergaming99/0x79:latest
+```
+
 ## API
 
 API documentation is available at `/api/docs`. Create an account to generate an API key.
