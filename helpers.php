@@ -48,23 +48,6 @@ function loadEnv($path) {
     return true;
 }
 
-function toolEnabled(string $tool): bool {
-    $variables = [
-        'shortener'    => 'TOOL_SHORTENER_ENABLED',
-        'upload'       => 'TOOL_UPLOAD_ENABLED',
-        'paste'        => 'TOOL_PASTE_ENABLED',
-        'music'        => 'TOOL_MUSIC_ENABLED',
-        'metadata'     => 'TOOL_METADATA_ENABLED',
-        'secure_share' => 'TOOL_SECURE_SHARE_ENABLED',
-    ];
-
-    if (!isset($variables[$tool])) return false;
-    $value = getenv($variables[$tool]);
-    if ($value === false || trim((string)$value) === '') return true;
-
-    return filter_var($value, FILTER_VALIDATE_BOOLEAN);
-}
-
 // ---------------------------------------------------------
 // SPRACH-ERKENNUNG
 // ---------------------------------------------------------
@@ -1787,4 +1770,3 @@ if (!function_exists('imageUrl')) {
         return $proto . '://' . $host . '/images/' . $image;
     }
 }
-

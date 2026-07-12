@@ -2699,61 +2699,69 @@ function renderAllPostsPage($posts) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($t['news_all_title']) ?> — 0x79</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Arial','Helvetica','sans-serif'],mono:['SFMono-Regular','Consolas','Liberation Mono','monospace']}}}};</script>
+    <?php renderProductTheme(); ?>
+    <style>
+        :root{--paper:#e8e6df;--ink:#11110f;--accent:#b8ff31;--rule:rgba(17,17,15,.22)}
+        html[data-theme="dark"]{--paper:#11110f;--ink:#e8e6df;--rule:rgba(232,230,223,.22)}
+        body{background:var(--paper)!important;color:var(--ink)!important}
+        html[data-theme="dark"] body [class*="bg-[#e8e6df]"]{background-color:rgba(17,17,15,.95)!important}
+        html[data-theme="dark"] body [class*="border-black"]{border-color:var(--rule)!important}
+        html[data-theme="dark"] body [class*="text-black"]{color:#11110f!important}
+        .back-home{background:#b8ff31!important;color:#11110f!important}
+        .back-home:hover{background:var(--ink)!important;color:var(--paper)!important}
+        .post-card:hover{background:var(--ink);color:var(--paper)}
+    </style>
 </head>
-<body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
-    <main class="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-5 py-5 sm:px-7 lg:px-8">
-        <header class="flex items-center justify-between border-b border-white/10 pb-5 mb-8">
-            <a href="/" class="flex items-center gap-2"><img src="/logo.png" alt="Logo" class="h-10 w-10 rounded-lg border border-white/10 object-cover"><span class="font-mono text-sm tracking-tight text-white">0x79</span></a>
-            <nav class="flex items-center gap-1 font-mono text-xs text-white/45">
-                <a href="/" class="px-2.5 py-1.5 transition hover:text-white">home</a>
-                <a href="/shorten" class="px-2.5 py-1.5 transition hover:text-white">shorten</a>
-                <a href="/upload" class="px-2.5 py-1.5 transition hover:text-white">file</a>
-                <a href="/paste" class="px-2.5 py-1.5 transition hover:text-white">paste</a>
+<body class="min-h-screen font-sans antialiased">
+    <header class="sticky top-0 z-40 border-b border-black/20 bg-[#e8e6df]/95">
+        <div class="mx-auto flex w-full max-w-[1440px] items-center justify-between px-4 py-3 sm:px-7">
+            <a href="/" class="flex items-center gap-3"><img src="/logomark_0x79.jpg" alt="0x79" class="h-8 w-8 object-cover grayscale"><span class="text-xl font-black tracking-[-.08em]">0x79</span></a>
+            <nav class="flex items-center font-mono text-[10px] uppercase tracking-wider">
+                <a href="/" class="back-home border-l border-black/20 px-4 py-3 font-bold"><?= h($t['news_back_home'] ?? '← home') ?></a>
+                <a href="/rss" class="border-x border-black/20 bg-[#b8ff31] px-4 py-3 font-bold text-black">RSS</a>
             </nav>
-        </header>
+        </div>
+    </header>
+    <main class="mx-auto min-h-screen w-full max-w-[1440px] px-4 sm:px-7">
+        <section class="grid border-b border-black/25 py-10 lg:grid-cols-[220px_1fr] lg:gap-12 lg:py-16">
+            <p class="font-mono text-[10px] uppercase tracking-[.2em]">log / archive</p>
+            <div><h1 class="max-w-4xl text-5xl font-black uppercase leading-[.85] tracking-[-.07em] sm:text-7xl"><?= h($t['news_all_title'] ?? 'All posts') ?></h1><p class="mt-6 max-w-xl text-sm leading-6 opacity-55"><?= h($t['news_lead'] ?? '') ?></p></div>
+        </section>
 
-        <section class="flex-1 py-4">
-            <h1 class="text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl mb-2"><?= h($t['news_all_title']) ?></h1>
-            <p class="text-xs text-white/45 mb-8"><?= h($t['news_lead']) ?></p>
+        <section class="py-10 lg:py-14">
 
             <?php if (empty($posts)): ?>
-                <div class="border border-white/5 bg-[#111113] p-12 text-center text-xs text-white/30 font-mono">
-                    <?= h($t['news_no_posts']) ?>
+                <div class="border-y border-black/25 p-12 text-center font-mono text-xs opacity-40">
+                    <?= h($t['news_no_posts'] ?? 'No posts published yet.') ?>
                 </div>
             <?php else: ?>
-                <div class="grid gap-4">
+                <div class="grid border-t-2 border-black md:grid-cols-2">
                     <?php foreach ($posts as $post):
                         $postUrl = '/post/' . $post['id'];
                         $pubDate = (int)($post['pub_date'] ?? 0);
                         $dateStr = $pubDate ? date('d.m.Y H:i', $pubDate) : '';
                     ?>
-                        <a href="<?= h($postUrl) ?>" class="group flex gap-4 border border-white/5 bg-[#111113] p-4 transition duration-300 hover:border-white/15 hover:bg-[#141417]">
-                            <?php if (!empty($post['image'])): ?>
-                                <img src="<?= h($post['image']) ?>" alt="Post Thumbnail" class="h-20 w-28 shrink-0 object-cover border border-white/15 rounded bg-black/40">
-                            <?php endif; ?>
-                            <div class="flex flex-col justify-between min-w-0">
-                                <div>
-                                    <span class="font-mono text-[9px] uppercase tracking-wider text-white/30"><?= h($dateStr) ?></span>
-                                    <h2 class="mt-1 text-base font-semibold text-white transition duration-300 group-hover:text-white/80 truncate"><?= h($post['title'] ?? '') ?></h2>
-                                    <p class="mt-1 text-xs leading-relaxed text-white/45 line-clamp-2">
-                                        <?= h($post['description'] ?? '') ?>
-                                    </p>
-                                </div>
+                        <a href="<?= h($postUrl) ?>" class="post-card group grid min-h-[190px] grid-cols-[1fr_120px] gap-5 border-b border-black/25 p-5 transition md:odd:border-r sm:grid-cols-[1fr_180px]">
+                            <div class="flex min-w-0 flex-col justify-between">
+                                <span class="font-mono text-[9px] uppercase tracking-[.18em] opacity-40"><?= h($dateStr) ?></span>
+                                <div><h2 class="text-xl font-black uppercase leading-tight tracking-[-.04em]"><?= h($post['title'] ?? '') ?></h2><p class="mt-2 line-clamp-2 text-xs leading-5 opacity-55"><?= h($post['description'] ?? '') ?></p></div>
+                                <span class="font-mono text-[10px] uppercase opacity-45"><?= h($t['news_read_article'] ?? 'read article') ?> ↗</span>
                             </div>
+                            <?php if (!empty($post['image'])): ?>
+                                <img src="<?= h($post['image']) ?>" alt="" class="h-full min-h-[150px] w-full border border-current object-cover grayscale transition group-hover:grayscale-0">
+                            <?php else: ?>
+                                <div class="grid h-full min-h-[150px] place-items-center border border-current font-mono text-3xl opacity-20">0x</div>
+                            <?php endif; ?>
                         </a>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
         </section>
 
-        <footer class="mt-12 flex flex-col justify-between gap-2 border-t border-white/10 py-5 font-mono text-xs text-white/30 sm:flex-row">
-            <span>0x79.one</span>
-            <a href="/" class="hover:underline"><?= h($t['news_back_home']) ?></a>
+        <footer class="flex justify-between border-t border-black/25 py-7 font-mono text-[10px] uppercase tracking-wider opacity-45">
+            <span>0x79.one · <?= date('Y') ?></span><a href="/">↑ home</a>
         </footer>
     </main>
 </body>
@@ -2804,42 +2812,36 @@ function renderPostPage($post) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($title) ?> — 0x79</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Arial','Helvetica','sans-serif'],mono:['SFMono-Regular','Consolas','Liberation Mono','monospace']}}}};</script>
+    <?php renderProductTheme(); ?>
+    <style>:root{--paper:#e8e6df;--ink:#11110f;--rule:rgba(17,17,15,.22)}html[data-theme="dark"]{--paper:#11110f;--ink:#e8e6df;--rule:rgba(232,230,223,.22)}body{background:var(--paper)!important;color:var(--ink)!important}html[data-theme="dark"] body [class*="bg-[#e8e6df]"]{background-color:rgba(17,17,15,.95)!important}html[data-theme="dark"] body [class*="border-black"]{border-color:var(--rule)!important}html[data-theme="dark"] body [class*="bg-black"]{background-color:var(--ink)!important}</style>
 </head>
-<body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
-    <main class="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-5 py-5 sm:px-7 lg:px-8">
-        <header class="flex items-center justify-between border-b border-white/10 pb-5 mb-8">
-            <a href="/" class="flex items-center gap-2"><img src="/logo.png" alt="Logo" class="h-10 w-10 rounded-lg border border-white/10 object-cover"><span class="font-mono text-sm tracking-tight text-white">0x79</span></a>
-            <nav class="flex items-center gap-1 font-mono text-xs text-white/45">
-                <a href="/" class="px-2.5 py-1.5 transition hover:text-white">home</a>
-                <a href="/shorten" class="px-2.5 py-1.5 transition hover:text-white">shorten</a>
-                <a href="/upload" class="px-2.5 py-1.5 transition hover:text-white">file</a>
-                <a href="/paste" class="px-2.5 py-1.5 transition hover:text-white">paste</a>
-            </nav>
+<body class="min-h-screen font-sans antialiased">
+    <header class="sticky top-0 z-40 border-b border-black/20 bg-[#e8e6df]/95"><div class="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-3 sm:px-7"><a href="/" class="flex items-center gap-3"><img src="/logomark_0x79.jpg" alt="0x79" class="h-8 w-8 object-cover grayscale"><span class="text-xl font-black tracking-[-.08em]">0x79</span></a><a href="/posts" class="border-x border-black/20 px-4 py-3 font-mono text-[10px] uppercase tracking-wider hover:bg-black hover:text-white"><?= h($t['news_all_title'] ?? 'All posts') ?></a></div></header>
+    <main class="mx-auto flex min-h-screen w-full max-w-[1200px] flex-col px-4 sm:px-7">
+        <header class="grid border-b border-black/25 py-10 lg:grid-cols-[180px_1fr] lg:gap-12 lg:py-16">
+            <p class="font-mono text-[10px] uppercase tracking-[.18em] opacity-45"><?= h($dateStr) ?></p>
+            <div><p class="font-mono text-[10px] uppercase tracking-[.2em] opacity-45">0x79 / <?= h($t['news_article'] ?? 'article') ?></p><h1 class="mt-4 max-w-4xl text-4xl font-black uppercase leading-[.9] tracking-[-.065em] sm:text-6xl lg:text-7xl"><?= h($title) ?></h1></div>
         </header>
 
-        <article class="flex-1 py-4">
-            <p class="font-mono text-xs text-white/35 mb-2"><?= h($dateStr) ?></p>
-            <h1 class="text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl mb-6"><?= h($title) ?></h1>
-
+        <article class="grid flex-1 py-8 lg:grid-cols-[180px_minmax(0,760px)] lg:gap-12 lg:py-12">
+            <aside class="mb-6 font-mono text-[10px] uppercase tracking-wider opacity-40 lg:mb-0"><?= implode('<br>', array_map('h', explode('|', $t['news_topics'] ?? 'news|security|technology'))) ?></aside>
+            <div>
             <?php if ($image): ?>
-                <div class="mb-8 overflow-hidden border border-white/10 bg-[#101011] rounded-lg">
-                    <img src="<?= h($image) ?>" alt="<?= h($title) ?>" class="w-full h-auto max-h-[400px] object-cover">
+                <div class="mb-9 border border-black/25 bg-black p-2">
+                    <img src="<?= h($image) ?>" alt="<?= h($title) ?>" class="max-h-[520px] w-full object-cover">
                 </div>
             <?php endif; ?>
-
-            <div class="text-white/80 leading-7 text-base whitespace-pre-wrap font-sans">
+            <div class="whitespace-pre-wrap text-base leading-8 opacity-80 sm:text-lg">
                 <?= nl2br(h($description)) ?>
+            </div>
+            <div class="mt-12 border-t-2 border-black pt-5"><a href="/posts" class="font-mono text-xs font-bold uppercase tracking-wider">← <?= h($t['news_all_title'] ?? 'All posts') ?></a></div>
             </div>
         </article>
 
-        <footer class="mt-12 flex flex-col justify-between gap-2 border-t border-white/10 py-5 font-mono text-xs text-white/30 sm:flex-row">
-            <span>0x79.one</span>
-            <a href="/" class="hover:underline">home</a>
+        <footer class="flex justify-between border-t border-black/25 py-7 font-mono text-[10px] uppercase tracking-wider opacity-45">
+            <span>0x79.one · <?= date('Y') ?></span><a href="/">↑ home</a>
         </footer>
     </main>
 </body>

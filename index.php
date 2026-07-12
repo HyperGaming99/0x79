@@ -16,6 +16,25 @@ require_once __DIR__ . '/supabase.php';
 require_once __DIR__ . '/views.php';
 require_once __DIR__ . '/qr.php';
 
+if (!function_exists('toolEnabled')) {
+function toolEnabled(string $tool): bool {
+    $variables = [
+        'shortener'    => 'TOOL_SHORTENER_ENABLED',
+        'upload'       => 'TOOL_UPLOAD_ENABLED',
+        'paste'        => 'TOOL_PASTE_ENABLED',
+        'music'        => 'TOOL_MUSIC_ENABLED',
+        'metadata'     => 'TOOL_METADATA_ENABLED',
+        'secure_share' => 'TOOL_SECURE_SHARE_ENABLED',
+    ];
+
+    if (!isset($variables[$tool])) return false;
+    $value = getenv($variables[$tool]);
+    if ($value === false || trim((string)$value) === '') return true;
+
+    return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+}
+}
+
 $request_path = trim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
 
 $toolRoutes = [
@@ -1544,19 +1563,107 @@ $homePosts = fetchRssPosts(4);
             </div>
             <ol class="grid border-t-2 border-black md:grid-cols-3">
                 <?php foreach ([
-                    ['01', 'home_how_step1_title', 'home_how_step1_text'],
-                    ['02', 'home_how_step2_title', 'home_how_step2_text'],
-                    ['03', 'home_how_step3_title', 'home_how_step3_text'],
+                    ['01', 'home_how_step1_title', 'home_how_step1_text', 'Choose a tool', 'Pick links, uploads, pastes or one of the specialized tools.'],
+                    ['02', 'home_how_step2_title', 'home_how_step2_text', 'Set your options', 'Add an alias, password, expiry date or access limit.'],
+                    ['03', 'home_how_step3_title', 'home_how_step3_text', 'Share securely', 'Copy the short link or share the generated QR code directly.'],
                 ] as $step): ?>
                 <li class="flex min-h-[190px] flex-col justify-between border-b border-black/25 p-5 md:border-r md:last:border-r-0">
                     <span class="font-mono text-[10px] text-black/40"><?= h($step[0]) ?></span>
                     <div>
-                        <h3 class="text-lg font-bold tracking-[-.04em]"><?= h($t[$step[1]]) ?></h3>
-                        <p class="mt-2 text-xs leading-5 text-black/55"><?= h($t[$step[2]]) ?></p>
+                        <h3 class="text-lg font-bold tracking-[-.04em]"><?= h($t[$step[1]] ?? $step[3]) ?></h3>
+                        <p class="mt-2 text-xs leading-5 text-black/55"><?= h($t[$step[2]] ?? $step[4]) ?></p>
                     </div>
                 </li>
                 <?php endforeach; ?>
             </ol>
+        </section>
+
+        <!-- Trust strip -->
+        <section class="border-b border-black/25 py-8">
+            <div class="grid border-y-2 border-black sm:grid-cols-5">
+                <?php foreach ([
+                    ['home_trust_private', '●'], ['home_trust_source', '↗'], ['home_trust_encrypt', '◆'],
+                    ['home_trust_expiry', '◷'], ['home_trust_types', '✓'],
+                ] as $trust): ?>
+                <div class="flex items-center gap-3 border-b border-black/25 px-4 py-4 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
+                    <span class="font-mono text-sm text-[#37b24d]"><?= h($trust[1]) ?></span><span class="font-mono text-[10px] font-bold uppercase tracking-wider"><?= h($t[$trust[0]]) ?></span>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </section>
+
+        <!-- API showcase -->
+        <section class="grid border-b border-black/25 py-10 lg:grid-cols-[minmax(0,1fr)_560px] lg:items-center lg:gap-14 lg:py-16">
+            <div class="max-w-lg pb-8 lg:pb-0">
+                <p class="font-mono text-[10px] uppercase tracking-[.2em]"><?= h($t['home_api_label']) ?></p>
+                <h2 class="mt-3 text-4xl font-black uppercase leading-[.9] tracking-[-.06em] sm:text-5xl"><?= h($t['home_api_title']) ?></h2>
+                <p class="mt-5 text-sm leading-6 text-black/60"><?= h($t['home_api_lead']) ?></p>
+                <a href="/api/docs" class="mt-7 inline-block bg-black px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-white hover:bg-[#b8ff31] hover:text-black"><?= h($t['home_api_cta']) ?></a>
+            </div>
+            <div class="border border-black bg-[#11110f] p-2 shadow-[9px_9px_0_#60a5fa] text-[#e8e6df]">
+                <div class="flex items-center justify-between border-b border-white/15 px-4 py-3 font-mono text-[9px] uppercase tracking-[.2em] text-white/40"><span>terminal / curl</span><span>POST</span></div>
+                <pre class="overflow-x-auto p-4 font-mono text-[11px] leading-6"><span class="text-[#60a5fa]">curl</span> -X POST https://0x79.one/api \
+  -H <span class="text-[#34d399]">"X-API-Key: ..."</span> \
+  -d <span class="text-[#fbbf24]">'{"url":"https://example.com"}'</span></pre>
+                <div class="border-t border-white/15 p-4 font-mono text-[10px]"><p class="mb-2 uppercase tracking-[.18em] text-white/30"><?= h($t['home_api_response']) ?></p><p>{ <span class="text-[#a78bfa]">"ok"</span>: true, <span class="text-[#a78bfa]">"short_url"</span>: <span class="text-[#34d399]">"https://0x79.one/x7Kp"</span> }</p></div>
+            </div>
+        </section>
+
+        <!-- Use cases -->
+        <section class="border-b border-black/25 py-10 lg:py-14">
+            <p class="font-mono text-[10px] uppercase tracking-[.2em]"><?= h($t['home_use_label']) ?></p>
+            <h2 class="mt-3 max-w-3xl text-4xl font-black uppercase leading-[.9] tracking-[-.06em] sm:text-5xl"><?= h($t['home_use_title']) ?></h2>
+            <div class="mt-8 grid border-t-2 border-black md:grid-cols-3">
+                <?php foreach ([
+                    ['01', 'home_use_dev_title', 'home_use_dev_text', '#60a5fa'],
+                    ['02', 'home_use_artist_title', 'home_use_artist_text', '#fb7185'],
+                    ['03', 'home_use_team_title', 'home_use_team_text', '#34d399'],
+                ] as $use): ?>
+                <article class="min-h-[220px] border-b border-black/25 p-5 md:border-r md:last:border-r-0">
+                    <div class="flex items-center justify-between"><span class="font-mono text-[10px] opacity-40"><?= h($use[0]) ?></span><i class="h-3 w-3" style="background:<?= h($use[3]) ?>"></i></div>
+                    <h3 class="mt-16 text-2xl font-black uppercase tracking-[-.05em]"><?= h($t[$use[1]]) ?></h3><p class="mt-3 max-w-xs text-xs leading-5 opacity-55"><?= h($t[$use[2]]) ?></p>
+                </article>
+                <?php endforeach; ?>
+            </div>
+        </section>
+
+        <!-- Open source -->
+        <section class="grid border-b border-black/25 bg-[#b8ff31] text-[#11110f] lg:grid-cols-[1fr_420px]">
+            <div class="p-7 sm:p-10 lg:border-r lg:border-black/25">
+                <p class="font-mono text-[10px] uppercase tracking-[.2em]"><?= h($t['home_open_label']) ?></p>
+                <h2 class="mt-4 max-w-2xl text-4xl font-black uppercase leading-[.88] tracking-[-.065em] sm:text-6xl"><?= h($t['home_open_title']) ?></h2>
+                <p class="mt-5 max-w-xl text-sm leading-6 text-black/60"><?= h($t['home_open_lead']) ?></p>
+                <a href="https://github.com/HyperGaming99/0x79" target="_blank" rel="noopener" class="mt-7 inline-block border-2 border-black bg-black px-5 py-3 font-mono text-xs font-bold uppercase text-white hover:bg-transparent hover:text-black"><?= h($t['home_open_github']) ?></a>
+            </div>
+            <div class="flex flex-col justify-center bg-[#11110f] p-7 text-[#e8e6df] sm:p-10">
+                <p class="font-mono text-[10px] uppercase tracking-[.2em] text-white/35"><?= h($t['home_open_docker']) ?></p>
+                <code class="mt-5 block border border-white/15 p-4 font-mono text-xs text-[#b8ff31]">docker compose up --build</code>
+                <div class="mt-6 grid grid-cols-3 gap-px bg-white/15 font-mono text-center text-[9px] uppercase"><span class="bg-[#11110f] p-3">PHP</span><span class="bg-[#11110f] p-3">Docker</span><span class="bg-[#11110f] p-3">Supabase</span></div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="grid border-b border-black/25 py-10 lg:grid-cols-[260px_1fr] lg:gap-12 lg:py-14">
+            <div><p class="font-mono text-[10px] uppercase tracking-[.2em]"><?= h($t['home_faq_label']) ?></p><h2 class="mt-3 text-4xl font-black uppercase leading-[.9] tracking-[-.06em]"><?= h($t['home_faq_title']) ?></h2></div>
+            <div class="mt-8 border-t-2 border-black lg:mt-0">
+                <?php for ($faq = 1; $faq <= 5; $faq++): ?>
+                <details class="group border-b border-black/25">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-5 py-5 font-bold"><span><?= h($t['home_faq_q' . $faq]) ?></span><span class="font-mono text-lg transition group-open:rotate-45">+</span></summary>
+                    <p class="max-w-2xl pb-5 pr-10 text-sm leading-6 opacity-55"><?= h($t['home_faq_a' . $faq]) ?></p>
+                </details>
+                <?php endfor; ?>
+            </div>
+        </section>
+
+        <!-- Final CTA -->
+        <section class="border-b border-black/25 py-12 text-center lg:py-20">
+            <p class="font-mono text-[10px] uppercase tracking-[.24em]"><?= h($t['home_final_label']) ?></p>
+            <h2 class="mx-auto mt-4 max-w-4xl text-5xl font-black uppercase leading-[.84] tracking-[-.075em] sm:text-7xl"><?= h($t['home_final_title']) ?></h2>
+            <div class="mt-9 flex flex-wrap justify-center gap-2 font-mono text-xs font-bold uppercase">
+                <?php if (toolEnabled('shortener')): ?><a href="/shorten" class="bg-black px-5 py-3 text-white hover:bg-[#60a5fa] hover:text-black"><?= h($t['home_final_link']) ?></a><?php endif; ?>
+                <?php if (toolEnabled('upload')): ?><a href="/upload" class="border-2 border-black px-5 py-3 hover:bg-[#34d399]"><?= h($t['home_final_file']) ?></a><?php endif; ?>
+                <?php if (toolEnabled('paste')): ?><a href="/paste" class="border-2 border-black px-5 py-3 hover:bg-[#a78bfa]"><?= h($t['home_final_paste']) ?></a><?php endif; ?>
+            </div>
         </section>
 
         <!-- News -->
