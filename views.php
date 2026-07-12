@@ -248,10 +248,10 @@ function renderUserAccountPage($notice = '') {
         </nav>
     </header>
 
-    <section class="flex flex-col gap-2 py-9 sm:flex-row sm:items-end sm:justify-between">
+    <section class="flex flex-col gap-1 py-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <p class="font-mono text-xs uppercase tracking-[0.22em] text-white/35">account</p>
-            <h1 class="mt-2 text-4xl font-semibold tracking-[-0.045em] text-white">@<?= h($user['username'] ?? '') ?></h1>
+            <h1 class="mt-1 text-3xl font-semibold tracking-[-0.045em] text-white">@<?= h($user['username'] ?? '') ?></h1>
         </div>
         <p class="font-mono text-xs text-white/35">dabei seit <?= h(formatDateTime($user['created_at'] ?? '')) ?></p>
     </section>
@@ -275,29 +275,29 @@ function renderUserAccountPage($notice = '') {
     <?php endif; ?>
 
     <!-- Stat tiles -->
-    <section class="grid gap-3 sm:grid-cols-3">
-        <div class="border border-white/10 bg-[#101011] p-5">
+    <section class="grid gap-2 sm:grid-cols-3">
+        <div class="border border-white/10 bg-[#101011] px-4 py-3">
             <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">links & dateien</p>
-            <p class="mt-2 text-3xl font-semibold tracking-tight text-white"><?= h((string)count($links)) ?></p>
+            <p class="mt-1 text-2xl font-semibold tracking-tight text-white"><?= h((string)count($links)) ?></p>
         </div>
-        <div class="border border-white/10 bg-[#101011] p-5">
+        <div class="border border-white/10 bg-[#101011] px-4 py-3">
             <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">clicks gesamt</p>
-            <p class="mt-2 text-3xl font-semibold tracking-tight text-white"><?= h((string)$totalClicks) ?></p>
+            <p class="mt-1 text-2xl font-semibold tracking-tight text-white"><?= h((string)$totalClicks) ?></p>
         </div>
-        <div class="border border-white/10 bg-[#101011] p-5">
+        <div class="border border-white/10 bg-[#101011] px-4 py-3">
             <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">pastes</p>
-            <p class="mt-2 text-3xl font-semibold tracking-tight text-white"><?= h((string)count($pastes)) ?></p>
+            <p class="mt-1 text-2xl font-semibold tracking-tight text-white"><?= h((string)count($pastes)) ?></p>
         </div>
     </section>
 
-    <div class="mt-3 grid items-start gap-3 lg:grid-cols-[1.2fr_.8fr]">
+    <div class="mt-2 grid items-start gap-2 lg:grid-cols-[1.2fr_.8fr]">
         <!-- Top links chart -->
         <section class="border border-white/10 bg-[#101011]">
-            <div class="border-b border-white/10 px-5 py-4">
+            <div class="border-b border-white/10 px-4 py-3">
                 <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">analytics</p>
-                <h2 class="mt-1 text-lg font-medium tracking-tight text-white">top links nach clicks</h2>
+                <h2 class="mt-0.5 text-base font-medium tracking-tight text-white">top links nach clicks</h2>
             </div>
-            <div class="grid gap-3 p-5">
+            <div class="grid gap-2 p-4">
             <?php if (!$linksOk): ?>
                 <p class="text-sm text-red-300">urls migration fehlt evtl. owner_user_id.</p>
             <?php elseif (empty($topLinks) || $maxClicks === 0): ?>
@@ -316,11 +316,11 @@ function renderUserAccountPage($notice = '') {
 
         <!-- API card -->
         <section class="border border-white/10 bg-[#101011]">
-            <div class="border-b border-white/10 px-5 py-4">
+            <div class="border-b border-white/10 px-4 py-3">
                 <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">api</p>
-                <h2 class="mt-1 text-lg font-medium tracking-tight text-white">dein api-key</h2>
+                <h2 class="mt-0.5 text-base font-medium tracking-tight text-white">dein api-key</h2>
             </div>
-            <div class="grid gap-4 p-5">
+            <div class="grid gap-3 p-4">
                 <p class="text-sm leading-6 text-white/50">Die Create-API braucht deinen Key im <code class="border border-white/10 bg-[#0b0b0c] px-1.5 py-0.5 font-mono text-xs text-white/70">X-API-Key</code> Header.</p>
                 <p class="font-mono text-xs text-white/45">prefix: <code class="border border-white/10 bg-[#0b0b0c] px-1.5 py-0.5 text-white/70"><?= h($user['api_key_prefix'] ?? '') ?>…</code></p>
                 <pre class="overflow-x-auto border border-white/10 bg-[#0b0b0c] p-3.5 font-mono text-[11px] leading-5 text-white/45">curl -X POST https://<?= h($host) ?>/api/paste \
@@ -337,11 +337,11 @@ function renderUserAccountPage($notice = '') {
     </div>
 
     <!-- Links table -->
-    <section class="mt-3 border border-white/10 bg-[#101011]">
-        <div class="flex items-center justify-between border-b border-white/10 px-5 py-4">
+    <section class="mt-2 border border-white/10 bg-[#101011]">
+        <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
             <div>
                 <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">verwalten</p>
-                <h2 class="mt-1 text-lg font-medium tracking-tight text-white">deine links & dateien</h2>
+                <h2 class="mt-0.5 text-base font-medium tracking-tight text-white">deine links & dateien</h2>
             </div>
             <span class="font-mono text-xs text-white/30"><?= h((string)count($links)) ?></span>
         </div>
@@ -353,20 +353,20 @@ function renderUserAccountPage($notice = '') {
         <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">
             <thead><tr class="border-b border-white/10 font-mono text-[11px] uppercase tracking-[0.15em] text-white/30">
-                <th class="px-5 py-3 font-medium">code</th><th class="px-3 py-3 font-medium">ziel</th><th class="px-3 py-3 font-medium">clicks</th><th class="px-3 py-3 font-medium">expires</th><th class="px-5 py-3"></th>
+                <th class="px-4 py-2 font-medium">code</th><th class="px-3 py-2 font-medium">ziel</th><th class="px-3 py-2 font-medium">clicks</th><th class="px-3 py-2 font-medium">expires</th><th class="px-4 py-2"></th>
             </tr></thead>
             <tbody>
             <?php foreach ($links as $l): $code = $l['short_code'] ?? ''; ?>
                 <tr class="border-b border-white/5 align-top transition hover:bg-white/[0.02]">
-                    <td class="px-5 py-3.5">
+                    <td class="px-4 py-2.5">
                         <a href="/<?= h($code) ?>" class="font-mono text-white underline decoration-white/15 underline-offset-4 hover:decoration-white/50"><?= h($code) ?></a>
                         <?php if (!empty($l['preview_enabled'])): ?><span class="ml-1.5 border border-white/10 px-1.5 py-0.5 font-mono text-[10px] text-white/35">preview</span><?php endif; ?>
                         <?php if (!empty($l['password_hash'])): ?><span class="ml-1.5 border border-white/10 px-1.5 py-0.5 font-mono text-[10px] text-white/35">🔒</span><?php endif; ?>
                     </td>
-                    <td class="max-w-[340px] truncate px-3 py-3.5 text-white/50"><?= h($l['long_url'] ?? '') ?></td>
-                    <td class="px-3 py-3.5 font-mono text-white/70"><?= h((string)($l['click_count'] ?? 0)) ?></td>
-                    <td class="whitespace-nowrap px-3 py-3.5 font-mono text-xs text-white/45"><?= !empty($l['expires_at']) ? h(formatDateTime($l['expires_at'])) : '<span class="text-white/25">nie</span>' ?></td>
-                    <td class="px-5 py-3.5">
+                    <td class="max-w-[340px] truncate px-3 py-2.5 text-white/50"><?= h($l['long_url'] ?? '') ?></td>
+                    <td class="px-3 py-2.5 font-mono text-white/70"><?= h((string)($l['click_count'] ?? 0)) ?></td>
+                    <td class="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-white/45"><?= !empty($l['expires_at']) ? h(formatDateTime($l['expires_at'])) : '<span class="text-white/25">nie</span>' ?></td>
+                    <td class="px-4 py-2.5">
                         <div class="flex flex-wrap items-start justify-end gap-1.5">
                             <a class="border border-white/10 px-2.5 py-1 font-mono text-[11px] text-white/60 transition hover:border-white/35 hover:text-white" href="/account/stats?code=<?= h(rawurlencode($code)) ?>">stats</a>
                             <a class="border border-white/10 px-2.5 py-1 font-mono text-[11px] text-white/60 transition hover:border-white/35 hover:text-white" href="/qr?d=<?= h(rawurlencode('https://' . $host . '/' . $code)) ?>" target="_blank" rel="noopener">qr</a>
@@ -403,11 +403,11 @@ function renderUserAccountPage($notice = '') {
     </section>
 
     <!-- Pastes table -->
-    <section class="mt-3 border border-white/10 bg-[#101011]">
-        <div class="flex items-center justify-between border-b border-white/10 px-5 py-4">
+    <section class="mt-2 border border-white/10 bg-[#101011]">
+        <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
             <div>
                 <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">verwalten</p>
-                <h2 class="mt-1 text-lg font-medium tracking-tight text-white">deine pastes</h2>
+                <h2 class="mt-0.5 text-base font-medium tracking-tight text-white">deine pastes</h2>
             </div>
             <span class="font-mono text-xs text-white/30"><?= h((string)count($pastes)) ?></span>
         </div>
@@ -419,18 +419,18 @@ function renderUserAccountPage($notice = '') {
         <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">
             <thead><tr class="border-b border-white/10 font-mono text-[11px] uppercase tracking-[0.15em] text-white/30">
-                <th class="px-5 py-3 font-medium">code</th><th class="px-3 py-3 font-medium">views</th><th class="px-3 py-3 font-medium">expires</th><th class="px-5 py-3"></th>
+                <th class="px-4 py-2 font-medium">code</th><th class="px-3 py-2 font-medium">views</th><th class="px-3 py-2 font-medium">expires</th><th class="px-4 py-2"></th>
             </tr></thead>
             <tbody>
             <?php foreach ($pastes as $pa): $code = $pa['paste_code'] ?? ''; ?>
                 <tr class="border-b border-white/5 transition hover:bg-white/[0.02]">
-                    <td class="px-5 py-3.5">
+                    <td class="px-4 py-2.5">
                         <a href="/<?= h($code) ?>" class="font-mono text-white underline decoration-white/15 underline-offset-4 hover:decoration-white/50"><?= h($code) ?></a>
                         <a href="/raw/<?= h($code) ?>" class="ml-2 font-mono text-[11px] text-white/35 hover:text-white">raw</a>
                     </td>
-                    <td class="px-3 py-3.5 font-mono text-white/70"><?= h((string)($pa['view_count'] ?? 0)) ?></td>
-                    <td class="whitespace-nowrap px-3 py-3.5 font-mono text-xs text-white/45"><?= !empty($pa['expires_at']) ? h(formatDateTime($pa['expires_at'])) : '<span class="text-white/25">nie</span>' ?></td>
-                    <td class="px-5 py-3.5 text-right">
+                    <td class="px-3 py-2.5 font-mono text-white/70"><?= h((string)($pa['view_count'] ?? 0)) ?></td>
+                    <td class="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-white/45"><?= !empty($pa['expires_at']) ? h(formatDateTime($pa['expires_at'])) : '<span class="text-white/25">nie</span>' ?></td>
+                    <td class="px-4 py-2.5 text-right">
                         <form method="POST" action="/account/action" onsubmit="return confirm('paste löschen?')" class="inline">
                             <input type="hidden" name="action" value="delete_paste">
                             <input type="hidden" name="id" value="<?= h($pa['id'] ?? '') ?>">
@@ -445,7 +445,7 @@ function renderUserAccountPage($notice = '') {
         <?php endif; ?>
     </section>
 
-    <footer class="mt-auto flex flex-col justify-between gap-2 border-t border-white/10 py-5 pt-8 font-mono text-xs text-white/30 sm:flex-row">
+    <footer class="mt-auto flex flex-col justify-between gap-2 border-t border-white/10 py-4 font-mono text-xs text-white/30 sm:flex-row">
         <span>0x79.one</span>
         <span>account · <?= date('Y') ?></span>
     </footer>
@@ -526,10 +526,10 @@ function renderLinkStatsPage($code, $clicks) {
         </nav>
     </header>
 
-    <section class="flex flex-col gap-2 py-9 sm:flex-row sm:items-end sm:justify-between">
+    <section class="flex flex-col gap-1 py-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <p class="font-mono text-xs uppercase tracking-[0.22em] text-white/35">stats</p>
-            <h1 class="mt-2 font-mono text-4xl font-semibold tracking-[-0.045em] text-white">/<?= h($code) ?></h1>
+            <h1 class="mt-1 font-mono text-3xl font-semibold tracking-[-0.045em] text-white">/<?= h($code) ?></h1>
         </div>
         <div class="flex items-center gap-3">
             <a href="<?= h($shortUrl) ?>" target="_blank" rel="noopener" class="font-mono text-xs text-white/45 underline decoration-white/15 underline-offset-4 transition hover:text-white"><?= h($shortUrl) ?></a>
@@ -538,28 +538,28 @@ function renderLinkStatsPage($code, $clicks) {
     </section>
 
     <!-- Stat tiles -->
-    <section class="grid gap-3 sm:grid-cols-3">
-        <div class="border border-white/10 bg-[#101011] p-5">
+    <section class="grid gap-2 sm:grid-cols-3">
+        <div class="border border-white/10 bg-[#101011] px-4 py-3">
             <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">clicks erfasst</p>
-            <p class="mt-2 text-3xl font-semibold tracking-tight text-white"><?= h((string)$total) ?></p>
+            <p class="mt-1 text-2xl font-semibold tracking-tight text-white"><?= h((string)$total) ?></p>
         </div>
-        <div class="border border-white/10 bg-[#101011] p-5">
+        <div class="border border-white/10 bg-[#101011] px-4 py-3">
             <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">letzte 30 tage</p>
-            <p class="mt-2 text-3xl font-semibold tracking-tight text-white"><?= h((string)$last30) ?></p>
+            <p class="mt-1 text-2xl font-semibold tracking-tight text-white"><?= h((string)$last30) ?></p>
         </div>
-        <div class="border border-white/10 bg-[#101011] p-5">
+        <div class="border border-white/10 bg-[#101011] px-4 py-3">
             <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">referrer</p>
-            <p class="mt-2 text-3xl font-semibold tracking-tight text-white"><?= h((string)count($byRef)) ?></p>
+            <p class="mt-1 text-2xl font-semibold tracking-tight text-white"><?= h((string)count($byRef)) ?></p>
         </div>
     </section>
 
     <!-- 30-day chart -->
-    <section class="mt-3 border border-white/10 bg-[#101011]">
-        <div class="border-b border-white/10 px-5 py-4">
+    <section class="mt-2 border border-white/10 bg-[#101011]">
+        <div class="border-b border-white/10 px-4 py-3">
             <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">verlauf</p>
-            <h2 class="mt-1 text-lg font-medium tracking-tight text-white">clicks · letzte 30 tage</h2>
+            <h2 class="mt-0.5 text-base font-medium tracking-tight text-white">clicks · letzte 30 tage</h2>
         </div>
-        <div class="p-5">
+        <div class="p-4">
         <?php if ($total === 0): ?>
             <p class="font-mono text-xs leading-6 text-white/35">noch keine click-daten. falls frisch deployed: die <code class="border border-white/10 bg-[#0b0b0c] px-1.5 py-0.5 text-white/60">link_clicks</code>-tabelle muss existieren — siehe schema.sql.</p>
         <?php else: ?>
@@ -581,14 +581,14 @@ function renderLinkStatsPage($code, $clicks) {
         </div>
     </section>
 
-    <div class="mt-3 grid items-start gap-3 lg:grid-cols-2">
+    <div class="mt-2 grid items-start gap-2 lg:grid-cols-2">
         <!-- Referrers -->
         <section class="border border-white/10 bg-[#101011]">
-            <div class="border-b border-white/10 px-5 py-4">
+            <div class="border-b border-white/10 px-4 py-3">
                 <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">herkunft</p>
-                <h2 class="mt-1 text-lg font-medium tracking-tight text-white">top referrer</h2>
+                <h2 class="mt-0.5 text-base font-medium tracking-tight text-white">top referrer</h2>
             </div>
-            <div class="grid gap-3 p-5">
+            <div class="grid gap-2 p-4">
             <?php if (!$byRef): ?>
                 <p class="font-mono text-xs text-white/35">—</p>
             <?php else: foreach (array_slice($byRef, 0, 10, true) as $r => $n): $pct = max(2, (int)round(($n / $maxRef) * 100)); ?>
@@ -603,11 +603,11 @@ function renderLinkStatsPage($code, $clicks) {
 
         <!-- Devices + countries -->
         <section class="border border-white/10 bg-[#101011]">
-            <div class="border-b border-white/10 px-5 py-4">
+            <div class="border-b border-white/10 px-4 py-3">
                 <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-white/35">besucher</p>
-                <h2 class="mt-1 text-lg font-medium tracking-tight text-white">geräte & länder</h2>
+                <h2 class="mt-0.5 text-base font-medium tracking-tight text-white">geräte & länder</h2>
             </div>
-            <div class="grid gap-5 p-5">
+            <div class="grid gap-4 p-4">
                 <?php if (!$byDevice): ?>
                     <p class="font-mono text-xs text-white/35">—</p>
                 <?php else: ?>
@@ -640,7 +640,7 @@ function renderLinkStatsPage($code, $clicks) {
         </section>
     </div>
 
-    <footer class="mt-auto flex flex-col justify-between gap-2 border-t border-white/10 py-5 pt-8 font-mono text-xs text-white/30 sm:flex-row">
+    <footer class="mt-auto flex flex-col justify-between gap-2 border-t border-white/10 py-4 font-mono text-xs text-white/30 sm:flex-row">
         <span>0x79.one</span>
         <span>stats · <?= date('Y') ?></span>
     </footer>
