@@ -1280,16 +1280,16 @@ $homePosts = fetchRssPosts(4);
             </a>
             <nav class="flex items-center gap-0 font-mono text-[11px] uppercase tracking-wider">
                 <?php renderLangSelect($lang, $supported_langs, $LANG_META); ?>
-                <a href="/api/docs" class="hidden border-l border-black/20 px-4 py-4 hover:bg-black hover:text-white sm:block">api</a>
+                <a href="/api/docs" class="hidden border-l border-black/20 px-4 py-4 hover:bg-black hover:text-white sm:block"><?= h($t['home_nav_api']) ?></a>
                 <a href="/abuse" class="hidden border-l border-black/20 px-4 py-4 hover:bg-black hover:text-white md:block"><?= h($t['abuse']) ?></a>
                 <a href="https://github.com/HyperGaming99/0x79" target="_blank" rel="noopener" aria-label="GitHub" class="hidden items-center gap-2 border-l border-black/20 px-4 py-4 hover:bg-black hover:text-white lg:flex">
                     <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.55-.29-5.23-1.27-5.23-5.67 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.17a10.9 10.9 0 0 1 5.74 0c2.18-1.48 3.14-1.17 3.14-1.17.63 1.58.24 2.75.12 3.04.74.8 1.18 1.82 1.18 3.07 0 4.41-2.69 5.38-5.25 5.66.42.36.8 1.08.8 2.18v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
                     <span>github</span>
                 </a>
                 <?php if (isUserLoggedIn()): ?>
-                    <a href="/account" class="nav-login border-x border-black/20 bg-black px-4 py-4 text-white hover:bg-[#b8ff31] hover:text-black">account</a>
+                    <a href="/account" class="nav-login border-x border-black/20 bg-black px-4 py-4 text-white hover:bg-[#b8ff31] hover:text-black"><?= h($t['home_nav_account']) ?></a>
                 <?php else: ?>
-                    <a href="/login" class="nav-login border-x border-black/20 bg-black px-4 py-4 text-white hover:bg-[#b8ff31] hover:text-black">login</a>
+                    <a href="/login" class="nav-login border-x border-black/20 bg-black px-4 py-4 text-white hover:bg-[#b8ff31] hover:text-black"><?= h($t['home_nav_login']) ?></a>
                 <?php endif; ?>
             </nav>
         </div>
@@ -1300,8 +1300,8 @@ $homePosts = fetchRssPosts(4);
         <section class="grid min-h-[460px] border-b border-black/25 lg:grid-cols-[minmax(0,1fr)_280px]">
             <div class="flex flex-col justify-between border-black/25 py-8 lg:border-r lg:pr-10 lg:py-10">
                 <div class="flex items-center justify-between font-mono text-[10px] uppercase tracking-[.18em]">
-                    <span>independent web utility</span>
-                    <span class="flex items-center gap-2"><i class="h-2 w-2 bg-[#37b24d]"></i> online</span>
+                    <span><?= h($t['home_kicker']) ?></span>
+                    <span class="flex items-center gap-2"><i class="h-2 w-2 bg-[#37b24d]"></i> <?= h($t['home_online']) ?></span>
                 </div>
                 <h1 class="display my-10 max-w-[850px] font-black uppercase">
                 <?= h($t['home_h1']) ?>
@@ -1309,39 +1309,39 @@ $homePosts = fetchRssPosts(4);
                 <div class="grid gap-6 sm:grid-cols-[minmax(0,560px)_1fr] sm:items-end">
                     <form method="POST" action="/shorten" class="flex border-2 border-black bg-white">
                         <label class="sr-only" for="quick-url"><?= h($t['url_label'] ?? 'URL') ?></label>
-                        <input id="quick-url" type="url" name="long_url" required placeholder="paste a long URL"
+                        <input id="quick-url" type="url" name="long_url" required placeholder="<?= h($t['home_quick_placeholder']) ?>"
                                class="h-16 min-w-0 flex-1 bg-transparent px-4 font-mono text-sm outline-none placeholder:text-black/35">
                         <button type="submit" class="m-1 bg-[#b8ff31] px-5 font-mono text-xs font-bold uppercase tracking-wider hover:bg-black hover:text-white">
-                            <?= h($t['shorten_submit'] ?? 'shorten') ?> ↗
+                            <?= h($t['home_quick_submit']) ?> ↗
                         </button>
                     </form>
                     <p class="max-w-xs text-sm leading-5 text-black/60"><?= h($t['home_lead']) ?></p>
                 </div>
             </div>
             <aside class="hidden flex-col justify-between px-6 py-10 lg:flex">
-                <p class="font-mono text-[10px] uppercase tracking-[.18em]">0x79 / utility stack</p>
+                <p class="font-mono text-[10px] uppercase tracking-[.18em]"><?= h($t['home_stack']) ?></p>
                 <div class="relative mx-auto h-44 w-44">
                     <img src="/logomark_0x79.jpg" alt="" class="h-full w-full object-cover grayscale contrast-125">
-                    <span class="absolute -bottom-4 -left-4 bg-[#b8ff31] px-3 py-2 font-mono text-[10px] font-bold uppercase">private by default</span>
+                    <span class="absolute -bottom-4 -left-4 bg-[#b8ff31] px-3 py-2 font-mono text-[10px] font-bold uppercase"><?= h($t['home_private']) ?></span>
                 </div>
                 <div class="border-t border-black/25 pt-4 font-mono text-[10px] uppercase leading-5 tracking-wider">
-                    no trackers<br>open source<br>six useful tools
+                    <?= implode('<br>', array_map('h', explode('|', $t['home_stack_points']))) ?>
                 </div>
             </aside>
         </section>
 
         <div class="-mx-4 overflow-hidden border-b border-black bg-black py-2 text-[#e8e6df] sm:-mx-7">
             <div class="ticker flex w-max font-mono text-[10px] uppercase tracking-[.2em]">
-                <span class="px-5">short links — file hosting — private pastes — clean metadata — music pages — encrypted sharing — </span>
-                <span class="px-5">short links — file hosting — private pastes — clean metadata — music pages — encrypted sharing — </span>
+                <span class="px-5"><?= h($t['home_ticker']) ?></span>
+                <span class="px-5"><?= h($t['home_ticker']) ?></span>
             </div>
         </div>
 
         <section class="grid border-b border-black/25 py-10 lg:grid-cols-[220px_1fr] lg:gap-10 lg:py-12">
             <div class="mb-7 lg:mb-0">
-                <p class="font-mono text-[10px] uppercase tracking-[.2em]">directory / 06</p>
-                <h2 class="mt-3 text-3xl font-black uppercase tracking-[-.06em]">Pick a utility.</h2>
-                <p class="mt-3 max-w-[220px] text-xs leading-5 text-black/55">Links, files and private sharing in one place.</p>
+                <p class="font-mono text-[10px] uppercase tracking-[.2em]"><?= h($t['home_directory_label']) ?></p>
+                <h2 class="mt-3 text-3xl font-black uppercase tracking-[-.06em]"><?= h($t['home_directory_title']) ?></h2>
+                <p class="mt-3 max-w-[220px] text-xs leading-5 text-black/55"><?= h($t['home_directory_lead']) ?></p>
             </div>
             <div class="grid border-t-2 border-black md:grid-cols-2">
                 <?php
@@ -1372,11 +1372,51 @@ $homePosts = fetchRssPosts(4);
             </div>
         </section>
 
+        <!-- Music promoter showcase -->
+        <section class="grid border-b border-black/25 py-10 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-center lg:gap-16 lg:py-16">
+            <div class="max-w-xl pb-9 lg:pb-0">
+                <p class="font-mono text-[10px] uppercase tracking-[.2em]"><?= h($t['home_showcase_label']) ?></p>
+                <h2 class="mt-3 text-4xl font-black uppercase leading-[.9] tracking-[-.06em] sm:text-5xl"><?= h($t['home_showcase_title']) ?></h2>
+                <p class="mt-5 max-w-md text-sm leading-6 text-black/60"><?= h($t['home_showcase_lead']) ?></p>
+                <div class="mt-7 flex flex-wrap items-center gap-3">
+                    <a href="/music" class="bg-black px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#fb7185] hover:text-black"><?= h($t['home_showcase_cta']) ?></a>
+                    <span class="font-mono text-[10px] uppercase tracking-wider text-black/40"><?= h($t['home_showcase_features']) ?></span>
+                </div>
+            </div>
+
+            <a href="/music" aria-label="Open the music page creator" class="group block border border-black/25 bg-black p-3 shadow-[10px_10px_0_#fb7185] transition hover:-translate-y-1 hover:shadow-[14px_14px_0_#fb7185] sm:p-5">
+                <div class="overflow-hidden border border-white/15 bg-[#101011] text-[#f5f2ea]">
+                    <div class="relative h-28 overflow-hidden bg-[#26070d] sm:h-36">
+                        <img src="/logomark_0x79.jpg" alt="" class="h-full w-full scale-150 object-cover opacity-65 blur-[2px] saturate-150">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#101011]/50 to-transparent"></div>
+                    </div>
+                    <div class="px-5 pb-6 sm:px-7 sm:pb-7">
+                        <div class="mx-auto -mt-10 h-28 w-28 overflow-hidden rounded-xl border border-white/20 bg-[#1b1b1d] p-1 shadow-xl sm:-mt-12 sm:h-32 sm:w-32">
+                            <img src="/logomark_0x79.jpg" alt="Example cover artwork" class="h-full w-full rounded-lg object-cover saturate-150">
+                        </div>
+                        <p class="mt-5 text-center font-mono text-[9px] uppercase tracking-[.3em] text-white/35"><?= h($t['home_showcase_listen']) ?></p>
+                        <h3 class="mt-1 text-center text-2xl font-black tracking-[-.05em] text-white"><?= h($t['home_showcase_release']) ?></h3>
+                        <p class="mt-1 text-center text-xs text-white/45"><?= h($t['home_showcase_artist']) ?></p>
+                        <div class="mt-5 flex items-center justify-between border border-white/10 bg-[#0b0b0c] p-3" style="border-left:3px solid #1DB954">
+                            <span class="flex items-center gap-3">
+                                <span class="grid h-9 w-9 place-items-center rounded-full bg-[#1DB954]">
+                                    <svg viewBox="0 0 24 24" class="h-5 w-5 fill-black" aria-hidden="true"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+                                </span>
+                                <span class="text-sm font-semibold text-white">Spotify</span>
+                            </span>
+                            <span class="font-mono text-xs text-white/40 transition group-hover:translate-x-1 group-hover:text-white"><?= h($t['home_showcase_play']) ?></span>
+                        </div>
+                        <p class="mt-5 text-center font-mono text-[9px] text-white/25"><?= h($t['home_showcase_powered']) ?></p>
+                    </div>
+                </div>
+            </a>
+        </section>
+
         <!-- News -->
         <section class="py-10 sm:py-12">
             <div class="mb-8 flex items-center justify-between">
                 <div>
-                    <p class="font-mono text-[10px] uppercase tracking-[.2em]">log / updates</p>
+                    <p class="font-mono text-[10px] uppercase tracking-[.2em]"><?= h($t['home_news_label']) ?></p>
                     <h2 class="mt-2 text-3xl font-black uppercase tracking-[-.05em]"><?= h($t['news_title']) ?></h2>
                     <p class="mt-1 text-sm text-black/50"><?= h($t['news_lead']) ?></p>
                 </div>
