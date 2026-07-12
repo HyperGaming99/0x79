@@ -18,6 +18,34 @@ require_once __DIR__ . '/qr.php';
 
 $request_path = trim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
 
+$toolRoutes = [
+    'shorten'          => 'shortener',
+    'upload'           => 'upload',
+    'paste'            => 'paste',
+    'music'            => 'music',
+    'metadata'         => 'metadata',
+    'secure-share'     => 'secure_share',
+    'api/music'        => 'music',
+    'api/create-music' => 'music',
+    'api/paste'        => 'paste',
+    'api/create-paste' => 'paste',
+    'api/file'         => 'upload',
+    'api/upload-file'  => 'upload',
+    'api/image'        => 'upload',
+    'api/upload-image' => 'upload',
+];
+if (isset($toolRoutes[$request_path]) && !toolEnabled($toolRoutes[$request_path])) {
+    http_response_code(404);
+    if (str_starts_with($request_path, 'api/')) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['ok' => false, 'error' => 'tool_disabled']);
+    } else {
+        header('Content-Type: text/plain; charset=utf-8');
+        echo 'not found';
+    }
+    exit;
+}
+
 // Backwards-compatible logo path used across the older views.
 if ($request_path === 'logo.png') {
     header('Content-Type: image/jpeg');
@@ -717,6 +745,9 @@ if ($request_path === 'api') {
     }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!toolEnabled('shortener')) {
+            jsonResponse(['ok' => false, 'error' => 'tool_disabled'], 404);
+        }
         $apiUser = requireUserApiAuth();
         $input = apiReadInput();
 
@@ -1307,6 +1338,7 @@ $homePosts = fetchRssPosts(4);
                 <?= h($t['home_h1']) ?>
                 </h1>
                 <div class="grid gap-6 sm:grid-cols-[minmax(0,560px)_1fr] sm:items-end">
+                    <?php if (toolEnabled('shortener')): ?>
                     <form method="POST" action="/shorten" class="flex border-2 border-black bg-white">
                         <label class="sr-only" for="quick-url"><?= h($t['url_label'] ?? 'URL') ?></label>
                         <input id="quick-url" type="url" name="long_url" required placeholder="<?= h($t['home_quick_placeholder']) ?>"
@@ -1315,6 +1347,9 @@ $homePosts = fetchRssPosts(4);
                             <?= h($t['home_quick_submit']) ?> ↗
                         </button>
                     </form>
+                    <?php else: ?>
+                    <div class="flex h-16 items-center border-2 border-black px-4 font-mono text-xs uppercase tracking-wider text-black/50"><?= h($t['home_tools_disabled']) ?></div>
+                    <?php endif; ?>
                     <p class="max-w-xs text-sm leading-5 text-black/60"><?= h($t['home_lead']) ?></p>
                 </div>
             </div>
@@ -1346,20 +1381,20 @@ $homePosts = fetchRssPosts(4);
             <div class="grid border-t-2 border-black md:grid-cols-2">
                 <?php
                 $toolCards = [
-                    ['href' => '/shorten',      'num' => '01', 'color' => '#60a5fa', 'title' => $t['home_tool1_title'], 'desc' => $t['home_tool1_desc'], 'tags' => ['alias', 'password', 'burn'],
+                    ['tool' => 'shortener', 'href' => '/shorten',      'num' => '01', 'color' => '#60a5fa', 'title' => $t['home_tool1_title'], 'desc' => $t['home_tool1_desc'], 'tags' => ['alias', 'password', 'burn'],
                      'icon' => 'M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244'],
-                    ['href' => '/upload',       'num' => '02', 'color' => '#34d399', 'title' => $t['home_tool2_title'], 'desc' => $t['home_tool2_desc'], 'tags' => ['zip', 'images', 'qr'],
+                    ['tool' => 'upload', 'href' => '/upload',       'num' => '02', 'color' => '#34d399', 'title' => $t['home_tool2_title'], 'desc' => $t['home_tool2_desc'], 'tags' => ['zip', 'images', 'qr'],
                      'icon' => 'M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5'],
-                    ['href' => '/paste',        'num' => '03', 'color' => '#a78bfa', 'title' => $t['home_tool3_title'], 'desc' => $t['home_tool3_desc'], 'tags' => ['text', 'raw', 'burn'],
+                    ['tool' => 'paste', 'href' => '/paste',        'num' => '03', 'color' => '#a78bfa', 'title' => $t['home_tool3_title'], 'desc' => $t['home_tool3_desc'], 'tags' => ['text', 'raw', 'burn'],
                      'icon' => 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z'],
-                    ['href' => '/music',        'num' => '04', 'color' => '#fb7185', 'title' => $t['home_tool4_title'], 'desc' => $t['home_tool4_desc'], 'tags' => ['spotify', 'apple', 'youtube'],
+                    ['tool' => 'music', 'href' => '/music',        'num' => '04', 'color' => '#fb7185', 'title' => $t['home_tool4_title'], 'desc' => $t['home_tool4_desc'], 'tags' => ['spotify', 'apple', 'youtube'],
                      'icon' => 'M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z'],
-                    ['href' => '/metadata',     'num' => '05', 'color' => '#fbbf24', 'title' => $t['home_tool5_title'], 'desc' => $t['home_tool5_desc'], 'tags' => ['exif', 'privacy', 'local'],
+                    ['tool' => 'metadata', 'href' => '/metadata',     'num' => '05', 'color' => '#fbbf24', 'title' => $t['home_tool5_title'], 'desc' => $t['home_tool5_desc'], 'tags' => ['exif', 'privacy', 'local'],
                      'icon' => 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z'],
-                    ['href' => '/secure-share', 'num' => '06', 'color' => '#22d3ee', 'title' => $t['home_tool6_title'], 'desc' => $t['home_tool6_desc'], 'tags' => ['aes-gcm', 'zero-knowledge', 'secure'],
+                    ['tool' => 'secure_share', 'href' => '/secure-share', 'num' => '06', 'color' => '#22d3ee', 'title' => $t['home_tool6_title'], 'desc' => $t['home_tool6_desc'], 'tags' => ['aes-gcm', 'zero-knowledge', 'secure'],
                      'icon' => 'M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z'],
                 ];
-                foreach ($toolCards as $tc): ?>
+                foreach ($toolCards as $tc): if (!toolEnabled($tc['tool'])) continue; ?>
                 <a href="<?= h($tc['href']) ?>" class="utility-row group grid min-h-[88px] grid-cols-[34px_1fr_auto] items-center gap-3 border-b border-black/25 px-2 py-3 md:odd:border-r md:px-4">
                     <span class="font-mono text-[10px]"><?= h($tc['num']) ?></span>
                     <div>
@@ -1372,6 +1407,7 @@ $homePosts = fetchRssPosts(4);
             </div>
         </section>
 
+        <?php if (toolEnabled('music')): ?>
         <!-- Music promoter showcase -->
         <section class="grid border-b border-black/25 py-10 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-center lg:gap-16 lg:py-16">
             <div class="max-w-xl pb-9 lg:pb-0">
@@ -1411,6 +1447,7 @@ $homePosts = fetchRssPosts(4);
                 </div>
             </a>
         </section>
+        <?php endif; ?>
 
         <!-- News -->
         <section class="py-10 sm:py-12">
