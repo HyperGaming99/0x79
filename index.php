@@ -1449,6 +1449,116 @@ $homePosts = fetchRssPosts(4);
         </section>
         <?php endif; ?>
 
+        <?php if (toolEnabled('shortener') || toolEnabled('upload') || toolEnabled('paste')): ?>
+        <!-- Core tool visual previews -->
+        <section class="border-b border-black/25 py-10 lg:py-16">
+            <div class="mb-8 grid gap-4 lg:grid-cols-[1fr_420px] lg:items-end">
+                <div>
+                    <p class="font-mono text-[10px] uppercase tracking-[.2em]"><?= h($t['home_visuals_label']) ?></p>
+                    <h2 class="mt-3 max-w-3xl text-4xl font-black uppercase leading-[.92] tracking-[-.06em] sm:text-5xl"><?= h($t['home_visuals_title']) ?></h2>
+                </div>
+                <p class="max-w-md text-sm leading-6 text-black/60 lg:justify-self-end"><?= h($t['home_visuals_lead']) ?></p>
+            </div>
+
+            <div class="grid gap-4 lg:grid-cols-3">
+                <?php if (toolEnabled('shortener')): ?>
+                <a href="/shorten" class="group border border-black bg-[#60a5fa] p-3 transition hover:-translate-y-1 hover:shadow-[7px_7px_0_#11110f]">
+                    <div class="flex min-h-[310px] flex-col bg-[#0e0e10] p-5 text-white">
+                        <div class="flex items-center justify-between font-mono text-[10px] uppercase tracking-[.18em] text-white/40">
+                            <span>01 / URL</span><span class="h-2 w-2 rounded-full bg-[#60a5fa]"></span>
+                        </div>
+                        <div class="my-auto">
+                            <div class="border border-white/15 bg-white/[.04] p-4">
+                                <p class="font-mono text-[9px] uppercase tracking-[.2em] text-white/35"><?= h($t['home_visual_short_label']) ?></p>
+                                <p class="mt-3 break-all font-mono text-lg font-semibold tracking-[-.04em] text-white"><?= h($t['home_visual_short_value']) ?></p>
+                                <div class="mt-5 flex items-end gap-1" aria-hidden="true">
+                                    <?php foreach ([25,42,31,58,46,73,54,88,68,100,78,92] as $bar): ?>
+                                    <span class="flex-1 bg-[#60a5fa]" style="height:<?= $bar ?>px;opacity:<?= .35 + ($bar / 160) ?>"></span>
+                                    <?php endforeach; ?>
+                                </div>
+                                <p class="mt-3 text-right font-mono text-[10px] text-white/40"><?= h($t['home_visual_short_stat']) ?> ↗</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between border-t border-white/10 pt-4">
+                            <strong class="text-sm"><?= h($t['home_tool1_title']) ?></strong><span class="font-mono text-[10px] uppercase text-white/45 group-hover:text-white"><?= h($t['home_visual_open']) ?></span>
+                        </div>
+                    </div>
+                </a>
+                <?php endif; ?>
+
+                <?php if (toolEnabled('upload')): ?>
+                <a href="/upload" class="group border border-black bg-[#34d399] p-3 transition hover:-translate-y-1 hover:shadow-[7px_7px_0_#11110f]">
+                    <div class="flex min-h-[310px] flex-col bg-[#0e0e10] p-5 text-white">
+                        <div class="flex items-center justify-between font-mono text-[10px] uppercase tracking-[.18em] text-white/40">
+                            <span>02 / FILE</span><span class="h-2 w-2 rounded-full bg-[#34d399]"></span>
+                        </div>
+                        <div class="my-auto border border-dashed border-white/25 p-5 text-center">
+                            <div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#34d399] text-black">
+                                <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 002 2h10a2 2 0 002-2v-4"/></svg>
+                            </div>
+                            <p class="mt-4 font-mono text-[9px] uppercase tracking-[.2em] text-[#34d399]"><?= h($t['home_visual_upload_label']) ?></p>
+                            <p class="mt-2 truncate text-sm font-semibold"><?= h($t['home_visual_upload_file']) ?></p>
+                            <p class="mt-1 font-mono text-[10px] text-white/35"><?= h($t['home_visual_upload_size']) ?></p>
+                            <div class="mt-4 h-1 bg-white/10"><span class="block h-full w-full bg-[#34d399]"></span></div>
+                        </div>
+                        <div class="flex items-center justify-between border-t border-white/10 pt-4">
+                            <strong class="text-sm"><?= h($t['home_tool2_title']) ?></strong><span class="font-mono text-[10px] uppercase text-white/45 group-hover:text-white"><?= h($t['home_visual_open']) ?></span>
+                        </div>
+                    </div>
+                </a>
+                <?php endif; ?>
+
+                <?php if (toolEnabled('paste')): ?>
+                <a href="/paste" class="group border border-black bg-[#a78bfa] p-3 transition hover:-translate-y-1 hover:shadow-[7px_7px_0_#11110f]">
+                    <div class="flex min-h-[310px] flex-col bg-[#0e0e10] p-5 text-white">
+                        <div class="flex items-center justify-between font-mono text-[10px] uppercase tracking-[.18em] text-white/40">
+                            <span>03 / PASTE</span><span class="h-2 w-2 rounded-full bg-[#a78bfa]"></span>
+                        </div>
+                        <div class="my-auto overflow-hidden border border-white/15 bg-white/[.04]">
+                            <div class="flex gap-1.5 border-b border-white/10 px-3 py-2.5"><i class="h-1.5 w-1.5 rounded-full bg-[#fb7185]"></i><i class="h-1.5 w-1.5 rounded-full bg-[#fbbf24]"></i><i class="h-1.5 w-1.5 rounded-full bg-[#34d399]"></i></div>
+                            <div class="p-4 font-mono text-[10px] leading-6">
+                                <p><span class="text-[#a78bfa]">01</span> <span class="text-white/35">// <?= h($t['home_visual_paste_label']) ?></span></p>
+                                <p><span class="text-[#a78bfa]">02</span> <span class="text-white">const</span> share = <span class="text-[#34d399]">"0x79"</span>;</p>
+                                <p><span class="text-[#a78bfa]">03</span> <span class="text-white/35">••••••••••••••••</span></p>
+                            </div>
+                            <div class="border-t border-white/10 p-3">
+                                <p class="text-xs font-semibold"><?= h($t['home_visual_paste_code']) ?></p>
+                                <p class="mt-1 font-mono text-[9px] text-white/35"><?= h($t['home_visual_paste_meta']) ?></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between border-t border-white/10 pt-4">
+                            <strong class="text-sm"><?= h($t['home_tool3_title']) ?></strong><span class="font-mono text-[10px] uppercase text-white/45 group-hover:text-white"><?= h($t['home_visual_open']) ?></span>
+                        </div>
+                    </div>
+                </a>
+                <?php endif; ?>
+            </div>
+        </section>
+        <?php endif; ?>
+
+        <!-- How it works -->
+        <section class="grid border-b border-black/25 py-10 lg:grid-cols-[260px_1fr] lg:gap-12 lg:py-14">
+            <div class="mb-7 lg:mb-0">
+                <p class="font-mono text-[10px] uppercase tracking-[.2em]"><?= h($t['home_how_label']) ?></p>
+                <h2 class="mt-3 text-4xl font-black uppercase leading-[.9] tracking-[-.06em]"><?= h($t['home_how_title']) ?></h2>
+            </div>
+            <ol class="grid border-t-2 border-black md:grid-cols-3">
+                <?php foreach ([
+                    ['01', 'home_how_step1_title', 'home_how_step1_text'],
+                    ['02', 'home_how_step2_title', 'home_how_step2_text'],
+                    ['03', 'home_how_step3_title', 'home_how_step3_text'],
+                ] as $step): ?>
+                <li class="flex min-h-[190px] flex-col justify-between border-b border-black/25 p-5 md:border-r md:last:border-r-0">
+                    <span class="font-mono text-[10px] text-black/40"><?= h($step[0]) ?></span>
+                    <div>
+                        <h3 class="text-lg font-bold tracking-[-.04em]"><?= h($t[$step[1]]) ?></h3>
+                        <p class="mt-2 text-xs leading-5 text-black/55"><?= h($t[$step[2]]) ?></p>
+                    </div>
+                </li>
+                <?php endforeach; ?>
+            </ol>
+        </section>
+
         <!-- News -->
         <section class="py-10 sm:py-12">
             <div class="mb-8 flex items-center justify-between">
