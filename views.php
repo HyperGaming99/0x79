@@ -1747,6 +1747,8 @@ function renderApiDocs() {
     global $available_domains;
 
     $host = cleanHost($_SERVER['HTTP_HOST'] ?? '0x79.one');
+    $wsPublicUrl = trim((string)getenv('DISCORD_WS_PUBLIC_URL'));
+    if (!preg_match('#^wss?://#i', $wsPublicUrl)) $wsPublicUrl = 'wss://' . $host . '/discord/socket';
 
     header('Content-Type: text/html; charset=utf-8');
     ?>
@@ -1759,11 +1761,12 @@ function renderApiDocs() {
     <style>
         :root { --bg:#0e0e10; --fg:#ebe9e3; --muted:#a9a59c; --rule:#2a2a2d; --card:#151518; --accent:#ffffff; --bad:#ff6b6b; }
         * { box-sizing:border-box; }
-        body { margin:0; padding:40px 22px; font:14px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace; background:var(--bg); color:var(--fg); }
-        main { max-width:920px; margin:0 auto; }
+        html { scroll-behavior:smooth; }
+        body { margin:0; padding:0 22px 60px; font:14px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace; background:var(--bg); color:var(--fg); }
+        main { max-width:1320px; margin:0 auto; }
         a { color:var(--fg); }
         h1 { font-size:28px; margin:0 0 8px; letter-spacing:-.02em; }
-        h2 { font-size:16px; margin:34px 0 12px; border-top:1px solid var(--rule); padding-top:22px; }
+        h2 { font-size:17px; margin:50px 0 12px; border-top:1px solid var(--rule); padding-top:26px; scroll-margin-top:24px; }
         h3 { font-size:13px; margin:22px 0 8px; color:var(--fg); }
         p, li { color:var(--muted); }
         code, pre { background:var(--card); color:var(--fg); border:1px solid var(--rule); }
@@ -1778,6 +1781,21 @@ function renderApiDocs() {
         .api-links { display:flex; align-items:stretch; align-self:stretch; }
         .api-links a { display:flex; align-items:center; border-left:1px solid var(--rule); padding:0 14px; font-size:10px; text-transform:uppercase; letter-spacing:.08em; }
         .api-links a:hover { background:var(--fg); color:var(--bg); }
+        .docs-layout { display:grid; grid-template-columns:240px minmax(0,920px); gap:56px; align-items:start; }
+        .docs-sidebar { position:sticky; top:18px; max-height:calc(100vh - 36px); overflow:auto; border:1px solid var(--rule); background:color-mix(in srgb,var(--card) 86%,transparent); padding:18px; }
+        .docs-sidebar strong { display:block; margin:16px 0 7px; color:var(--fg); font-size:10px; text-transform:uppercase; letter-spacing:.12em; }
+        .docs-sidebar strong:first-child { margin-top:0; }
+        .docs-sidebar a { display:block; padding:5px 7px; color:var(--muted); text-decoration:none; font-size:11px; border-left:1px solid transparent; }
+        .docs-sidebar a:hover { color:var(--fg); border-left-color:var(--fg); background:rgba(255,255,255,.03); }
+        .docs-content { min-width:0; }
+        .docs-hero { padding:14px 0 22px; }
+        .method { display:inline-block; min-width:45px; margin-right:8px; padding:3px 6px; border:1px solid var(--rule); font-size:9px; text-align:center; vertical-align:2px; letter-spacing:.06em; }
+        .get { color:#6ee7b7; border-color:#235f4a; } .post { color:#93c5fd; border-color:#294f7e; } .ws { color:#c4b5fd; border-color:#59488d; }
+        .protocol { width:100%; border-collapse:collapse; margin:14px 0 22px; }
+        .protocol th,.protocol td { padding:9px 10px; border:1px solid var(--rule); text-align:left; color:var(--muted); }
+        .protocol th { color:var(--fg); background:var(--card); font-size:10px; text-transform:uppercase; }
+        @media (max-width:850px) { body{padding:0 14px 40px}.docs-layout{display:block}.docs-sidebar{position:relative;top:0;max-height:none;margin-bottom:30px;columns:2}.docs-sidebar strong{break-after:avoid}.api-top{margin-bottom:28px}.api-links a{padding:0 9px} }
+        @media (max-width:520px) { .docs-sidebar{columns:1} pre{font-size:11px}.api-links a:first-child{display:none} }
     </style>
     <?php renderProductTheme(); ?>
 </head>
@@ -1787,15 +1805,31 @@ function renderApiDocs() {
         <a class="api-brand" href="/">0x79</a>
         <span class="api-links"><a href="/shorten">tools</a><a href="/account">account</a><a href="/">home</a></span>
     </nav>
-    <h1>0x79 API Docs</h1>
-    <p>API für URL Shortener, File/Image Host und Paste Host.</p>
+    <div class="docs-layout">
+    <aside class="docs-sidebar" aria-label="API-Kategorien">
+        <strong>Start</strong>
+        <a href="#overview">Übersicht</a><a href="#auth">Authentifizierung</a><a href="#domains">Domains</a>
+        <strong>Links</strong>
+        <a href="#short-create">Shortlink erstellen</a><a href="#short-get">Shortlink abfragen</a><a href="#options">Optionale Felder</a><a href="#password-links">Passwort-Links</a>
+        <strong>Content</strong>
+        <a href="#files">File/Image</a><a href="#pastes">Paste</a><a href="#music-api">Music Promoter</a>
+        <strong>Discord</strong>
+        <a href="#discord-rest">Presence REST API</a><a href="#discord-ws">Presence WebSocket</a><a href="#discord-protocol">Socket-Protokoll</a>
+        <strong>System</strong>
+        <a href="#screenshot-api">Screenshot API</a><a href="#errors">Fehler</a>
+    </aside>
+    <article class="docs-content">
+    <header class="docs-hero" id="overview"><h1>0x79 API Docs</h1>
+    <p>REST- und WebSocket-API für Shortlinks, Files, Pastes, Music Pages und Discord Presence.</p></header>
 
     <h2>Base URLs</h2>
     <pre>https://<?= h($host) ?>/api
 https://<?= h($host) ?>/api/file
-https://<?= h($host) ?>/api/paste</pre>
+https://<?= h($host) ?>/api/paste
+https://<?= h($host) ?>/api/discord
+<?= h($wsPublicUrl) ?></pre>
 
-    <h2>Accounts & API-Key</h2>
+    <h2 id="auth">Accounts & API-Key</h2>
     <p>Für Create-API-Endpunkte brauchst du einen normalen User-Account. Erstelle einen Account über <code>/register</code>, logge dich über <code>/login</code> ein und kopiere deinen API-Key auf <code>/account</code>.</p>
     <div class="note">Ohne Login erstellte Inhalte über die Weboberfläche laufen standardmäßig nach 14 Tagen ab. Inhalte, die einem eingeloggten User/API-Key gehören, haben kein automatisches 14-Tage-Limit, außer du setzt selbst <code>expires_at</code>.</div>
 
@@ -1803,10 +1837,10 @@ https://<?= h($host) ?>/api/paste</pre>
     <pre>X-API-Key: YOUR_KEY</pre>
     <p>Alternativ wird auch <code>Authorization: Bearer YOUR_KEY</code> akzeptiert.</p>
 
-    <h2>Verfügbare Domains</h2>
+    <h2 id="domains">Verfügbare Domains</h2>
     <p><?php foreach ($available_domains as $d): ?><span class="pill"><?= h($d) ?></span><?php endforeach; ?></p>
 
-    <h2>URL Shortlink erstellen</h2>
+    <h2 id="short-create"><span class="method post">POST</span>URL Shortlink erstellen</h2>
     <p><code>POST /api</code> mit JSON Body. Benötigt <code>X-API-Key</code>.</p>
     <pre>curl -X POST https://<?= h($host) ?>/api \
   -H "X-API-Key: YOUR_KEY" \
@@ -1828,7 +1862,7 @@ https://<?= h($host) ?>/api/paste</pre>
   "custom_code": "github"
 }</pre>
 
-    <h2>Shortlink abfragen</h2>
+    <h2 id="short-get"><span class="method get">GET</span>Shortlink abfragen</h2>
     <p><code>GET /api?code=Ab12Cd</code> bleibt öffentlich und braucht keinen API-Key.</p>
     <pre>curl "https://<?= h($host) ?>/api?code=Ab12Cd"</pre>
 
@@ -1844,7 +1878,7 @@ https://<?= h($host) ?>/api/paste</pre>
   "max_clicks": null
 }</pre>
 
-    <h2>File/Image per API hochladen</h2>
+    <h2 id="files"><span class="method post">POST</span>File/Image hochladen</h2>
     <p><code>POST /api/file</code>, <code>POST /api/upload-file</code>, <code>POST /api/image</code> oder <code>POST /api/upload-image</code>. Benötigt <code>X-API-Key</code>.</p>
     <p>Erlaubt sind Bilder und ZIP-Dateien. SVG bleibt blockiert.</p>
     <pre>curl -X POST https://<?= h($host) ?>/api/file \
@@ -1874,7 +1908,7 @@ https://<?= h($host) ?>/api/paste</pre>
   "note": "Visitors open the file on your short URL; the Supabase URL is not returned."
 }</pre>
 
-    <h2>Paste per API erstellen</h2>
+    <h2 id="pastes"><span class="method post">POST</span>Paste erstellen</h2>
     <p><code>POST /api/paste</code> oder <code>POST /api/create-paste</code>. Benötigt <code>X-API-Key</code>.</p>
     <pre>curl -X POST https://<?= h($host) ?>/api/paste \
   -H "X-API-Key: YOUR_KEY" \
@@ -1902,7 +1936,7 @@ https://<?= h($host) ?>/api/paste</pre>
   "view_count": 0
 }</pre>
 
-    <h2>Music Promoter per API erstellen</h2>
+    <h2 id="music-api"><span class="method post">POST</span>Music Promoter erstellen</h2>
     <p><code>POST /api/music</code> oder <code>POST /api/create-music</code>. Benötigt <code>X-API-Key</code>. Die Plattform-Links werden gegen echte offizielle Domains geprüft.</p>
     <pre>curl -X POST https://<?= h($host) ?>/api/music \
   -H "X-API-Key: YOUR_KEY" \
@@ -1923,7 +1957,7 @@ https://<?= h($host) ?>/api/paste</pre>
   "has_password": false
 }</pre>
 
-    <h2>Optionale Felder</h2>
+    <h2 id="options">Optionale Felder</h2>
     <pre>domain       0x79.one / fftrclo.store / takeitdown.space
 custom_code  eigener Alias, alternativ alias oder short_code
 password     optionaler Passwortschutz
@@ -1931,15 +1965,74 @@ expires_at   Ablaufdatum, z. B. 2026-12-31T23:59
 max_clicks   Burn-after-clicks für URL/File/Music
 max_views    Burn-after-views für Paste</pre>
 
-    <h2>Passwort-Link direkt öffnen</h2>
+    <h2 id="password-links">Passwort-Link direkt öffnen</h2>
     <p>Geschützte Links können optional per Query geöffnet werden. Der normale Passwort-Screen bleibt weiterhin verfügbar.</p>
     <pre>https://<?= h($host) ?>/Ab12Cd?pw=dein-passwort
 https://<?= h($host) ?>/Ab12Cd?password=dein-passwort</pre>
 
-    <h2>Eigene Inhalte löschen</h2>
+    <h2 id="content-delete">Eigene Inhalte löschen</h2>
     <p>Normale User können eigene Links, Files und Pastes im Account-Dashboard unter <code>/account</code> löschen. API-Löschendpunkte sind aktuell nicht öffentlich dokumentiert.</p>
 
-    <h2>Screenshot API</h2>
+    <h2 id="discord-rest"><span class="method get">GET</span>Discord Presence REST API</h2>
+    <p><code>GET /api/discord?user_id=:user_id</code> liefert die vom eigenen Discord-Bot empfangene Presence im Lanyard-kompatiblen Format. Kein API-Key nötig; Bot und User müssen Mitglied des konfigurierten Servers sein.</p>
+    <pre>curl "https://<?= h($host) ?>/api/discord?user_id=925802573506674729"</pre>
+    <p>Antwort:</p>
+    <pre>{
+  "success": true,
+  "data": {
+    "discord_user": { "id": "925802573506674729", "username": "aro_lg" },
+    "discord_status": "online",
+    "active_on_discord_desktop": true,
+    "listening_to_spotify": true,
+    "spotify": {
+      "song": "Track title",
+      "artist": "Artist",
+      "album": "Album",
+      "album_art_url": "https://i.scdn.co/image/...",
+      "track_id": "..."
+    },
+    "activities": []
+  }
+}</pre>
+    <div class="note">Discord teilt Aktivitäten pro Server. Wenn Spotify in Discord sichtbar ist, aber hier fehlt, muss im konfigurierten Server unter <b>Privatsphäre-Einstellungen → Aktivitätsstatus</b> die Freigabe aktiv sein.</div>
+    <p>Nicht gefundene User erhalten <code>404</code> mit Einladungslink:</p>
+    <pre>{ "success": false, "error": "not_found", "message": "User is not on the configured Discord server.", "discord_url": "<?= h(discordInviteUrl()) ?>" }</pre>
+
+    <h2 id="discord-ws"><span class="method ws">WSS</span>Discord Presence WebSocket</h2>
+    <p>Der Socket liefert zuerst <code>HELLO</code>. Danach abonnierst du eine oder mehrere Discord-IDs und erhältst sofort <code>INIT_STATE</code> sowie anschließend Live-Updates.</p>
+    <pre>const socket = new WebSocket('<?= h($wsPublicUrl) ?>');
+
+socket.addEventListener('message', ({ data }) =&gt; {
+  const message = JSON.parse(data);
+
+  if (message.op === 1) {
+    socket.send(JSON.stringify({
+      op: 2,
+      d: { subscribe_to_id: '925802573506674729' }
+    }));
+
+    setInterval(() =&gt; {
+      socket.send(JSON.stringify({ op: 3 }));
+    }, message.d.heartbeat_interval);
+  }
+
+  if (message.t === 'INIT_STATE' || message.t === 'PRESENCE_UPDATE') {
+    console.log(message.d);
+  }
+});</pre>
+
+    <h3 id="discord-protocol">Socket-Protokoll</h3>
+    <table class="protocol"><thead><tr><th>Opcode / Event</th><th>Richtung</th><th>Bedeutung</th></tr></thead><tbody>
+        <tr><td><code>op 1</code></td><td>Server → Client</td><td>Hello mit <code>heartbeat_interval</code></td></tr>
+        <tr><td><code>op 2</code></td><td>Client → Server</td><td>Initialize mit <code>subscribe_to_id</code> oder <code>subscribe_to_ids</code></td></tr>
+        <tr><td><code>op 3</code></td><td>beide</td><td>Heartbeat und Bestätigung</td></tr>
+        <tr><td><code>op 4</code></td><td>Client → Server</td><td>Unsubscribe mit <code>unsubscribe_from_id(s)</code></td></tr>
+        <tr><td><code>INIT_STATE</code></td><td>Server → Client</td><td>Aktueller Zustand direkt nach dem Abo</td></tr>
+        <tr><td><code>PRESENCE_UPDATE</code></td><td>Server → Client</td><td>Live-Update einer abonnierten User-ID</td></tr>
+    </tbody></table>
+    <p><code>subscribe_to_all: true</code> wird nur akzeptiert, wenn der Betreiber <code>DISCORD_WS_ALLOW_SUBSCRIBE_ALL=true</code> gesetzt hat. Pro Verbindung sind maximal 100 IDs erlaubt.</p>
+
+    <h2 id="screenshot-api"><span class="method get">GET</span><span class="method post">POST</span>Screenshot API</h2>
     <p><code>GET /api/screenshot</code> oder <code>POST /api/screenshot</code>. Bleibt Admin-only und ist geschützt per <code>Authorization: Bearer ADMIN_API_KEY</code> oder Admin-Session. Antwort ist direkt das Bild, nicht JSON.</p>
     <pre>curl -H "Authorization: Bearer YOUR_ADMIN_API_KEY" \
   "https://<?= h($host) ?>/api/screenshot?url=https%3A%2F%2Fexample.com&width=1440&height=900&format=png" \
@@ -1954,7 +2047,7 @@ https://<?= h($host) ?>/Ab12Cd?password=dein-passwort</pre>
   "full_page": false
 }</pre>
 
-    <h2>Typische Fehler</h2>
+    <h2 id="errors">Typische Fehler</h2>
     <pre>{ "ok": false, "error": "api_key_required", "hint": "create an account and send X-API-Key: YOUR_KEY" }
 { "ok": false, "error": "invalid_url" }
 { "ok": false, "error": "alias_taken" }
@@ -1965,6 +2058,7 @@ https://<?= h($host) ?>/Ab12Cd?password=dein-passwort</pre>
 { "ok": false, "error": "method_not_allowed" }</pre>
 
     <p><a href="/">← zurück</a></p>
+    </article></div>
 </main>
 </body>
 </html>
@@ -2907,7 +3001,7 @@ function renderDiscordTrackerPage($presence = null, $error = '', $userId = '') {
                 <div class="flex flex-col gap-2 sm:flex-row"><input id="discord-user-id" type="text" inputmode="numeric" pattern="[0-9]{15,22}" name="user_id" value="<?= h($userId) ?>" required placeholder="<?= h($t['discord_id_placeholder'] ?? '') ?>" class="min-w-0 flex-1 bg-transparent px-3 py-3 font-mono text-sm outline-none placeholder:text-white/20"><button type="submit" class="bg-[#5865F2] px-5 py-3 font-mono text-xs font-bold uppercase text-white hover:bg-white hover:text-black"><?= h($t['discord_submit'] ?? 'fetch status') ?></button></div>
             </form>
             <p class="mt-3 font-mono text-[10px] leading-5 text-white/30"><?= h($t['discord_hint'] ?? '') ?></p>
-            <?php if ($error !== ''): ?><div class="mt-5 border border-[#fb7185]/40 bg-[#fb7185]/10 p-4 text-sm text-[#fda4af]"><?= h($errorMessages[$error] ?? $errorMessages['unavailable']) ?></div><?php endif; ?>
+            <?php if ($error !== ''): ?><div class="mt-5 border border-[#fb7185]/40 bg-[#fb7185]/10 p-4 text-sm text-[#fda4af]"><p><?= h($errorMessages[$error] ?? $errorMessages['unavailable']) ?></p><?php if ($error === 'not_found'): ?><a href="<?= h(discordInviteUrl()) ?>" target="_blank" rel="noopener nofollow" class="mt-3 inline-block border border-[#fda4af]/40 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wider text-[#fda4af] hover:bg-[#fda4af] hover:text-[#0b0b0c]"><?= h($t['discord_join'] ?? 'join Discord →') ?></a><?php endif; ?></div><?php endif; ?>
         </div>
 
         <div>
@@ -2923,16 +3017,28 @@ function renderDiscordTrackerPage($presence = null, $error = '', $userId = '') {
                     <div class="bg-[#101011] py-4 pl-4"><p class="font-mono text-[9px] uppercase tracking-wider text-white/30"><?= h($t['discord_devices'] ?? 'Active on') ?></p><div class="mt-1 flex flex-wrap gap-1 font-mono text-[9px] uppercase"><?php foreach ([['active_on_discord_desktop','discord_desktop'],['active_on_discord_mobile','discord_mobile'],['active_on_discord_web','discord_web']] as $device): if (empty($presence[$device[0]])) continue; ?><span class="border border-white/15 px-1.5 py-0.5"><?= h($t[$device[1]] ?? $device[1]) ?></span><?php endforeach; ?></div></div>
                 </div>
 
-                <?php if ($spotify): $art = discordAssetProxyUrl((string)($spotify['album_art_url'] ?? '')); $trackId = (string)($spotify['track_id'] ?? ''); ?>
+                <?php if ($spotify): $art = discordAssetProxyUrl((string)($spotify['album_art_url'] ?? '')); $trackId = (string)($spotify['track_id'] ?? '');
+                    $spotifyStart = (int)($spotify['timestamps']['start'] ?? 0); $spotifyEnd = (int)($spotify['timestamps']['end'] ?? 0);
+                ?>
                 <div class="mt-5 border-l-4 border-[#1DB954] bg-[#0b0b0c] p-4">
                     <div class="flex gap-4"><?php if ($art): ?><img src="<?= h($art) ?>" alt="" class="h-20 w-20 shrink-0 object-cover"><?php endif; ?><div class="min-w-0"><p class="font-mono text-[9px] uppercase tracking-[.18em] text-[#1DB954]"><?= h($t['discord_listening'] ?? 'Now listening') ?></p><h3 class="mt-1 truncate font-bold"><?= h($spotify['song'] ?? '') ?></h3><p class="mt-1 truncate text-xs text-white/50"><?= h($spotify['artist'] ?? '') ?></p><p class="mt-1 truncate font-mono text-[9px] text-white/25"><?= h($spotify['album'] ?? '') ?></p></div></div>
+                    <?php if ($spotifyStart > 0 && $spotifyEnd > $spotifyStart): ?><div class="mt-4" data-discord-progress data-start="<?= h((string)$spotifyStart) ?>" data-end="<?= h((string)$spotifyEnd) ?>" data-remaining-label="<?= h($t['discord_remaining'] ?? 'remaining') ?>" data-ended-label="<?= h($t['discord_ended'] ?? 'ended') ?>"><div class="h-1 overflow-hidden rounded-full bg-white/10"><i data-progress-bar class="block h-full rounded-full bg-[#1DB954]" style="width:0%"></i></div><div class="mt-1.5 flex justify-between font-mono text-[9px] text-white/35"><span data-progress-elapsed>0:00</span><span><b data-progress-remaining class="font-normal text-white/25"></b> · <span data-progress-duration>0:00</span></span></div></div><?php endif; ?>
                     <?php if (preg_match('/^[A-Za-z0-9]+$/', $trackId)): ?><a href="https://open.spotify.com/track/<?= h($trackId) ?>" target="_blank" rel="noopener nofollow" class="mt-3 inline-block font-mono text-[9px] uppercase text-white/40 hover:text-white"><?= h($t['discord_open_spotify'] ?? 'open on Spotify') ?></a><?php endif; ?>
                 </div>
                 <?php endif; ?>
+                <?php if (!$spotify): ?><p class="mt-4 border border-white/10 p-3 font-mono text-[9px] leading-4 text-white/25"><?= h($t['discord_spotify_hidden'] ?? '') ?></p><?php endif; ?>
 
                 <div class="mt-6"><p class="font-mono text-[9px] uppercase tracking-[.18em] text-white/30"><?= h($t['discord_activities'] ?? 'Activities') ?></p><div class="mt-3 grid gap-2">
-                <?php $shown = 0; foreach ($activities as $activity): if (!is_array($activity) || (string)($activity['name'] ?? '') === 'Spotify') continue; $shown++; ?>
-                    <article class="border border-white/10 bg-[#0b0b0c] p-3"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><h3 class="truncate text-sm font-semibold"><?= h($activity['name'] ?? 'Activity') ?></h3><?php if (!empty($activity['details'])): ?><p class="mt-1 truncate text-xs text-white/50"><?= h($activity['details']) ?></p><?php endif; ?><?php if (!empty($activity['state'])): ?><p class="mt-1 truncate font-mono text-[9px] text-white/30"><?= h($activity['state']) ?></p><?php endif; ?></div><span class="font-mono text-[9px] text-white/20">#<?= h((string)$shown) ?></span></div></article>
+                <?php $shown = 0; foreach ($activities as $activity): if (!is_array($activity) || strcasecmp((string)($activity['name'] ?? ''), 'Spotify') === 0) continue; $shown++;
+                    $appId = (string)($activity['application_id'] ?? '');
+                    $activityImage = discordActivityAssetUrl($activity, 'large');
+                    $activitySmallImage = discordActivityAssetUrl($activity, 'small');
+                    if ($activityImage === '' && preg_match('/^[0-9]{15,22}$/', $appId)) $activityImage = '/discord-app-icon?app_id=' . rawurlencode($appId);
+                    if ($activityImage === '' && $activitySmallImage !== '') { $activityImage = $activitySmallImage; $activitySmallImage = ''; }
+                    $activityEmoji = (string)($activity['emoji']['name'] ?? '');
+                    $activityStart = (int)($activity['timestamps']['start'] ?? 0); $activityEnd = (int)($activity['timestamps']['end'] ?? 0);
+                ?>
+                    <article class="border border-white/10 bg-[#0b0b0c] p-3"><div class="flex items-start gap-3"><?php if ($activityImage): ?><span class="relative h-14 w-14 shrink-0"><img src="<?= h($activityImage) ?>" alt="" class="h-14 w-14 rounded-lg border border-white/10 bg-white/5 object-cover"><?php if ($activitySmallImage): ?><img src="<?= h($activitySmallImage) ?>" alt="" class="absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-[#0b0b0c] bg-[#171719] object-cover"><?php endif; ?></span><?php elseif ($activityEmoji !== ''): ?><span class="grid h-14 w-14 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-2xl"><?= h($activityEmoji) ?></span><?php else: ?><span class="grid h-14 w-14 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-lg text-white/25">◆</span><?php endif; ?><div class="min-w-0 flex-1"><h3 class="truncate text-sm font-semibold"><?= h($activity['name'] ?? 'Activity') ?></h3><?php if (!empty($activity['details'])): ?><p class="mt-1 truncate text-xs text-white/50"><?= h($activity['details']) ?></p><?php endif; ?><?php if (!empty($activity['state'])): ?><p class="mt-1 truncate font-mono text-[9px] text-white/30"><?= h($activity['state']) ?></p><?php endif; ?><?php if (!empty($activity['assets']['large_text'])): ?><p class="mt-1 truncate font-mono text-[8px] uppercase tracking-wider text-white/20"><?= h($activity['assets']['large_text']) ?></p><?php endif; ?><?php if ($activityStart > 0): ?><p class="mt-2 font-mono text-[9px] text-[#5865F2]" data-discord-elapsed data-start="<?= h((string)$activityStart) ?>" data-end="<?= h((string)$activityEnd) ?>" data-elapsed-label="<?= h($t['discord_elapsed'] ?? 'running for') ?>" data-remaining-label="<?= h($t['discord_remaining'] ?? 'remaining') ?>" data-ended-label="<?= h($t['discord_ended'] ?? 'ended') ?>"></p><?php endif; ?></div><span class="font-mono text-[9px] text-white/20">#<?= h((string)$shown) ?></span></div></article>
                 <?php endforeach; if ($shown === 0): ?><p class="border border-white/10 p-4 text-xs text-white/35"><?= h($t['discord_no_activities'] ?? 'No public activities.') ?></p><?php endif; ?>
                 </div></div>
                 <p class="mt-6 border-t border-white/10 pt-4 text-center font-mono text-[9px] text-white/20"><?= h($t['discord_powered'] ?? 'Presence data received through your own Discord bot') ?></p>
@@ -2944,6 +3050,36 @@ function renderDiscordTrackerPage($presence = null, $error = '', $userId = '') {
     </section>
     <footer class="flex justify-between border-t border-white/10 py-5 font-mono text-[10px] uppercase tracking-wider text-white/25"><span>0x79.one · <?= date('Y') ?></span><a href="/">↑ home</a></footer>
 </main>
+<script>
+(() => {
+    const formatTime = seconds => {
+        seconds = Math.max(0, Math.floor(seconds));
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        return hours > 0 ? `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}` : `${minutes}:${String(secs).padStart(2, '0')}`;
+    };
+    const updateTimers = () => {
+        const now = Date.now();
+        document.querySelectorAll('[data-discord-progress]').forEach(node => {
+            const start = Number(node.dataset.start); const end = Number(node.dataset.end);
+            const duration = Math.max(0, (end - start) / 1000);
+            const elapsed = Math.max(0, Math.min(duration, (now - start) / 1000));
+            const remaining = Math.max(0, (end - now) / 1000);
+            node.querySelector('[data-progress-bar]').style.width = `${duration ? (elapsed / duration) * 100 : 0}%`;
+            node.querySelector('[data-progress-elapsed]').textContent = formatTime(elapsed);
+            node.querySelector('[data-progress-duration]').textContent = formatTime(duration);
+            node.querySelector('[data-progress-remaining]').textContent = remaining > 0 ? `${node.dataset.remainingLabel} ${formatTime(remaining)}` : node.dataset.endedLabel;
+        });
+        document.querySelectorAll('[data-discord-elapsed]').forEach(node => {
+            const start = Number(node.dataset.start); const end = Number(node.dataset.end || 0);
+            const elapsed = Math.max(0, ((end > 0 && now > end ? end : now) - start) / 1000);
+            node.textContent = end > now ? `${node.dataset.elapsedLabel} ${formatTime(elapsed)} · ${node.dataset.remainingLabel} ${formatTime((end - now) / 1000)}` : (end > 0 ? node.dataset.endedLabel : `${node.dataset.elapsedLabel} ${formatTime(elapsed)}`);
+        });
+    };
+    updateTimers(); setInterval(updateTimers, 1000);
+})();
+</script>
 </body></html>
     <?php
     exit;

@@ -6,7 +6,7 @@ loadEnv(__DIR__ . '/.env');
 
 $token = trim((string)getenv('DISCORD_BOT_TOKEN'));
 $guildId = trim((string)getenv('DISCORD_GUILD_ID'));
-$cachePath = trim((string)(getenv('DISCORD_PRESENCE_CACHE') ?: '/tmp/0x79-discord-presence.json'));
+$cachePath = discordPresenceCachePath();
 if ($token === '' || !preg_match('/^[0-9]{15,22}$/', $guildId)) {
     fwrite(STDERR, "discord-worker: disabled (DISCORD_BOT_TOKEN or DISCORD_GUILD_ID missing)\n");
     exit(0);
@@ -70,26 +70,13 @@ function dgFrame($stream): ?array {
     return ['fin' => (bool)($b1 & 0x80), 'opcode' => $b1 & 0x0f, 'body' => $body];
 }
 
-function dgPresence(array $presence): ?array {
-    $user = is_array($presence['user'] ?? null) ? $presence['user'] : [];
+function dgPresence(array $presence, array $knownUser = []): ?array {
+    $eventUser = is_array($presence['user'] ?? null) ? $presence['user'] : [];
+    $user = array_replace($knownUser, $eventUser);
     $id = (string)($user['id'] ?? '');
     if (!preg_match('/^[0-9]{15,22}$/', $id)) return null;
     $activities = is_array($presence['activities'] ?? null) ? $presence['activities'] : [];
-    $spotify = null;
-    foreach ($activities as $activity) {
-        if (!is_array($activity) || (string)($activity['name'] ?? '') !== 'Spotify') continue;
-        $image = (string)($activity['assets']['large_image'] ?? '');
-        $image = str_starts_with($image, 'spotify:') ? 'https://i.scdn.co/image/' . substr($image, 8) : '';
-        $spotify = [
-            'track_id' => (string)($activity['sync_id'] ?? ''),
-            'timestamps' => $activity['timestamps'] ?? null,
-            'song' => (string)($activity['details'] ?? ''),
-            'artist' => (string)($activity['state'] ?? ''),
-            'album' => (string)($activity['assets']['large_text'] ?? ''),
-            'album_art_url' => $image,
-        ];
-        break;
-    }
+    $spotify = discordSpotifyFromActivities($activities);
     $clients = is_array($presence['client_status'] ?? null) ? $presence['client_status'] : [];
     return [
         'discord_user' => [
@@ -111,6 +98,10 @@ function dgPresence(array $presence): ?array {
     ];
 }
 
+function dgOfflinePresence(array $user): ?array {
+    return dgPresence(['user' => $user, 'status' => 'offline', 'client_status' => [], 'activities' => []], $user);
+}
+
 function dgWriteCache(string $path, array $users): void {
     $dir = dirname($path);
     if (!is_dir($dir) || !is_writable($dir)) return;
@@ -124,7 +115,7 @@ while (true) {
     $socket = dgConnect();
     if (!$socket) { fwrite(STDERR, "discord-worker: gateway connection failed\n"); sleep($backoff); $backoff = min(30, $backoff * 2); continue; }
     fwrite(STDERR, "discord-worker: connected\n");
-    $backoff = 2; $heartbeatMs = 0; $nextHeartbeat = PHP_FLOAT_MAX; $sequence = null; $identified = false; $users = [];
+    $backoff = 2; $heartbeatMs = 0; $nextHeartbeat = PHP_FLOAT_MAX; $sequence = null; $identified = false; $users = []; $memberProfiles = [];
     $fragment = '';
     while (is_resource($socket) && !feof($socket)) {
         $now = microtime(true);
@@ -151,18 +142,62 @@ while (true) {
         if ($op === 10 && is_array($data)) {
             $heartbeatMs = (int)($data['heartbeat_interval'] ?? 45000);
             $nextHeartbeat = microtime(true) + ($heartbeatMs / 1000);
-            dgSend($socket, ['op' => 2, 'd' => ['token' => $token, 'intents' => 257, 'properties' => ['os' => 'linux', 'browser' => '0x79', 'device' => '0x79']]]);
+            // GUILDS | GUILD_MEMBERS | GUILD_PRESENCES. Lanyard also requests
+            // both privileged intents before fetching a fresh presence chunk.
+            dgSend($socket, ['op' => 2, 'd' => ['token' => $token, 'intents' => 259, 'properties' => ['os' => 'linux', 'browser' => '0x79', 'device' => '0x79']]]);
             $identified = true;
         } elseif ($op === 1) {
             dgSend($socket, ['op' => 1, 'd' => $sequence]);
         } elseif ($op === 7 || $op === 9) break;
         elseif ($op === 0 && $event === 'GUILD_CREATE' && is_array($data) && (string)($data['id'] ?? '') === $guildId) {
-            $users = [];
-            foreach (($data['presences'] ?? []) as $item) { $normalized = is_array($item) ? dgPresence($item) : null; if ($normalized) $users[$normalized['discord_user']['id']] = $normalized; }
+            $users = []; $memberProfiles = [];
+            foreach (($data['members'] ?? []) as $member) {
+                $profile = is_array($member) && is_array($member['user'] ?? null) ? $member['user'] : [];
+                $id = (string)($profile['id'] ?? '');
+                if (preg_match('/^[0-9]{15,22}$/', $id)) {
+                    $memberProfiles[$id] = $profile;
+                    $offline = dgOfflinePresence($profile);
+                    if ($offline) $users[$id] = $offline;
+                }
+            }
+            foreach (($data['presences'] ?? []) as $item) {
+                $id = is_array($item) ? (string)($item['user']['id'] ?? '') : '';
+                $normalized = is_array($item) ? dgPresence($item, $memberProfiles[$id] ?? []) : null;
+                if ($normalized) $users[$normalized['discord_user']['id']] = $normalized;
+            }
+            dgWriteCache($cachePath, $users);
+            dgSend($socket, ['op' => 8, 'd' => ['guild_id' => $guildId, 'query' => '', 'limit' => 0, 'presences' => true, 'nonce' => bin2hex(random_bytes(8))]]);
+        } elseif ($op === 0 && $event === 'GUILD_MEMBERS_CHUNK' && is_array($data) && (string)($data['guild_id'] ?? '') === $guildId) {
+            foreach (($data['members'] ?? []) as $member) {
+                $profile = is_array($member) && is_array($member['user'] ?? null) ? $member['user'] : [];
+                $id = (string)($profile['id'] ?? '');
+                if (!preg_match('/^[0-9]{15,22}$/', $id)) continue;
+                $memberProfiles[$id] = $profile;
+                if (isset($users[$id])) $users[$id]['discord_user'] = array_replace($users[$id]['discord_user'], $profile);
+                else { $offline = dgOfflinePresence($profile); if ($offline) $users[$id] = $offline; }
+            }
+            foreach (($data['presences'] ?? []) as $item) {
+                $id = is_array($item) ? (string)($item['user']['id'] ?? '') : '';
+                $normalized = is_array($item) ? dgPresence($item, $memberProfiles[$id] ?? []) : null;
+                if ($normalized) $users[$normalized['discord_user']['id']] = $normalized;
+            }
             dgWriteCache($cachePath, $users);
         } elseif ($op === 0 && $event === 'PRESENCE_UPDATE' && is_array($data) && (string)($data['guild_id'] ?? '') === $guildId) {
-            $normalized = dgPresence($data);
+            $id = (string)($data['user']['id'] ?? '');
+            $normalized = dgPresence($data, $memberProfiles[$id] ?? []);
             if ($normalized) { $users[$normalized['discord_user']['id']] = $normalized; dgWriteCache($cachePath, $users); }
+        } elseif ($op === 0 && in_array($event, ['GUILD_MEMBER_ADD', 'GUILD_MEMBER_UPDATE'], true) && is_array($data) && (string)($data['guild_id'] ?? '') === $guildId) {
+            $profile = is_array($data['user'] ?? null) ? $data['user'] : [];
+            $id = (string)($profile['id'] ?? '');
+            if (preg_match('/^[0-9]{15,22}$/', $id)) {
+                $memberProfiles[$id] = array_replace($memberProfiles[$id] ?? [], $profile);
+                if (isset($users[$id])) $users[$id]['discord_user'] = array_replace($users[$id]['discord_user'], $profile);
+                else { $offline = dgOfflinePresence($profile); if ($offline) $users[$id] = $offline; }
+                dgWriteCache($cachePath, $users);
+            }
+        } elseif ($op === 0 && $event === 'GUILD_MEMBER_REMOVE' && is_array($data) && (string)($data['guild_id'] ?? '') === $guildId) {
+            $id = (string)($data['user']['id'] ?? '');
+            if (preg_match('/^[0-9]{15,22}$/', $id)) { unset($users[$id], $memberProfiles[$id]); dgWriteCache($cachePath, $users); }
         }
     }
     if (is_resource($socket)) fclose($socket);

@@ -54,12 +54,81 @@ function fetchDiscordPresence(string $userId): array {
     if (trim((string)getenv('DISCORD_BOT_TOKEN')) === '' || trim((string)getenv('DISCORD_GUILD_ID')) === '') {
         return [false, 'not_configured', null];
     }
-    $cachePath = trim((string)(getenv('DISCORD_PRESENCE_CACHE') ?: '/tmp/0x79-discord-presence.json'));
+    $cachePath = discordPresenceCachePath();
     $raw = is_file($cachePath) ? file_get_contents($cachePath) : false;
     $cache = $raw !== false ? json_decode($raw, true) : null;
     if (!is_array($cache) || !is_array($cache['users'] ?? null)) return [false, 'unavailable', null];
     if (!is_array($cache['users'][$userId] ?? null)) return [false, 'not_found', null];
-    return [true, '', $cache['users'][$userId]];
+    $presence = $cache['users'][$userId];
+    $activities = is_array($presence['activities'] ?? null) ? $presence['activities'] : [];
+    if (!is_array($presence['spotify'] ?? null)) $presence['spotify'] = discordSpotifyFromActivities($activities);
+    $presence['listening_to_spotify'] = is_array($presence['spotify']);
+
+    $cachedUser = is_array($presence['discord_user'] ?? null) ? $presence['discord_user'] : [];
+    if (trim((string)($cachedUser['username'] ?? '')) === '') {
+        $profile = discordFetchUserProfile($userId);
+        if ($profile) $presence['discord_user'] = array_replace($cachedUser, $profile);
+    }
+    return [true, '', $presence];
+}
+
+function discordPresenceCachePath(): string {
+    $configured = trim((string)(getenv('DISCORD_PRESENCE_CACHE') ?: '.discord-presence.json'));
+    if ($configured === '') $configured = '.discord-presence.json';
+    if (str_starts_with($configured, '/')) return $configured;
+    return __DIR__ . '/' . ltrim($configured, '/');
+}
+
+function discordInviteUrl(): string {
+    $url = trim((string)(getenv('DISCORD_INVITE_URL') ?: 'https://discord.gg/freeserver'));
+    $parts = parse_url($url);
+    $host = strtolower((string)($parts['host'] ?? ''));
+    if (($parts['scheme'] ?? '') !== 'https' || !in_array($host, ['discord.gg', 'discord.com'], true)) return 'https://discord.gg/freeserver';
+    return $url;
+}
+
+function discordSpotifyFromActivities(array $activities): ?array {
+    foreach ($activities as $activity) {
+        if (!is_array($activity) || strcasecmp((string)($activity['name'] ?? ''), 'Spotify') !== 0) continue;
+        $image = (string)($activity['assets']['large_image'] ?? '');
+        $image = str_starts_with($image, 'spotify:') ? 'https://i.scdn.co/image/' . substr($image, 8) : '';
+        return [
+            'track_id' => (string)($activity['sync_id'] ?? ''),
+            'timestamps' => $activity['timestamps'] ?? null,
+            'song' => (string)($activity['details'] ?? ''),
+            'artist' => (string)($activity['state'] ?? ''),
+            'album' => (string)($activity['assets']['large_text'] ?? ''),
+            'album_art_url' => $image,
+        ];
+    }
+    return null;
+}
+
+function discordFetchUserProfile(string $userId): ?array {
+    $token = trim((string)getenv('DISCORD_BOT_TOKEN'));
+    if ($token === '' || !preg_match('/^[0-9]{15,22}$/', $userId)) return null;
+    $ch = curl_init('https://discord.com/api/v10/users/' . rawurlencode($userId));
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 4,
+        CURLOPT_TIMEOUT => 8,
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_HTTPHEADER => ['Authorization: Bot ' . $token, 'Accept: application/json'],
+        CURLOPT_USERAGENT => '0x79-discord-presence/1.0',
+    ]);
+    $body = curl_exec($ch);
+    $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    $profile = $body !== false && $status === 200 ? json_decode((string)$body, true) : null;
+    if (!is_array($profile) || (string)($profile['id'] ?? '') !== $userId) return null;
+    return [
+        'id' => $userId,
+        'username' => (string)($profile['username'] ?? ''),
+        'global_name' => (string)($profile['global_name'] ?? ''),
+        'discriminator' => (string)($profile['discriminator'] ?? '0'),
+        'avatar' => $profile['avatar'] ?? null,
+        'public_flags' => (int)($profile['public_flags'] ?? 0),
+    ];
 }
 
 function discordAssetAllowed(string $url): bool {
@@ -74,32 +143,83 @@ function discordAssetProxyUrl(string $url): string {
     return '/discord-asset?u=' . previewBase64UrlEncode($url);
 }
 
-function streamDiscordAsset(): void {
-    $url = previewBase64UrlDecode((string)($_GET['u'] ?? ''));
+function discordActivityAssetUrl(array $activity, string $size = 'large'): string {
+    $asset = trim((string)($activity['assets'][$size . '_image'] ?? ''));
+    if ($asset === '') return '';
+    if (str_starts_with($asset, 'mp:')) return discordAssetProxyUrl('https://media.discordapp.net/' . ltrim(substr($asset, 3), '/'));
+    if (str_starts_with($asset, 'spotify:')) return discordAssetProxyUrl('https://i.scdn.co/image/' . substr($asset, 8));
+    if (discordAssetAllowed($asset)) return discordAssetProxyUrl($asset);
+    $appId = (string)($activity['application_id'] ?? '');
+    if (preg_match('/^[0-9]{15,22}$/', $appId) && preg_match('/^[A-Za-z0-9_-]{1,128}$/', $asset)) {
+        return discordAssetProxyUrl('https://cdn.discordapp.com/app-assets/' . $appId . '/' . $asset . '.png');
+    }
+    return '';
+}
+
+function streamDiscordApplicationIcon(): void {
+    $appId = trim((string)($_GET['app_id'] ?? ''));
+    if (!preg_match('/^[0-9]{15,22}$/', $appId) || !discordApplicationIsPresent($appId)) { http_response_code(404); exit('not found'); }
+    $ch = curl_init('https://discord.com/api/v10/oauth2/applications/' . rawurlencode($appId) . '/rpc');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 4,
+        CURLOPT_TIMEOUT => 8,
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_HTTPHEADER => ['Accept: application/json'],
+        CURLOPT_USERAGENT => '0x79-discord-activity/1.0',
+    ]);
+    $body = curl_exec($ch); $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+    $app = $body !== false && $status === 200 ? json_decode((string)$body, true) : null;
+    $icon = is_array($app) ? (string)($app['icon'] ?? '') : '';
+    if (!preg_match('/^[A-Za-z0-9_]{16,128}$/', $icon)) { http_response_code(404); exit('not found'); }
+    streamDiscordAsset('https://cdn.discordapp.com/app-icons/' . $appId . '/' . $icon . '.png', 21600);
+}
+
+function discordApplicationIsPresent(string $appId): bool {
+    $raw = is_file(discordPresenceCachePath()) ? file_get_contents(discordPresenceCachePath()) : false;
+    $cache = $raw !== false ? json_decode($raw, true) : null;
+    if (!is_array($cache['users'] ?? null)) return false;
+    foreach ($cache['users'] as $presence) {
+        foreach ((is_array($presence['activities'] ?? null) ? $presence['activities'] : []) as $activity) {
+            if (is_array($activity) && (string)($activity['application_id'] ?? '') === $appId) return true;
+        }
+    }
+    return false;
+}
+
+function streamDiscordAsset(?string $explicitUrl = null, int $maxAge = 3600): void {
+    $url = $explicitUrl ?? previewBase64UrlDecode((string)($_GET['u'] ?? ''));
     if ($url === '' || !discordAssetAllowed($url)) {
         http_response_code(404);
         exit('not found');
     }
 
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CONNECTTIMEOUT => 5,
-        CURLOPT_TIMEOUT => 12,
-        CURLOPT_FOLLOWLOCATION => false,
-        CURLOPT_USERAGENT => '0x79-discord-asset/1.0',
-    ]);
-    $body = curl_exec($ch);
-    $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $type = strtolower(trim((string)curl_getinfo($ch, CURLINFO_CONTENT_TYPE)));
-    curl_close($ch);
+    $body = false; $status = 0; $type = '';
+    for ($redirects = 0; $redirects <= 2; $redirects++) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 12,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_USERAGENT => '0x79-discord-asset/1.0',
+        ]);
+        $body = curl_exec($ch);
+        $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $type = strtolower(trim((string)curl_getinfo($ch, CURLINFO_CONTENT_TYPE)));
+        $next = (string)curl_getinfo($ch, CURLINFO_REDIRECT_URL);
+        curl_close($ch);
+        if ($status < 300 || $status >= 400) break;
+        if ($next === '' || !discordAssetAllowed($next)) { $body = false; break; }
+        $url = $next;
+    }
 
     if ($body === false || $status !== 200 || strlen($body) > 5 * 1024 * 1024 || !str_starts_with($type, 'image/')) {
         http_response_code(404);
         exit('not found');
     }
     header('Content-Type: ' . strtok($type, ';'));
-    header('Cache-Control: public, max-age=3600');
+    header('Cache-Control: public, max-age=' . max(60, min(86400, $maxAge)));
     header('X-Content-Type-Options: nosniff');
     echo $body;
     exit;
@@ -710,7 +830,7 @@ function isValidCode($code) {
 function isReservedCode($code) {
     $reserved = [
         'api', 'admin', 'abuse', 'upload', 'shorten', 'paste', 'raw', 'screenshot', 'preview-asset', 'file', 'files', 'login', 'logout', 'docs', 'assets', 'static',
-        'css', 'js', 'img', 'favicon', 'robots.txt', 'sitemap.xml', 'register', 'account', 'music', 'discord', 'discord-asset', 'rss'
+        'css', 'js', 'img', 'favicon', 'robots.txt', 'sitemap.xml', 'register', 'account', 'music', 'discord', 'discord-asset', 'discord-app-icon', 'rss'
     ];
 
     return in_array(strtolower((string)$code), $reserved, true);

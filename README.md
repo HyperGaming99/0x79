@@ -64,20 +64,29 @@ The storage bucket must allow public reads.
 
 ### Discord Presence bot
 
-The optional `/discord` tool uses your own Discord bot and only sees presence for members of the configured server. Create a bot in the Discord Developer Portal, add it to the server, and enable **Presence Intent** under **Privileged Gateway Intents**. Then configure:
+The optional `/discord` tool uses your own Discord bot and only sees presence for members of the configured server. Create a bot in the Discord Developer Portal, add it to the server, and enable both **Presence Intent** and **Server Members Intent** under **Privileged Gateway Intents**. The worker uses the same member/presence snapshot flow as Lanyard. Then configure:
 
 ```env
 TOOL_DISCORD_ENABLED=true
 DISCORD_BOT_TOKEN=your-bot-token
 DISCORD_GUILD_ID=your-server-id
+DISCORD_PRESENCE_CACHE=.discord-presence.json
+DISCORD_WS_ENABLED=true
+DISCORD_WS_PORT=8090
+DISCORD_WS_PUBLIC_URL=wss://your-domain.example/discord/socket
 ```
+
+The default cache is stored inside the shared project directory. This is important when the worker runs on the host while the PHP website runs inside a container, because their `/tmp` directories are separate.
 
 Never use a Discord user token. Docker starts the Gateway worker automatically. For local development without Docker, run the worker and web server in separate terminals:
 
 ```sh
 php discord-worker.php
+php discord-socket.php
 php -S localhost:8000 index.php
 ```
+
+The socket server speaks a Lanyard-style subscribe protocol on port `8090`. Put it behind a WebSocket-capable reverse proxy and set `DISCORD_WS_PUBLIC_URL` to the public `wss://` address. `subscribe_to_all` stays disabled by default; enable it explicitly with `DISCORD_WS_ALLOW_SUBSCRIBE_ALL=true` only if exposing every cached member is intended.
 
 Start the development server:
 

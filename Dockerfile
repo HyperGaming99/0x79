@@ -14,6 +14,6 @@ COPY --chown=www-data:www-data . .
 
 USER www-data
 
-EXPOSE 8080
+EXPOSE 8080 8090
 
 CMD ["sh", "/app/docker-entrypoint.sh"]

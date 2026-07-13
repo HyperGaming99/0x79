@@ -5,6 +5,10 @@ declare(strict_types=1);
 // through the application. Production web servers already handle this.
 if (PHP_SAPI === 'cli-server') {
     $staticPath = __DIR__ . parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    if (str_starts_with(basename($staticPath), '.')) {
+        http_response_code(404);
+        exit('not found');
+    }
     if (is_file($staticPath)) {
         return false;
     }
@@ -46,6 +50,7 @@ $toolRoutes = [
     'metadata'         => 'metadata',
     'secure-share'     => 'secure_share',
     'discord'          => 'discord',
+    'api/discord'      => 'discord',
     'api/music'        => 'music',
     'api/create-music' => 'music',
     'api/paste'        => 'paste',
@@ -94,6 +99,10 @@ if ($request_path === 'preview-asset') {
 
 if ($request_path === 'discord-asset') {
     streamDiscordAsset();
+}
+
+if ($request_path === 'discord-app-icon') {
+    streamDiscordApplicationIcon();
 }
 
 // Same-origin image proxy for hosted Supabase images (keeps img-src CSP strict).
@@ -412,6 +421,39 @@ if (preg_match('#^music/([A-Za-z0-9]{1,32})$#', $request_path, $m)) {
 // ---------------------------------------------------------
 if ($request_path === 'api/docs') {
     renderApiDocs();
+}
+
+// ---------------------------------------------------------
+// DISCORD PRESENCE API (Lanyard-compatible response shape)
+// GET /api/discord?user_id=...
+// ---------------------------------------------------------
+if ($request_path === 'api/discord') {
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        header('Allow: GET, OPTIONS');
+        http_response_code(204);
+        exit;
+    }
+    if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+        header('Allow: GET, OPTIONS');
+        jsonResponse(['success' => false, 'error' => 'method_not_allowed'], 405);
+    }
+    $userId = trim((string)($_GET['user_id'] ?? $_GET['id'] ?? ''));
+    [$ok, $error, $presence] = fetchDiscordPresence($userId);
+    if (!$ok) {
+        $status = match ($error) {
+            'invalid_id' => 400,
+            'not_found' => 404,
+            'not_configured', 'unavailable' => 503,
+            default => 500,
+        };
+        $payload = ['success' => false, 'error' => $error];
+        if ($error === 'not_found') {
+            $payload['message'] = 'User is not on the configured Discord server.';
+            $payload['discord_url'] = discordInviteUrl();
+        }
+        jsonResponse($payload, $status);
+    }
+    jsonResponse(['success' => true, 'data' => $presence]);
 }
 
 // ---------------------------------------------------------

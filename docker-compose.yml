@@ -3,6 +3,7 @@ services:
     build: .
     ports:
       - "${APP_PORT:-8080}:8080"
+      - "${DISCORD_WS_PUBLIC_PORT:-8090}:8090"
     env_file:
       - .env
     init: true

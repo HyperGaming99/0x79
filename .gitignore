@@ -10,6 +10,10 @@
 # Logs & caches
 *.log
 *.cache
+.discord-presence.json
+.discord-presence.json.*.tmp
+discord-presence.json
+discord-presence.json.*.tmp
 
 # OS / editor cruft
 .DS_Store
