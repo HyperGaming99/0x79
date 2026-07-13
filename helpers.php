@@ -48,6 +48,63 @@ function loadEnv($path) {
     return true;
 }
 
+function fetchDiscordPresence(string $userId): array {
+    $userId = trim($userId);
+    if (!preg_match('/^[0-9]{15,22}$/', $userId)) return [false, 'invalid_id', null];
+    if (trim((string)getenv('DISCORD_BOT_TOKEN')) === '' || trim((string)getenv('DISCORD_GUILD_ID')) === '') {
+        return [false, 'not_configured', null];
+    }
+    $cachePath = trim((string)(getenv('DISCORD_PRESENCE_CACHE') ?: '/tmp/0x79-discord-presence.json'));
+    $raw = is_file($cachePath) ? file_get_contents($cachePath) : false;
+    $cache = $raw !== false ? json_decode($raw, true) : null;
+    if (!is_array($cache) || !is_array($cache['users'] ?? null)) return [false, 'unavailable', null];
+    if (!is_array($cache['users'][$userId] ?? null)) return [false, 'not_found', null];
+    return [true, '', $cache['users'][$userId]];
+}
+
+function discordAssetAllowed(string $url): bool {
+    $parts = parse_url($url);
+    if (!is_array($parts) || strtolower((string)($parts['scheme'] ?? '')) !== 'https') return false;
+    $host = strtolower((string)($parts['host'] ?? ''));
+    return in_array($host, ['cdn.discordapp.com', 'media.discordapp.net', 'i.scdn.co'], true);
+}
+
+function discordAssetProxyUrl(string $url): string {
+    if (!discordAssetAllowed($url)) return '';
+    return '/discord-asset?u=' . previewBase64UrlEncode($url);
+}
+
+function streamDiscordAsset(): void {
+    $url = previewBase64UrlDecode((string)($_GET['u'] ?? ''));
+    if ($url === '' || !discordAssetAllowed($url)) {
+        http_response_code(404);
+        exit('not found');
+    }
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 5,
+        CURLOPT_TIMEOUT => 12,
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_USERAGENT => '0x79-discord-asset/1.0',
+    ]);
+    $body = curl_exec($ch);
+    $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $type = strtolower(trim((string)curl_getinfo($ch, CURLINFO_CONTENT_TYPE)));
+    curl_close($ch);
+
+    if ($body === false || $status !== 200 || strlen($body) > 5 * 1024 * 1024 || !str_starts_with($type, 'image/')) {
+        http_response_code(404);
+        exit('not found');
+    }
+    header('Content-Type: ' . strtok($type, ';'));
+    header('Cache-Control: public, max-age=3600');
+    header('X-Content-Type-Options: nosniff');
+    echo $body;
+    exit;
+}
+
 // ---------------------------------------------------------
 // SPRACH-ERKENNUNG
 // ---------------------------------------------------------
@@ -653,7 +710,7 @@ function isValidCode($code) {
 function isReservedCode($code) {
     $reserved = [
         'api', 'admin', 'abuse', 'upload', 'shorten', 'paste', 'raw', 'screenshot', 'preview-asset', 'file', 'files', 'login', 'logout', 'docs', 'assets', 'static',
-        'css', 'js', 'img', 'favicon', 'robots.txt', 'sitemap.xml', 'register', 'account', 'music', 'rss'
+        'css', 'js', 'img', 'favicon', 'robots.txt', 'sitemap.xml', 'register', 'account', 'music', 'discord', 'discord-asset', 'rss'
     ];
 
     return in_array(strtolower((string)$code), $reserved, true);

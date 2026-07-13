@@ -3,25 +3,25 @@ declare(strict_types=1);
 
 // ---------------------------------------------------------
 // Minimal QR code encoder (ISO/IEC 18004).
-// Byte mode, error-correction level M, versions 1-10
+// Byte mode, error-correction level H, versions 1-10
 // (auto-selected by data length). Renders to crisp SVG.
 // No external dependencies.
 // ---------------------------------------------------------
 
-// EC level M characteristics per version:
+// EC level H characteristics per version:
 // version => [ecCodewordsPerBlock, [[numBlocks, dataCodewordsPerBlock], ...]]
 function qrEcTable() {
     return [
-        1  => [10, [[1, 16]]],
-        2  => [16, [[1, 28]]],
-        3  => [26, [[1, 44]]],
-        4  => [18, [[2, 32]]],
-        5  => [24, [[2, 43]]],
-        6  => [16, [[4, 27]]],
-        7  => [18, [[4, 31]]],
-        8  => [22, [[2, 38], [2, 39]]],
-        9  => [22, [[3, 36], [2, 37]]],
-        10 => [26, [[4, 43], [1, 44]]],
+        1  => [17, [[1, 9]]],
+        2  => [28, [[1, 16]]],
+        3  => [22, [[2, 13]]],
+        4  => [16, [[4, 9]]],
+        5  => [22, [[2, 11], [2, 12]]],
+        6  => [28, [[4, 15]]],
+        7  => [26, [[4, 13], [1, 14]]],
+        8  => [26, [[4, 14], [2, 15]]],
+        9  => [24, [[4, 12], [4, 13]]],
+        10 => [28, [[6, 15], [2, 16]]],
     ];
 }
 
@@ -81,10 +81,12 @@ function qrRsEc($data, $ecLen) {
     return $res;
 }
 
-// Pick the smallest version (1-10) that fits the byte payload at level M.
+// Pick the smallest version (3-10) that fits the byte payload at level H.
+// Version 3 is the minimum for a safely branded center area.
 function qrChooseVersion($len) {
     $table = qrEcTable();
     foreach ($table as $v => [$ecPerBlock, $blocks]) {
+        if ($v < 3) continue;
         $dataCw = 0;
         foreach ($blocks as [$n, $cw]) $dataCw += $n * $cw;
         $cci = $v <= 9 ? 8 : 16;
@@ -302,8 +304,8 @@ function qrApplyMask($m, $fn, $size, $mask) {
 }
 
 function qrPlaceFormat(&$m, $fn, $size, $mask) {
-    // EC level M = 0b00. Format data = (level << 3) | mask
-    $fmt = (0b00 << 3) | $mask;
+    // EC level H = 0b10. Format data = (level << 3) | mask
+    $fmt = (0b10 << 3) | $mask;
     $bch = $fmt << 10;
     for ($i = 14; $i >= 10; $i--) {
         if (($bch >> $i) & 1) $bch ^= 0x537 << ($i - 10);
@@ -398,15 +400,55 @@ function qrPenalty($m, $size) {
     return $penalty;
 }
 
+function qrLogoDataUri() {
+    static $uri = null;
+    if ($uri !== null) return $uri;
+
+    $path = __DIR__ . '/logomark_0x79.jpg';
+    $bytes = false;
+    if (is_file($path) && function_exists('imagecreatefromjpeg')) {
+        $source = @imagecreatefromjpeg($path);
+        if ($source !== false) {
+            $thumb = imagecreatetruecolor(96, 96);
+            imagecopyresampled($thumb, $source, 0, 0, 0, 0, 96, 96, imagesx($source), imagesy($source));
+            ob_start();
+            imagejpeg($thumb, null, 82);
+            $bytes = ob_get_clean();
+            imagedestroy($thumb);
+            imagedestroy($source);
+        }
+    }
+    if ($bytes === false && is_file($path)) $bytes = file_get_contents($path);
+    $uri = $bytes !== false ? 'data:image/jpeg;base64,' . base64_encode($bytes) : '';
+    return $uri;
+}
+
 // Render the QR for $data as an SVG string (square, $quiet-module border).
-function qrSvg($data, $scale = 8, $quiet = 4) {
+function qrSvg($data, $scale = 8, $quiet = 4, $withLogo = true) {
     [$m, $size] = qrBuildMatrix($data);
     if ($m === null) return '';
     $dim = ($size + 2 * $quiet) * $scale;
 
+    $logoUri = $withLogo ? qrLogoDataUri() : '';
+    $version = (int)(($size - 17) / 4);
+    $center = intdiv($size, 2);
+    $plateModules = 7;
+    $logoModules = 5;
+    // A centered alignment pattern is structural and must never be covered.
+    foreach (qrAlignPositions()[$version] as $alignmentCenter) {
+        if (abs($alignmentCenter - $center) <= intdiv($plateModules, 2) + 2) {
+            $logoUri = '';
+            break;
+        }
+    }
+    $plateStart = $center - intdiv($plateModules, 2);
+    $plateEnd = $plateStart + $plateModules - 1;
+
     $rects = '';
     for ($r = 0; $r < $size; $r++) {
         for ($c = 0; $c < $size; $c++) {
+            // Reserve, rather than merely cover, the centered logo plate.
+            if ($logoUri !== '' && $r >= $plateStart && $r <= $plateEnd && $c >= $plateStart && $c <= $plateEnd) continue;
             if ($m[$r][$c]) {
                 $x = ($c + $quiet) * $scale;
                 $y = ($r + $quiet) * $scale;
@@ -414,10 +456,23 @@ function qrSvg($data, $scale = 8, $quiet = 4) {
             }
         }
     }
+    $logo = '';
+    if ($logoUri !== '') {
+        $logoSize = $logoModules * $scale;
+        $plateSize = $plateModules * $scale;
+        $logoPos = ($quiet + $center - intdiv($logoModules, 2)) * $scale;
+        $platePos = ($quiet + $plateStart) * $scale;
+        $radius = max(2, (int)round($scale * 0.75));
+        $clipId = 'qr-logo-clip';
+        $logo = '<defs><clipPath id="' . $clipId . '"><rect x="' . $logoPos . '" y="' . $logoPos . '" width="' . $logoSize . '" height="' . $logoSize . '" rx="' . $radius . '"/></clipPath></defs>'
+            . '<rect x="' . $platePos . '" y="' . $platePos . '" width="' . $plateSize . '" height="' . $plateSize . '" rx="' . ($radius + $scale) . '" fill="#ffffff"/>'
+            . '<image href="' . $logoUri . '" x="' . $logoPos . '" y="' . $logoPos . '" width="' . $logoSize . '" height="' . $logoSize . '" preserveAspectRatio="xMidYMid slice" clip-path="url(#' . $clipId . ')" style="image-rendering:auto"/>';
+    }
+
     return '<svg xmlns="http://www.w3.org/2000/svg" width="' . $dim . '" height="' . $dim . '" '
         . 'viewBox="0 0 ' . $dim . ' ' . $dim . '" shape-rendering="crispEdges">'
         . '<rect width="' . $dim . '" height="' . $dim . '" fill="#ffffff"/>'
-        . '<g fill="#0b0b0c">' . $rects . '</g></svg>';
+        . '<g fill="#0b0b0c">' . $rects . '</g>' . $logo . '</svg>';
 }
 
 // Debug helper: matrix as rows of 0/1 (used by the verification harness).

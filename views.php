@@ -9,7 +9,7 @@ function renderProductTheme(): void {
             var saved = localStorage.getItem('0x79-theme');
             var preferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
             document.documentElement.dataset.theme = saved || preferred;
-            var isTool = /^\/(shorten|upload|paste|music|metadata|secure-share)\/?$/.test(location.pathname);
+            var isTool = /^\/(shorten|upload|paste|music|metadata|secure-share|discord)\/?$/.test(location.pathname);
             var isApp = /^\/(login|register|account(?:\/stats)?|api\/docs|admin(?:\/edit)?)\/?$/.test(location.pathname);
             if (isTool || isApp) {
                 document.documentElement.classList.add('product-ui');
@@ -2846,6 +2846,105 @@ function renderPostPage($post) {
     </main>
 </body>
 </html>
+    <?php
+    exit;
+}
+
+function renderDiscordTrackerPage($presence = null, $error = '', $userId = '') {
+    global $lang, $t;
+
+    $errorMessages = [
+        'invalid_id'   => $t['discord_invalid_id'] ?? 'Invalid Discord user ID.',
+        'not_found'    => $t['discord_not_found'] ?? 'No presence data found.',
+        'unavailable'  => $t['discord_unavailable'] ?? 'Discord presence worker is unavailable.',
+        'not_configured' => $t['discord_not_configured'] ?? 'Discord bot is not configured.',
+        'rate_limited' => $t['discord_rate_limited'] ?? 'Too many requests.',
+    ];
+    $user = is_array($presence['discord_user'] ?? null) ? $presence['discord_user'] : [];
+    $status = (string)($presence['discord_status'] ?? 'offline');
+    $statusColors = ['online' => '#34d399', 'idle' => '#fbbf24', 'dnd' => '#fb7185', 'offline' => '#6b7280'];
+    $statusColor = $statusColors[$status] ?? '#6b7280';
+    $avatarUrl = '';
+    if ($user) {
+        $avatar = (string)($user['avatar'] ?? '');
+        $uid = (string)($user['id'] ?? '');
+        if ($avatar !== '' && preg_match('/^[A-Za-z0-9_]+$/', $avatar) && preg_match('/^[0-9]+$/', $uid)) {
+            $avatarUrl = 'https://cdn.discordapp.com/avatars/' . $uid . '/' . $avatar . (str_starts_with($avatar, 'a_') ? '.gif' : '.png') . '?size=256';
+        } else {
+            $index = ((int)($user['discriminator'] ?? 0)) % 5;
+            $avatarUrl = 'https://cdn.discordapp.com/embed/avatars/' . $index . '.png';
+        }
+    }
+    $avatarSrc = $avatarUrl !== '' ? discordAssetProxyUrl($avatarUrl) : '';
+    $spotify = is_array($presence['spotify'] ?? null) ? $presence['spotify'] : null;
+    $activities = is_array($presence['activities'] ?? null) ? $presence['activities'] : [];
+    header('Content-Type: text/html; charset=utf-8');
+    ?>
+<!DOCTYPE html>
+<html lang="<?= h($lang) ?>">
+<head><link rel="icon" href="/logo.png" type="image/jpeg">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= h($t['discord_title'] ?? 'Discord Presence') ?> — 0x79</title>
+    <meta name="description" content="<?= h($t['discord_lead'] ?? '') ?>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Arial','Helvetica','sans-serif'],mono:['SFMono-Regular','Consolas','Liberation Mono','monospace']}}}};</script>
+    <?php renderProductTheme(); ?>
+</head>
+<body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased">
+<main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-7 lg:px-8">
+    <header class="flex items-center justify-between border-b border-white/10 pb-5">
+        <a href="/" class="flex items-center gap-2"><img src="/logo.png" alt="0x79" class="h-10 w-10 border border-white/10 object-cover"><span class="font-mono text-sm">0x79</span></a>
+        <nav class="flex items-center font-mono text-[10px] uppercase tracking-wider text-white/45"><a href="/" class="px-3 py-2 hover:text-white">home</a><a href="/discord" class="border-l border-white/10 px-3 py-2 text-white">discord</a></nav>
+    </header>
+
+    <section class="grid flex-1 gap-10 py-10 lg:grid-cols-[minmax(0,1fr)_520px] lg:py-16">
+        <div>
+            <p class="font-mono text-[10px] uppercase tracking-[.22em] text-[#5865F2]">presence / gateway</p>
+            <h1 class="mt-4 max-w-2xl text-5xl font-black uppercase leading-[.85] tracking-[-.07em] sm:text-7xl"><?= h($t['discord_title'] ?? 'Discord Presence') ?></h1>
+            <p class="mt-6 max-w-xl text-sm leading-6 text-white/50"><?= h($t['discord_lead'] ?? '') ?></p>
+            <form method="GET" action="/discord" class="mt-8 border-2 border-white/80 bg-[#101011] p-2">
+                <label for="discord-user-id" class="sr-only"><?= h($t['discord_id_label'] ?? 'Discord user ID') ?></label>
+                <div class="flex flex-col gap-2 sm:flex-row"><input id="discord-user-id" type="text" inputmode="numeric" pattern="[0-9]{15,22}" name="user_id" value="<?= h($userId) ?>" required placeholder="<?= h($t['discord_id_placeholder'] ?? '') ?>" class="min-w-0 flex-1 bg-transparent px-3 py-3 font-mono text-sm outline-none placeholder:text-white/20"><button type="submit" class="bg-[#5865F2] px-5 py-3 font-mono text-xs font-bold uppercase text-white hover:bg-white hover:text-black"><?= h($t['discord_submit'] ?? 'fetch status') ?></button></div>
+            </form>
+            <p class="mt-3 font-mono text-[10px] leading-5 text-white/30"><?= h($t['discord_hint'] ?? '') ?></p>
+            <?php if ($error !== ''): ?><div class="mt-5 border border-[#fb7185]/40 bg-[#fb7185]/10 p-4 text-sm text-[#fda4af]"><?= h($errorMessages[$error] ?? $errorMessages['unavailable']) ?></div><?php endif; ?>
+        </div>
+
+        <div>
+        <?php if ($presence && $user): ?>
+            <section class="border border-white/15 bg-[#101011] p-5 shadow-[10px_10px_0_#5865F2] sm:p-7">
+                <div class="flex items-center gap-4 border-b border-white/10 pb-5">
+                    <div class="relative h-20 w-20 shrink-0 bg-white/5"><?php if ($avatarSrc): ?><img src="<?= h($avatarSrc) ?>" alt="" class="h-full w-full object-cover"><?php else: ?><span class="grid h-full place-items-center text-2xl">?</span><?php endif; ?><i class="absolute bottom-0 right-0 h-5 w-5 rounded-full border-4 border-[#101011]" style="background:<?= h($statusColor) ?>"></i></div>
+                    <div class="min-w-0"><h2 class="truncate text-2xl font-black tracking-[-.05em]"><?= h($user['global_name'] ?? $user['username'] ?? 'Discord User') ?></h2><p class="mt-1 font-mono text-xs text-white/40">@<?= h($user['username'] ?? '') ?> · <?= h($user['id'] ?? '') ?></p><p class="mt-2 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider"><i class="h-2 w-2 rounded-full" style="background:<?= h($statusColor) ?>"></i><?= h($status) ?></p></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-px border-b border-white/10 bg-white/10 py-px">
+                    <div class="bg-[#101011] py-4"><p class="font-mono text-[9px] uppercase tracking-wider text-white/30"><?= h($t['discord_status'] ?? 'Status') ?></p><p class="mt-1 text-sm font-semibold capitalize"><?= h($status) ?></p></div>
+                    <div class="bg-[#101011] py-4 pl-4"><p class="font-mono text-[9px] uppercase tracking-wider text-white/30"><?= h($t['discord_devices'] ?? 'Active on') ?></p><div class="mt-1 flex flex-wrap gap-1 font-mono text-[9px] uppercase"><?php foreach ([['active_on_discord_desktop','discord_desktop'],['active_on_discord_mobile','discord_mobile'],['active_on_discord_web','discord_web']] as $device): if (empty($presence[$device[0]])) continue; ?><span class="border border-white/15 px-1.5 py-0.5"><?= h($t[$device[1]] ?? $device[1]) ?></span><?php endforeach; ?></div></div>
+                </div>
+
+                <?php if ($spotify): $art = discordAssetProxyUrl((string)($spotify['album_art_url'] ?? '')); $trackId = (string)($spotify['track_id'] ?? ''); ?>
+                <div class="mt-5 border-l-4 border-[#1DB954] bg-[#0b0b0c] p-4">
+                    <div class="flex gap-4"><?php if ($art): ?><img src="<?= h($art) ?>" alt="" class="h-20 w-20 shrink-0 object-cover"><?php endif; ?><div class="min-w-0"><p class="font-mono text-[9px] uppercase tracking-[.18em] text-[#1DB954]"><?= h($t['discord_listening'] ?? 'Now listening') ?></p><h3 class="mt-1 truncate font-bold"><?= h($spotify['song'] ?? '') ?></h3><p class="mt-1 truncate text-xs text-white/50"><?= h($spotify['artist'] ?? '') ?></p><p class="mt-1 truncate font-mono text-[9px] text-white/25"><?= h($spotify['album'] ?? '') ?></p></div></div>
+                    <?php if (preg_match('/^[A-Za-z0-9]+$/', $trackId)): ?><a href="https://open.spotify.com/track/<?= h($trackId) ?>" target="_blank" rel="noopener nofollow" class="mt-3 inline-block font-mono text-[9px] uppercase text-white/40 hover:text-white"><?= h($t['discord_open_spotify'] ?? 'open on Spotify') ?></a><?php endif; ?>
+                </div>
+                <?php endif; ?>
+
+                <div class="mt-6"><p class="font-mono text-[9px] uppercase tracking-[.18em] text-white/30"><?= h($t['discord_activities'] ?? 'Activities') ?></p><div class="mt-3 grid gap-2">
+                <?php $shown = 0; foreach ($activities as $activity): if (!is_array($activity) || (string)($activity['name'] ?? '') === 'Spotify') continue; $shown++; ?>
+                    <article class="border border-white/10 bg-[#0b0b0c] p-3"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><h3 class="truncate text-sm font-semibold"><?= h($activity['name'] ?? 'Activity') ?></h3><?php if (!empty($activity['details'])): ?><p class="mt-1 truncate text-xs text-white/50"><?= h($activity['details']) ?></p><?php endif; ?><?php if (!empty($activity['state'])): ?><p class="mt-1 truncate font-mono text-[9px] text-white/30"><?= h($activity['state']) ?></p><?php endif; ?></div><span class="font-mono text-[9px] text-white/20">#<?= h((string)$shown) ?></span></div></article>
+                <?php endforeach; if ($shown === 0): ?><p class="border border-white/10 p-4 text-xs text-white/35"><?= h($t['discord_no_activities'] ?? 'No public activities.') ?></p><?php endif; ?>
+                </div></div>
+                <p class="mt-6 border-t border-white/10 pt-4 text-center font-mono text-[9px] text-white/20"><?= h($t['discord_powered'] ?? 'Presence data received through your own Discord bot') ?></p>
+            </section>
+        <?php else: ?>
+            <div class="grid min-h-[420px] place-items-center border border-dashed border-white/15 bg-[#101011]/50 p-8 text-center"><div><span class="text-6xl text-[#5865F2]">◉</span><p class="mt-5 font-mono text-xs uppercase tracking-[.18em] text-white/30"><?= h($t['discord_id_label'] ?? 'Discord user ID') ?></p></div></div>
+        <?php endif; ?>
+        </div>
+    </section>
+    <footer class="flex justify-between border-t border-white/10 py-5 font-mono text-[10px] uppercase tracking-wider text-white/25"><span>0x79.one · <?= date('Y') ?></span><a href="/">↑ home</a></footer>
+</main>
+</body></html>
     <?php
     exit;
 }

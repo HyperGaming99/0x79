@@ -62,6 +62,23 @@ S3_USE_PATH_STYLE=true
 
 The storage bucket must allow public reads.
 
+### Discord Presence bot
+
+The optional `/discord` tool uses your own Discord bot and only sees presence for members of the configured server. Create a bot in the Discord Developer Portal, add it to the server, and enable **Presence Intent** under **Privileged Gateway Intents**. Then configure:
+
+```env
+TOOL_DISCORD_ENABLED=true
+DISCORD_BOT_TOKEN=your-bot-token
+DISCORD_GUILD_ID=your-server-id
+```
+
+Never use a Discord user token. Docker starts the Gateway worker automatically. For local development without Docker, run the worker and web server in separate terminals:
+
+```sh
+php discord-worker.php
+php -S localhost:8000 index.php
+```
+
 Start the development server:
 
 ```sh

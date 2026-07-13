@@ -25,6 +25,7 @@ function toolEnabled(string $tool): bool {
         'music'        => 'TOOL_MUSIC_ENABLED',
         'metadata'     => 'TOOL_METADATA_ENABLED',
         'secure_share' => 'TOOL_SECURE_SHARE_ENABLED',
+        'discord'      => 'TOOL_DISCORD_ENABLED',
     ];
 
     if (!isset($variables[$tool])) return false;
@@ -44,6 +45,7 @@ $toolRoutes = [
     'music'            => 'music',
     'metadata'         => 'metadata',
     'secure-share'     => 'secure_share',
+    'discord'          => 'discord',
     'api/music'        => 'music',
     'api/create-music' => 'music',
     'api/paste'        => 'paste',
@@ -90,6 +92,10 @@ if ($request_path === 'preview-asset') {
     streamPreviewAsset();
 }
 
+if ($request_path === 'discord-asset') {
+    streamDiscordAsset();
+}
+
 // Same-origin image proxy for hosted Supabase images (keeps img-src CSP strict).
 if ($request_path === 'img') {
     $proxyTarget = (string)($_GET['u'] ?? '');
@@ -106,6 +112,21 @@ if ($request_path === 'img') {
 if ($request_path === 'rss') {
     require_once __DIR__ . '/rss.php';
     exit;
+}
+
+if ($request_path === 'discord') {
+    $discordId = trim((string)($_GET['user_id'] ?? ''));
+    $discordError = '';
+    $discordPresence = null;
+    if ($discordId !== '') {
+        if (!rateLimit('discord_presence', 30, 60)) {
+            $discordError = 'rate_limited';
+        } else {
+            [$discordOk, $discordError, $discordPresence] = fetchDiscordPresence($discordId);
+            if (!$discordOk) $discordPresence = null;
+        }
+    }
+    renderDiscordTrackerPage($discordPresence, $discordError, $discordId);
 }
 
 if ($request_path === 'posts') {
@@ -1282,9 +1303,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
 </body>
 </html>
 
-<?php else:
-$homePosts = fetchRssPosts(4);
-?>
+<?php else: ?>
 <!DOCTYPE html>
 <html lang="<?= h($lang) ?>">
 <head>
@@ -1412,6 +1431,8 @@ $homePosts = fetchRssPosts(4);
                      'icon' => 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z'],
                     ['tool' => 'secure_share', 'href' => '/secure-share', 'num' => '06', 'color' => '#22d3ee', 'title' => $t['home_tool6_title'], 'desc' => $t['home_tool6_desc'], 'tags' => ['aes-gcm', 'zero-knowledge', 'secure'],
                      'icon' => 'M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z'],
+                    ['tool' => 'discord', 'href' => '/discord', 'num' => '07', 'color' => '#5865F2', 'title' => $t['home_tool7_title'], 'desc' => $t['home_tool7_desc'], 'tags' => ['status', 'spotify', 'gateway'],
+                     'icon' => 'M8.25 10.5h.008v.008H8.25V10.5zm7.5 0h.008v.008h-.008V10.5zM7.5 17.25c3 1.5 6 1.5 9 0m1.875-12A15.91 15.91 0 0112 3.75c-2.25 0-4.4.47-6.375 1.5C3.75 8.25 3 11.25 3 15c1.5 1.5 3 2.25 4.5 3l1.125-1.5M18.375 5.25C20.25 8.25 21 11.25 21 15c-1.5 1.5-3 2.25-4.5 3l-1.125-1.5'],
                 ];
                 foreach ($toolCards as $tc): if (!toolEnabled($tc['tool'])) continue; ?>
                 <a href="<?= h($tc['href']) ?>" class="utility-row group grid min-h-[88px] grid-cols-[34px_1fr_auto] items-center gap-3 border-b border-black/25 px-2 py-3 md:odd:border-r md:px-4">
@@ -1664,57 +1685,6 @@ $homePosts = fetchRssPosts(4);
                 <?php if (toolEnabled('upload')): ?><a href="/upload" class="border-2 border-black px-5 py-3 hover:bg-[#34d399]"><?= h($t['home_final_file']) ?></a><?php endif; ?>
                 <?php if (toolEnabled('paste')): ?><a href="/paste" class="border-2 border-black px-5 py-3 hover:bg-[#a78bfa]"><?= h($t['home_final_paste']) ?></a><?php endif; ?>
             </div>
-        </section>
-
-        <!-- News -->
-        <section class="py-10 sm:py-12">
-            <div class="mb-8 flex items-center justify-between">
-                <div>
-                    <p class="font-mono text-[10px] uppercase tracking-[.2em]"><?= h($t['home_news_label']) ?></p>
-                    <h2 class="mt-2 text-3xl font-black uppercase tracking-[-.05em]"><?= h($t['news_title']) ?></h2>
-                    <p class="mt-1 text-sm text-black/50"><?= h($t['news_lead']) ?></p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <a href="/posts" class="border border-black px-3.5 py-2 font-mono text-xs hover:bg-black hover:text-white">
-                        <?= h($t['news_all_posts']) ?>
-                    </a>
-                    <a href="/rss" target="_blank" class="rss-button flex items-center gap-2 border border-black px-3.5 py-2 font-mono text-xs hover:bg-[#b8ff31]">
-                        <svg class="h-3 w-3 fill-current" viewBox="0 0 24 24">
-                            <path d="M6.18 15.64a2.18 2.18 0 11-2.18 2.18 2.18 2.18 0 012.18-2.18zM3 3a18 18 0 0118 18h-2.91A15.09 15.09 0 003 5.91zm0 6.06a11.94 11.94 0 0111.94 11.94H12A9 9 0 003 12z"/>
-                        </svg>
-                        <span><?= h($t['news_rss']) ?></span>
-                    </a>
-                </div>
-            </div>
-
-            <?php if (empty($homePosts)): ?>
-                <div class="border-y border-black/25 p-10 text-center font-mono text-xs text-black/40">
-                    <?= h($t['news_no_posts']) ?>
-                </div>
-            <?php else: ?>
-                <div class="grid border-t-2 border-black md:grid-cols-2">
-                    <?php foreach ($homePosts as $post):
-                        $postUrl = '/post/' . $post['id'];
-                        $pubDate = (int)($post['pub_date'] ?? 0);
-                        $dateStr = $pubDate ? date('d.m.Y', $pubDate) : '';
-                    ?>
-                        <a href="<?= h($postUrl) ?>" class="group flex gap-4 border-b border-black/25 p-4 hover:bg-black hover:text-white md:odd:border-r">
-                            <?php if (!empty($post['image'])): ?>
-                                <img src="<?= h($post['image']) ?>" alt="Post Thumbnail" class="h-20 w-28 shrink-0 border border-current bg-black/40 object-cover grayscale transition group-hover:grayscale-0">
-                            <?php endif; ?>
-                            <div class="flex min-w-0 flex-col justify-between">
-                                <div>
-                                    <span class="font-mono text-[10px] uppercase tracking-wider opacity-45"><?= h($dateStr) ?></span>
-                                    <h3 class="mt-1 truncate text-sm font-bold"><?= h($post['title'] ?? '') ?></h3>
-                                    <p class="mt-1 line-clamp-2 text-xs leading-relaxed opacity-55">
-                                        <?= h($post['description'] ?? '') ?>
-                                    </p>
-                                </div>
-                            </div>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
         </section>
 
         <footer class="flex flex-col items-center justify-between gap-3 border-t border-black/25 py-7 font-mono text-[10px] uppercase tracking-wider text-black/50 sm:flex-row">
