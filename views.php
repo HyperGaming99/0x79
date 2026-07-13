@@ -1,16 +1,172 @@
 <?php
 declare(strict_types=1);
 
+/** Language and theme controls shared by every rendered HTML page. */
+function renderUiPreferences(bool $withTheme = false): void {
+    static $rendered = false;
+    global $lang;
+
+    if ($rendered) return;
+    $rendered = true;
+    $currentLang = in_array((string)$lang, ['de', 'en'], true) ? (string)$lang : 'en';
+    $userLoggedIn = isUserLoggedIn();
+    $accountHref = $userLoggedIn ? '/account' : '/login';
+    $accountLabel = $userLoggedIn ? 'account' : 'login';
+    ?>
+    <style>
+        :root{--ui-bg:#0b0b0c;--ui-panel:#101011;--ui-ink:#f5f2ea;--ui-muted:rgba(255,255,255,.48);--ui-rule:rgba(255,255,255,.12);--ui-accent:#b8ff31}
+        body.has-ui-global-nav{padding-top:58px!important}
+        .ui-global-nav{position:fixed;inset:0 0 auto 0;z-index:100;display:flex;height:58px;align-items:stretch;border-bottom:1px solid var(--ui-rule);background:color-mix(in srgb,var(--ui-bg) 94%,transparent);color:var(--ui-ink);font-family:Arial,Helvetica,sans-serif;backdrop-filter:blur(16px)}
+        .ui-global-nav-inner{display:flex;width:100%;max-width:1440px;margin:0 auto;align-items:stretch;padding:0 18px}
+        .ui-global-brand{display:flex;align-items:center;gap:10px;padding-right:20px;color:var(--ui-ink);font-size:20px;font-weight:900;letter-spacing:-.08em;text-decoration:none}
+        .ui-global-brand img{width:30px;height:30px;object-fit:cover;filter:grayscale(1) contrast(1.15)}
+        .ui-global-links{display:flex;min-width:0;align-items:stretch;margin-left:auto}
+        .ui-global-link{display:flex;align-items:center;padding:0 12px;border-left:1px solid var(--ui-rule);color:var(--ui-muted);font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em;text-decoration:none;text-transform:uppercase;white-space:nowrap}
+        .ui-global-link:hover,.ui-global-link.is-active{background:var(--ui-ink);color:var(--ui-bg)}
+        .ui-global-account{background:var(--ui-accent);color:#11110f}
+        .ui-global-menu{display:none;position:relative;margin-left:auto;border-left:1px solid var(--ui-rule)}
+        .ui-global-menu summary{display:flex;height:57px;align-items:center;padding:0 15px;color:var(--ui-ink);font:700 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;list-style:none}
+        .ui-global-menu summary::-webkit-details-marker{display:none}
+        .ui-global-menu-panel{position:absolute;top:58px;right:0;width:min(280px,calc(100vw - 24px));border:1px solid var(--ui-rule);background:var(--ui-panel);box-shadow:6px 6px 0 var(--ui-accent)}
+        .ui-global-menu-panel a{display:flex;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--ui-rule);color:var(--ui-ink);font:700 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;text-decoration:none;text-transform:uppercase}
+        .ui-global-menu-panel a:hover{background:var(--ui-ink);color:var(--ui-bg)}
+        .ui-preferences{position:fixed;right:18px;bottom:18px;z-index:90;display:flex;align-items:stretch;border:1px solid var(--ui-rule);background:var(--ui-panel);color:var(--ui-ink);box-shadow:4px 4px 0 var(--ui-accent);font:700 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase}
+        .ui-preferences.is-embedded{position:static;right:auto;bottom:auto;z-index:auto;height:100%;border-width:0 0 0 1px;box-shadow:none;background:transparent}
+        .ui-pref-languages{display:flex;align-items:stretch}
+        .ui-pref-language,.ui-theme-switch{display:flex;min-width:38px;height:40px;align-items:center;justify-content:center;border:0;border-right:1px solid var(--ui-rule);background:transparent;color:var(--ui-muted);font:inherit;letter-spacing:inherit;text-decoration:none;cursor:pointer}
+        .ui-pref-language:hover,.ui-theme-switch:hover{background:var(--ui-ink);color:var(--ui-bg)}
+        .ui-pref-language[aria-current="true"]{background:var(--ui-accent);color:#11110f}
+        .ui-theme-switch{min-width:42px;border-right:0}
+        .ui-theme-switch svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7}
+        .ui-preferences.is-embedded .ui-pref-language,.ui-preferences.is-embedded .ui-theme-switch{height:100%;min-height:40px}
+        .ui-preferences.is-embedded .ui-pref-language[aria-current="true"]{box-shadow:inset 0 -3px 0 #11110f}
+        .ui-preferences-anchor{display:inline-flex;align-self:stretch;height:100%}
+        @media(max-width:1050px){.ui-global-links{display:none}.ui-global-menu{display:block}}
+        @media(max-width:760px){.ui-global-nav-inner{padding:0 12px}.ui-global-menu+.ui-preferences-anchor{margin-left:0}.ui-global-brand{padding-right:12px}.ui-preferences.is-embedded{display:flex!important;position:static;right:auto;bottom:auto;height:100%;border-width:0 0 0 1px;box-shadow:none;background:transparent}.ui-pref-language,.ui-theme-switch{height:57px;min-width:35px}}
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (document.querySelector('.ui-preferences')) return;
+            var currentLang = <?= json_encode($currentLang, JSON_UNESCAPED_SLASHES) ?>;
+
+            document.querySelectorAll('body > header, body > main > header').forEach(function (header) {
+                if (location.pathname.indexOf('/admin') === 0) return;
+                header.remove();
+            });
+            var navItems = [
+                ['/tools', 'tools'], ['/discord', 'discord'], ['/minecraft', 'minecraft'],
+                ['/posts', 'posts'], ['/status', 'status'], ['/api/docs', 'api']
+            ];
+            var navbar = document.createElement('header');
+            navbar.className = 'ui-global-nav';
+            navbar.setAttribute('aria-label', currentLang === 'de' ? 'Hauptnavigation' : 'Main navigation');
+            var inner = document.createElement('div');
+            inner.className = 'ui-global-nav-inner';
+            inner.innerHTML = '<a class="ui-global-brand" href="/" aria-label="0x79 Home"><img src="/logomark_0x79.jpg" alt=""><span>0x79</span></a>';
+            var links = document.createElement('nav');
+            links.className = 'ui-global-links';
+            navItems.forEach(function (item) {
+                var link = document.createElement('a');
+                link.className = 'ui-global-link' + (location.pathname === item[0] || (item[0] === '/posts' && location.pathname.indexOf('/post/') === 0) ? ' is-active' : '');
+                link.href = item[0];
+                link.textContent = item[1];
+                links.appendChild(link);
+            });
+            var account = document.createElement('a');
+            account.className = 'ui-global-link ui-global-account' + (location.pathname.indexOf('/account') === 0 || location.pathname === '/login' ? ' is-active' : '');
+            account.href = <?= json_encode($accountHref, JSON_UNESCAPED_SLASHES) ?>;
+            account.textContent = <?= json_encode($accountLabel, JSON_UNESCAPED_SLASHES) ?>;
+            links.appendChild(account);
+            <?php if ($userLoggedIn): ?>
+            var logout = document.createElement('a');
+            logout.className = 'ui-global-link';
+            logout.href = '/logout';
+            logout.textContent = 'logout';
+            links.appendChild(logout);
+            <?php endif; ?>
+            inner.appendChild(links);
+
+            var menu = document.createElement('details');
+            menu.className = 'ui-global-menu';
+            menu.innerHTML = '<summary>menu</summary><div class="ui-global-menu-panel"></div>';
+            var panel = menu.querySelector('.ui-global-menu-panel');
+            var menuItems = navItems.concat([[<?= json_encode($accountHref, JSON_UNESCAPED_SLASHES) ?>, <?= json_encode($accountLabel, JSON_UNESCAPED_SLASHES) ?>]]);
+            <?php if ($userLoggedIn): ?>menuItems.push(['/logout', 'logout']);<?php endif; ?>
+            menuItems.forEach(function (item) {
+                var link = document.createElement('a');
+                link.href = item[0];
+                link.innerHTML = '<span>' + item[1] + '</span><span>→</span>';
+                panel.appendChild(link);
+            });
+            inner.appendChild(menu);
+            var navPreferenceAnchor = document.createElement('span');
+            navPreferenceAnchor.className = 'ui-preferences-anchor';
+            inner.appendChild(navPreferenceAnchor);
+            navbar.appendChild(inner);
+            document.body.insertBefore(navbar, document.body.firstChild);
+            document.body.classList.add('has-ui-global-nav');
+
+            var controls = document.createElement('div');
+            controls.className = 'ui-preferences';
+            controls.setAttribute('aria-label', currentLang === 'de' ? 'Anzeige und Sprache' : 'Display and language');
+
+            var languages = document.createElement('div');
+            languages.className = 'ui-pref-languages';
+            ['de', 'en'].forEach(function (code) {
+                var link = document.createElement('a');
+                var url = new URL(window.location.href);
+                url.searchParams.set('lang', code);
+                link.href = url.pathname + url.search + url.hash;
+                link.className = 'ui-pref-language';
+                link.textContent = code;
+                link.lang = code;
+                link.setAttribute('aria-label', code === 'de' ? 'Deutsch' : 'English');
+                if (code === currentLang) link.setAttribute('aria-current', 'true');
+                languages.appendChild(link);
+            });
+
+            var theme = document.createElement('button');
+            theme.type = 'button';
+            theme.className = 'ui-theme-switch';
+            theme.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>';
+            function syncTheme() {
+                var light = document.documentElement.dataset.theme === 'light';
+                theme.setAttribute('aria-label', light ? (currentLang === 'de' ? 'Dunkles Design' : 'Dark theme') : (currentLang === 'de' ? 'Helles Design' : 'Light theme'));
+                theme.setAttribute('aria-pressed', light ? 'true' : 'false');
+            }
+            theme.addEventListener('click', function () {
+                var next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+                document.documentElement.dataset.theme = next;
+                localStorage.setItem('0x79-theme', next);
+                syncTheme();
+            });
+            syncTheme();
+            controls.appendChild(languages);
+            if (<?= $withTheme ? 'true' : 'false' ?>) controls.appendChild(theme);
+
+            var anchor = navPreferenceAnchor;
+            if (anchor) {
+                controls.classList.add('is-embedded');
+                anchor.replaceWith(controls);
+            } else {
+                document.body.appendChild(controls);
+            }
+        });
+    </script>
+    <?php
+}
+
 /** Shared visual system and persistent light/dark switch for public tool pages. */
 function renderProductTheme(): void {
+    renderUiPreferences(true);
     ?>
     <script>
         (function () {
             var saved = localStorage.getItem('0x79-theme');
             var preferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
             document.documentElement.dataset.theme = saved || preferred;
-            var isTool = /^\/(shorten|upload|paste|music|metadata|secure-share|discord)\/?$/.test(location.pathname);
-            var isApp = /^\/(login|register|account(?:\/stats)?|api\/docs|admin(?:\/edit)?)\/?$/.test(location.pathname);
+            var isTool = /^\/(shorten|upload|paste|music|metadata|secure-share|discord|minecraft)\/?$/.test(location.pathname);
+            var isApp = /^\/(login|register|account(?:\/stats)?|api\/docs|admin(?:\/edit)?|tools|status)\/?$/.test(location.pathname);
             if (isTool || isApp) {
                 document.documentElement.classList.add('product-ui');
             }
@@ -42,11 +198,11 @@ function renderProductTheme(): void {
         .product-ui body>main>header nav{align-self:stretch;gap:0!important;color:var(--ui-muted)!important}
         .product-ui body>main>header nav>a{display:flex;align-items:center;border-left:1px solid var(--ui-rule);padding:0 14px!important;font-size:10px!important;text-transform:uppercase;letter-spacing:.08em}
         .product-ui body>main>header nav>a:hover{background:var(--ui-ink)!important;color:var(--ui-bg)!important}
-        .product-ui body>main>section{align-items:start!important;gap:clamp(32px,6vw,88px)!important;padding-top:48px!important;padding-bottom:48px!important}
-        .product-ui body>main>section h1{max-width:760px;font-family:Arial,Helvetica,sans-serif!important;font-size:clamp(42px,6vw,82px)!important;font-weight:900!important;line-height:.88!important;letter-spacing:-.07em!important;text-transform:uppercase;color:var(--ui-ink)!important}
+        .tool-ui body>main>section:first-of-type{align-items:start!important;gap:clamp(32px,6vw,88px)!important;padding-top:48px!important;padding-bottom:48px!important}
+        .tool-ui body>main>section:first-of-type h1{max-width:760px;font-family:Arial,Helvetica,sans-serif!important;font-size:clamp(42px,6vw,82px)!important;font-weight:900!important;line-height:.88!important;letter-spacing:-.07em!important;text-transform:uppercase;color:var(--ui-ink)!important}
         .product-ui body>main>h1{margin:40px 0 8px!important;font-family:Arial,Helvetica,sans-serif!important;font-size:clamp(44px,7vw,88px)!important;font-weight:900!important;line-height:.88!important;letter-spacing:-.07em!important;text-transform:uppercase;color:var(--ui-ink)!important}
-        .product-ui body>main>section>div:first-child>p:first-child{margin-bottom:16px!important;font-size:10px!important;color:var(--ui-muted)!important}
-        .product-ui body>main>section>div:first-child>h1+p{max-width:540px!important;margin-top:24px!important;font-size:15px!important;line-height:1.55!important;color:var(--ui-muted)!important}
+        .tool-ui body>main>section:first-of-type>div:first-child>p:first-child{margin-bottom:16px!important;font-size:10px!important;color:var(--ui-muted)!important}
+        .tool-ui body>main>section:first-of-type>div:first-child>h1+p{max-width:540px!important;margin-top:24px!important;font-size:15px!important;line-height:1.55!important;color:var(--ui-muted)!important}
         .product-ui body [class*="bg-[#101011]"]{background-color:var(--ui-panel)!important}
         .product-ui body [class*="border-white"]{border-color:var(--ui-rule)!important}
         .product-ui body main form,.product-ui body main #dropzone{border-color:var(--ui-ink)!important}
@@ -61,41 +217,14 @@ function renderProductTheme(): void {
         .product-ui .tabs{border-color:var(--ui-rule)!important}
         .product-ui .tab.active{background:var(--ui-accent)!important;color:#11110f!important;border-color:var(--ui-ink)!important}
         .product-ui{--bg:var(--ui-bg);--fg:var(--ui-ink);--muted:var(--ui-muted);--rule:var(--ui-rule);--card:var(--ui-panel);--accent:var(--ui-accent)}
-        @media(min-width:1024px){.product-ui body>main>section{min-height:calc(100vh - 150px)}}
+        @media(min-width:1024px){.tool-ui body>main>section:first-of-type{min-height:calc(100vh - 150px)}}
         @media(max-width:760px){
             .product-ui body>main{padding-left:16px!important;padding-right:16px!important}
             .product-ui body>main>header nav>a:nth-of-type(n+4){display:none}
             .product-ui body>main>header nav>a{padding:0 9px!important}
-            .product-ui body>main>section{padding-top:32px!important;padding-bottom:36px!important}
+            .tool-ui body>main>section:first-of-type{padding-top:32px!important;padding-bottom:36px!important}
         }
-        .ui-theme-switch{position:fixed;right:18px;bottom:18px;z-index:80;display:flex;align-items:center;gap:10px;height:40px;padding:0 13px;border:1px solid var(--ui-rule);background:var(--ui-ink);color:var(--ui-bg);font:600 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;box-shadow:4px 4px 0 var(--ui-accent)}
-        .ui-theme-switch:hover{background:var(--ui-accent);color:#11110f}
-        .ui-theme-switch-dot{width:8px;height:8px;border:1px solid currentColor;background:currentColor}
-        @media(max-width:640px){.ui-theme-switch{right:12px;bottom:12px;height:36px;padding:0 10px}.ui-theme-switch-label{display:none}}
     </style>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            if (document.querySelector('.ui-theme-switch')) return;
-            var button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'ui-theme-switch';
-            button.setAttribute('aria-label', 'Hell- oder Dunkelmodus wechseln');
-            button.innerHTML = '<span class="ui-theme-switch-dot"></span><span class="ui-theme-switch-label"></span>';
-            function sync() {
-                var light = document.documentElement.dataset.theme === 'light';
-                button.querySelector('.ui-theme-switch-label').textContent = light ? 'dark mode' : 'light mode';
-                button.setAttribute('aria-pressed', light ? 'true' : 'false');
-            }
-            button.addEventListener('click', function () {
-                var next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-                document.documentElement.dataset.theme = next;
-                localStorage.setItem('0x79-theme', next);
-                sync();
-            });
-            sync();
-            document.body.appendChild(button);
-        });
-    </script>
     <?php
 }
 
@@ -193,6 +322,7 @@ function renderUserAuthPage($mode, $error = '') {
 }
 
 function renderUserAccountPage($notice = '') {
+    global $lang;
     $user = currentUser();
     if (!$user) { header('Location: /login'); exit; }
     $host = cleanHost($_SERVER['HTTP_HOST'] ?? '0x79.one');
@@ -212,7 +342,7 @@ function renderUserAccountPage($notice = '') {
     header('Content-Type: text/html; charset=utf-8');
     ?>
 <!DOCTYPE html>
-<html lang="de">
+<html lang="<?= h($lang) ?>">
 <head><link rel="icon" href="/logo.png" type="image/jpeg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -228,8 +358,16 @@ function renderUserAccountPage($notice = '') {
         details.rowedit[open] summary{color:#fff;border-color:rgba(255,255,255,.4)}
     </style>
     <?php renderProductTheme(); ?>
+    <style>
+        .account-page>main{max-width:1320px!important;padding-top:18px!important;padding-bottom:0!important}
+        .account-page .account-hero{margin-bottom:10px;border:1px solid var(--ui-rule);background:var(--ui-panel);padding:18px 20px!important}
+        .account-page .account-quick-link{display:inline-flex;height:34px;align-items:center;border:1px solid var(--ui-rule);padding:0 11px;color:var(--ui-muted);font:700 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.07em;text-decoration:none;text-transform:uppercase}
+        .account-page .account-quick-link:hover{border-color:var(--ui-ink);background:var(--ui-ink);color:var(--ui-bg)}
+        .account-page table td{padding-top:8px!important;padding-bottom:8px!important}
+        @media(max-width:640px){.account-page>main{padding-top:12px!important}.account-page .account-hero{padding:15px!important}}
+    </style>
 </head>
-<body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
+<body class="account-page min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
 <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-7 lg:px-8">
 
     <header class="flex items-center justify-between border-b border-white/10 pb-5">
@@ -248,12 +386,17 @@ function renderUserAccountPage($notice = '') {
         </nav>
     </header>
 
-    <section class="flex flex-col gap-1 py-4 sm:flex-row sm:items-end sm:justify-between">
+    <section class="account-hero flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <p class="font-mono text-xs uppercase tracking-[0.22em] text-white/35">account</p>
             <h1 class="mt-1 text-3xl font-semibold tracking-[-0.045em] text-white">@<?= h($user['username'] ?? '') ?></h1>
+            <p class="mt-1 font-mono text-[11px] text-white/35">dabei seit <?= h(formatDateTime($user['created_at'] ?? '')) ?></p>
         </div>
-        <p class="font-mono text-xs text-white/35">dabei seit <?= h(formatDateTime($user['created_at'] ?? '')) ?></p>
+        <div class="flex flex-wrap gap-2">
+            <a class="account-quick-link" href="/shorten">+ url</a>
+            <a class="account-quick-link" href="/upload">+ file</a>
+            <a class="account-quick-link" href="/paste">+ paste</a>
+        </div>
     </section>
 
     <?php if ($notice): ?>
@@ -466,7 +609,7 @@ function copyText(btn, text){
 }
 
 function renderLinkStatsPage($code, $clicks) {
-    global $t;
+    global $lang, $t;
     $host = cleanHost($_SERVER['HTTP_HOST'] ?? '0x79.one');
     $shortUrl = 'https://' . $host . '/' . $code;
 
@@ -499,7 +642,7 @@ function renderLinkStatsPage($code, $clicks) {
     header('Content-Type: text/html; charset=utf-8');
     ?>
 <!DOCTYPE html>
-<html lang="de">
+<html lang="<?= h($lang) ?>">
 <head><link rel="icon" href="/logo.png" type="image/jpeg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -888,6 +1031,7 @@ function renderMusicPromoterPage($error = '', $short_url = '', $music_url = '') 
 }
 
 function renderMusicLandingPage($row) {
+    global $lang;
     $links = $row['links'] ?? [];
     if (is_string($links)) {
         $decoded = json_decode($links, true);
@@ -910,7 +1054,7 @@ function renderMusicLandingPage($row) {
     header('Content-Type: text/html; charset=utf-8');
     ?>
 <!DOCTYPE html>
-<html lang="de">
+<html lang="<?= h($lang) ?>">
 <head><link rel="icon" href="/logo.png" type="image/jpeg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -929,6 +1073,7 @@ function renderMusicLandingPage($row) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <?php renderUiPreferences(); ?>
     <style>
         @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
         .rise{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
@@ -1744,7 +1889,7 @@ function renderAdminDashboard() {
 }
 
 function renderApiDocs() {
-    global $available_domains;
+    global $lang, $available_domains;
 
     $host = cleanHost($_SERVER['HTTP_HOST'] ?? '0x79.one');
     $wsPublicUrl = trim((string)getenv('DISCORD_WS_PUBLIC_URL'));
@@ -1753,7 +1898,7 @@ function renderApiDocs() {
     header('Content-Type: text/html; charset=utf-8');
     ?>
 <!DOCTYPE html>
-<html lang="de">
+<html lang="<?= h($lang) ?>">
 <head><link rel="icon" href="/logo.png" type="image/jpeg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1815,18 +1960,21 @@ function renderApiDocs() {
         <a href="#files">File/Image</a><a href="#pastes">Paste</a><a href="#music-api">Music Promoter</a>
         <strong>Discord</strong>
         <a href="#discord-rest">Presence REST API</a><a href="#discord-ws">Presence WebSocket</a><a href="#discord-protocol">Socket-Protokoll</a>
+        <strong>Game Server</strong>
+        <a href="#minecraft-api">Minecraft Status</a>
         <strong>System</strong>
         <a href="#screenshot-api">Screenshot API</a><a href="#errors">Fehler</a>
     </aside>
     <article class="docs-content">
     <header class="docs-hero" id="overview"><h1>0x79 API Docs</h1>
-    <p>REST- und WebSocket-API für Shortlinks, Files, Pastes, Music Pages und Discord Presence.</p></header>
+    <p>REST- und WebSocket-API für Shortlinks, Files, Pastes, Music Pages, Discord Presence und Minecraft-Serverstatus.</p></header>
 
     <h2>Base URLs</h2>
     <pre>https://<?= h($host) ?>/api
 https://<?= h($host) ?>/api/file
 https://<?= h($host) ?>/api/paste
 https://<?= h($host) ?>/api/discord
+https://<?= h($host) ?>/api/minecraft
 <?= h($wsPublicUrl) ?></pre>
 
     <h2 id="auth">Accounts & API-Key</h2>
@@ -2032,6 +2180,28 @@ socket.addEventListener('message', ({ data }) =&gt; {
     </tbody></table>
     <p><code>subscribe_to_all: true</code> wird nur akzeptiert, wenn der Betreiber <code>DISCORD_WS_ALLOW_SUBSCRIBE_ALL=true</code> gesetzt hat. Pro Verbindung sind maximal 100 IDs erlaubt.</p>
 
+    <h2 id="minecraft-api"><span class="method get">GET</span>Minecraft Server Status</h2>
+    <p><code>GET /api/minecraft?server=:address</code> fragt einen öffentlichen Minecraft-Java-Server direkt über das Status-Protokoll ab. Die Adresse kann einen Port enthalten; DNS-SRV wird automatisch berücksichtigt.</p>
+    <pre>curl "https://<?= h($host) ?>/api/minecraft?server=play.example.net"</pre>
+    <p>Antwort:</p>
+    <pre>{
+  "success": true,
+  "data": {
+    "address": "play.example.net",
+    "online": true,
+    "latency_ms": 42,
+    "motd": "A Minecraft Server",
+    "version": "1.21.8",
+    "protocol": 772,
+    "players_online": 12,
+    "players_max": 100,
+    "players": [],
+    "srv_used": true,
+    "enforces_secure_chat": false
+  }
+}</pre>
+    <div class="note">Private, reservierte und lokale IP-Ziele sind blockiert. Das Tool ist kein allgemeiner TCP-Portscanner und unterstützt aktuell Java Edition.</div>
+
     <h2 id="screenshot-api"><span class="method get">GET</span><span class="method post">POST</span>Screenshot API</h2>
     <p><code>GET /api/screenshot</code> oder <code>POST /api/screenshot</code>. Bleibt Admin-only und ist geschützt per <code>Authorization: Bearer ADMIN_API_KEY</code> oder Admin-Session. Antwort ist direkt das Bild, nicht JSON.</p>
     <pre>curl -H "Authorization: Bearer YOUR_ADMIN_API_KEY" \
@@ -2089,6 +2259,7 @@ function renderUrlPreviewPage($code, $target) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>preview — <?= h($host) ?></title>
+    <?php renderUiPreferences(); ?>
     <style>
         *{box-sizing:border-box}html,body{height:100%}body{margin:0;background:#0b0b0c;color:#f5f2ea;font:14px/1.5 Inter,ui-sans-serif,system-ui,sans-serif}.top{height:64px;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:space-between;padding:0 18px;gap:14px;background:#0b0b0c;position:sticky;top:0;z-index:20}.brand{font-family:monospace;text-decoration:none;color:#f5f2ea}.meta{min-width:0;color:rgba(255,255,255,.55);font-family:monospace;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.actions{display:flex;gap:10px;align-items:center}.btn{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 13px;text-decoration:none;border:1px solid rgba(255,255,255,.16);font-family:monospace;font-size:12px;color:#f5f2ea}.primary{background:#f5f2ea;color:#0b0b0c;border-color:#f5f2ea}.frame-wrap{background:#fff;min-height:calc(100vh - 64px);position:relative}.frame{display:block;width:100%;height:calc(100vh - 64px);border:0;background:#fff}.hint{position:absolute;left:18px;right:18px;bottom:18px;padding:12px 14px;background:rgba(11,11,12,.88);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.72);font-family:monospace;font-size:12px;pointer-events:none}.notice{max-width:760px;margin:80px auto;padding:0 24px}.card{border:1px solid rgba(255,255,255,.12);background:#101011;padding:24px}.muted{color:rgba(255,255,255,.55)}code{word-break:break-all;background:#0b0b0c;border:1px solid rgba(255,255,255,.12);padding:8px;display:block;margin:14px 0;font-family:monospace;color:#f5f2ea}@media(max-width:720px){.top{height:auto;min-height:64px;align-items:flex-start;flex-direction:column;padding:14px}.actions{width:100%}.btn{flex:1}.frame{height:calc(100vh - 122px)}.frame-wrap{min-height:calc(100vh - 122px)}}
     </style>
@@ -2517,13 +2688,13 @@ function renderPastePasswordForm($code, $error = '', $raw = false) {
     $action = $raw ? '/raw/' . rawurlencode($code) : '/' . rawurlencode($code);
     header('Content-Type: text/html; charset=utf-8');
     ?>
-<!DOCTYPE html><html lang="<?= h($lang) ?>"><head><link rel="icon" href="/logo.png" type="image/jpeg"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>protected paste — 0x79</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:#0b0b0c;color:#f5f2ea;padding:24px}form{width:100%;max-width:420px;border:1px solid rgba(255,255,255,.18);padding:24px;display:grid;gap:14px}input,button{font:inherit;padding:12px;border:1px solid rgba(255,255,255,.25)}input{background:transparent;color:#f5f2ea}button{background:#f5f2ea;color:#0b0b0c;cursor:pointer}.err{color:#ff8a8a}</style></head><body><form method="POST" action="<?= h($action) ?>"><h1>paste passwort</h1><?php if ($error): ?><p class="err"><?= h($error) ?></p><?php endif; ?><input type="hidden" name="code" value="<?= h($code) ?>"><input type="password" name="paste_password" placeholder="passwort" required autofocus><button type="submit">öffnen →</button></form></body></html>
+<!DOCTYPE html><html lang="<?= h($lang) ?>"><head><link rel="icon" href="/logo.png" type="image/jpeg"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>protected paste — 0x79</title><?php renderUiPreferences(); ?><style>body{margin:0;min-height:100vh;display:grid;place-items:center;font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:#0b0b0c;color:#f5f2ea;padding:24px}form{width:100%;max-width:420px;border:1px solid rgba(255,255,255,.18);padding:24px;display:grid;gap:14px}input,button{font:inherit;padding:12px;border:1px solid rgba(255,255,255,.25)}input{background:transparent;color:#f5f2ea}button{background:#f5f2ea;color:#0b0b0c;cursor:pointer}.err{color:#ff8a8a}</style></head><body><form method="POST" action="<?= h($action) ?>"><h1>paste passwort</h1><?php if ($error): ?><p class="err"><?= h($error) ?></p><?php endif; ?><input type="hidden" name="code" value="<?= h($code) ?>"><input type="password" name="paste_password" placeholder="passwort" required autofocus><button type="submit">öffnen →</button></form></body></html>
     <?php
     exit;
 }
 
 function renderPasteView($row, $code) {
-    global $t;
+    global $lang, $t;
 
     if (isExpiredRow($row)) {
         http_response_code(410);
@@ -2548,7 +2719,7 @@ function renderPasteView($row, $code) {
     header('Content-Type: text/html; charset=utf-8');
     ?>
 <!DOCTYPE html>
-<html lang="de">
+<html lang="<?= h($lang) ?>">
 <head>
     <link rel="icon" href="/logo.png" type="image/jpeg">
     <meta charset="UTF-8">
@@ -2559,6 +2730,7 @@ function renderPasteView($row, $code) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <?php renderUiPreferences(); ?>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
     <main class="mx-auto flex min-h-screen w-full max-w-4xl flex-col px-5 py-5 sm:px-7 lg:px-8">
@@ -2782,6 +2954,112 @@ function renderRawPaste($row, $code) {
     exit;
 }
 
+function renderToolsDashboardPage(): void {
+    global $lang;
+    $de = $lang === 'de';
+    $tools = [
+        ['key'=>'shortener','href'=>'/shorten','category'=>'create','num'=>'01','color'=>'#60a5fa','title'=>'URL Shortener','desc'=>$de?'Kurze Links mit Alias, Passwort, Ablaufdatum und QR-Code.':'Short links with aliases, passwords, expiry dates and QR codes.','tags'=>'url alias qr'],
+        ['key'=>'upload','href'=>'/upload','category'=>'create','num'=>'02','color'=>'#34d399','title'=>$de?'Datei-Host':'File Host','desc'=>$de?'Dateien und Bilder hochladen, teilen und direkt anzeigen.':'Upload, share and preview files and images.','tags'=>'file image upload'],
+        ['key'=>'paste','href'=>'/paste','category'=>'create','num'=>'03','color'=>'#a78bfa','title'=>'Paste Host','desc'=>$de?'Text, Code und verschlüsselte Pastes sicher teilen.':'Share text, code and encrypted pastes securely.','tags'=>'text code raw'],
+        ['key'=>'music','href'=>'/music','category'=>'create','num'=>'04','color'=>'#fb7185','title'=>'Music Promoter','desc'=>$de?'Eine Release-Seite für alle wichtigen Streaming-Plattformen.':'One release page for all major streaming platforms.','tags'=>'spotify music streaming'],
+        ['key'=>'metadata','href'=>'/metadata','category'=>'privacy','num'=>'05','color'=>'#fbbf24','title'=>'Metadata Cleaner','desc'=>$de?'EXIF- und andere private Metadaten lokal entfernen.':'Remove EXIF and other private metadata locally.','tags'=>'exif privacy image'],
+        ['key'=>'secure_share','href'=>'/secure-share','category'=>'privacy','num'=>'06','color'=>'#22d3ee','title'=>'Secure Share','desc'=>$de?'Ende-zu-Ende verschlüsselte Inhalte mit AES-GCM teilen.':'Share end-to-end encrypted content with AES-GCM.','tags'=>'secret aes encryption'],
+        ['key'=>'discord','href'=>'/discord','category'=>'community','num'=>'07','color'=>'#5865f2','title'=>'Discord Presence','desc'=>$de?'Discord-Status, Aktivitäten und Spotify live anzeigen.':'Show Discord status, activities and Spotify live.','tags'=>'discord spotify presence'],
+        ['key'=>'minecraft','href'=>'/minecraft','category'=>'community','num'=>'08','color'=>'#65a30d','title'=>'Minecraft Status','desc'=>$de?'Java-Server, MOTD, Version, Spieler und Ping abfragen.':'Check Java servers, MOTD, version, players and ping.','tags'=>'minecraft server players'],
+    ];
+    header('Content-Type: text/html; charset=utf-8');
+    ?>
+<!DOCTYPE html>
+<html lang="<?= h($lang) ?>">
+<head><link rel="icon" href="/logo.png" type="image/jpeg">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $de ? 'Tools' : 'Tools' ?> — 0x79</title>
+    <meta name="description" content="<?= $de ? 'Alle 0x79 Web-Tools an einem Ort.' : 'All 0x79 web tools in one place.' ?>">
+    <?php renderProductTheme(); ?>
+    <style>
+        .tools-page{width:min(100% - 32px,1280px);margin:0 auto;padding:34px 0 70px}
+        .tools-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:end;padding:28px 0 30px;border-bottom:2px solid var(--ui-ink)}
+        .tools-kicker,.tools-count{font:700 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--ui-muted)}
+        .tools-title{margin:10px 0 0;font:900 clamp(48px,8vw,96px)/.82 Arial,Helvetica,sans-serif;letter-spacing:-.075em;text-transform:uppercase}
+        .tools-lead{max-width:570px;margin:20px 0 0;color:var(--ui-muted);font:15px/1.6 Arial,Helvetica,sans-serif}
+        .tools-controls{display:flex;gap:8px;align-items:center;padding:18px 0;border-bottom:1px solid var(--ui-rule)}
+        .tools-search{min-width:0;flex:1;height:44px!important;border:1px solid var(--ui-rule)!important;background:var(--ui-panel)!important;padding:0 14px;color:var(--ui-ink);font:12px ui-monospace,SFMono-Regular,Menlo,monospace;outline:none}
+        .tools-filter{height:44px;border:1px solid var(--ui-rule);background:transparent;padding:0 13px;color:var(--ui-muted);font:700 9px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+        .tools-filter:hover,.tools-filter.active{background:var(--ui-ink);color:var(--ui-bg)}
+        .tools-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-left:1px solid var(--ui-rule)}
+        .tool-card{position:relative;display:grid;grid-template-columns:48px 1fr auto;gap:18px;min-height:190px;padding:24px;border:0;border-right:1px solid var(--ui-rule);border-bottom:1px solid var(--ui-rule);color:var(--ui-ink);text-decoration:none;overflow:hidden}
+        .tool-card:hover{background:var(--ui-ink);color:var(--ui-bg)}.tool-card:hover .tool-card-desc,.tool-card:hover .tool-card-meta{color:color-mix(in srgb,var(--ui-bg) 62%,transparent)}
+        .tool-card-number{font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace}.tool-card-copy{align-self:end}.tool-card-title{margin:0;font:900 clamp(25px,3vw,40px)/.9 Arial,Helvetica,sans-serif;letter-spacing:-.055em;text-transform:uppercase}.tool-card-desc{max-width:440px;margin:13px 0 0;color:var(--ui-muted);font:13px/1.5 Arial,Helvetica,sans-serif}.tool-card-meta{align-self:start;color:var(--ui-muted);font:700 9px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase}.tool-card-accent{position:absolute;left:0;bottom:0;width:100%;height:4px;background:var(--card-accent)}
+        .tool-card.disabled{cursor:not-allowed;opacity:.42}.tool-card.disabled:hover{background:transparent;color:var(--ui-ink)}.tools-empty{display:none;padding:50px 0;color:var(--ui-muted);font:12px ui-monospace,monospace}
+        @media(max-width:760px){.tools-page{width:min(100% - 24px,1280px);padding-top:18px}.tools-hero{grid-template-columns:1fr}.tools-controls{flex-wrap:wrap}.tools-search{flex-basis:100%}.tools-filter{flex:1}.tools-grid{grid-template-columns:1fr}.tool-card{min-height:155px;padding:18px;grid-template-columns:34px 1fr auto}}
+    </style>
+</head>
+<body>
+<main class="tools-page">
+    <section class="tools-hero"><div><p class="tools-kicker">0x79 / directory</p><h1 class="tools-title"><?= $de ? 'Alle Tools.' : 'All tools.' ?></h1><p class="tools-lead"><?= $de ? 'Erstellen, prüfen, schützen und teilen — alle Werkzeuge in einem schnellen Dashboard.' : 'Create, inspect, protect and share — every utility in one fast dashboard.' ?></p></div><p class="tools-count"><?= count(array_filter($tools, fn($x)=>toolEnabled($x['key']))) ?> / <?= count($tools) ?> <?= $de ? 'online' : 'online' ?></p></section>
+    <div class="tools-controls">
+        <input id="tools-search" class="tools-search" type="search" placeholder="<?= $de ? 'Tool suchen …' : 'Search tools …' ?>" autocomplete="off">
+        <button class="tools-filter active" data-filter="all" type="button"><?= $de ? 'Alle' : 'All' ?></button>
+        <button class="tools-filter" data-filter="create" type="button"><?= $de ? 'Erstellen' : 'Create' ?></button>
+        <button class="tools-filter" data-filter="privacy" type="button">Privacy</button>
+        <button class="tools-filter" data-filter="community" type="button">Community</button>
+    </div>
+    <div class="tools-grid" id="tools-grid">
+    <?php foreach($tools as $tool): $enabled=toolEnabled($tool['key']); $search=strtolower($tool['title'].' '.$tool['desc'].' '.$tool['tags']); ?>
+        <<?= $enabled?'a':'div' ?> class="tool-card<?= $enabled?'':' disabled' ?>" <?= $enabled?'href="'.h($tool['href']).'"':'' ?> data-category="<?= h($tool['category']) ?>" data-search="<?= h($search) ?>" style="--card-accent:<?= h($tool['color']) ?>">
+            <span class="tool-card-number"><?= h($tool['num']) ?></span><div class="tool-card-copy"><h2 class="tool-card-title"><?= h($tool['title']) ?></h2><p class="tool-card-desc"><?= h($tool['desc']) ?></p></div><span class="tool-card-meta"><?= $enabled?($de?'online ↗':'online ↗'):($de?'deaktiviert':'disabled') ?></span><i class="tool-card-accent"></i>
+        </<?= $enabled?'a':'div' ?>>
+    <?php endforeach; ?>
+    </div>
+    <p class="tools-empty" id="tools-empty"><?= $de ? 'Kein passendes Tool gefunden.' : 'No matching tool found.' ?></p>
+</main>
+<script>
+(function(){var search=document.getElementById('tools-search'),buttons=[].slice.call(document.querySelectorAll('.tools-filter')),cards=[].slice.call(document.querySelectorAll('.tool-card')),active='all',empty=document.getElementById('tools-empty');function update(){var q=search.value.trim().toLowerCase(),shown=0;cards.forEach(function(card){var ok=(active==='all'||card.dataset.category===active)&&(!q||card.dataset.search.indexOf(q)!==-1);card.style.display=ok?'grid':'none';if(ok)shown++;});empty.style.display=shown?'none':'block';}search.addEventListener('input',update);buttons.forEach(function(button){button.addEventListener('click',function(){active=button.dataset.filter;buttons.forEach(function(x){x.classList.toggle('active',x===button)});update();});});})();
+</script>
+</body></html>
+    <?php
+    exit;
+}
+
+function renderStatusPage(): void {
+    global $lang, $db_driver, $storage_driver, $supabase_url, $supabase_key, $pg_dsn, $pg_host, $pg_user, $pg_password, $s3_endpoint, $s3_access_key, $s3_secret_key;
+    $de = $lang === 'de';
+    $dbReady = $db_driver === 'postgres'
+        ? (extension_loaded('pdo_pgsql') && (($pg_dsn ?? '') !== '' || (($pg_host ?? '') !== '' && ($pg_user ?? '') !== '' && ($pg_password ?? '') !== '')))
+        : trim((string)$supabase_url) !== '' && trim((string)$supabase_key) !== '';
+    $storageReady = $storage_driver === 's3'
+        ? trim((string)$s3_endpoint) !== '' && trim((string)$s3_access_key) !== '' && trim((string)$s3_secret_key) !== ''
+        : trim((string)$supabase_url) !== '' && trim((string)$supabase_key) !== '';
+    $discordEnabled = toolEnabled('discord');
+    $discordConfigured = trim((string)getenv('DISCORD_BOT_TOKEN')) !== '' && trim((string)getenv('DISCORD_GUILD_ID')) !== '';
+    $cacheAge = null; $cachePath = discordPresenceCachePath();
+    if (is_file($cachePath)) { $raw=@file_get_contents($cachePath); $data=$raw!==false?json_decode($raw,true):null; $updated=(int)($data['updated_at']??0); if($updated>0)$cacheAge=max(0,time()-$updated); }
+    $discordState = !$discordEnabled ? 'disabled' : (!$discordConfigured || $cacheAge === null || $cacheAge > 600 ? 'down' : ($cacheAge > 120 ? 'degraded' : 'up'));
+    $services = [
+        ['name'=>$de?'Web-Anwendung':'Web application','detail'=>'PHP · HTTP','state'=>'up'],
+        ['name'=>$de?'Datenbank':'Database','detail'=>strtoupper((string)$db_driver),'state'=>$dbReady?'up':'down'],
+        ['name'=>$de?'Dateispeicher':'File storage','detail'=>strtoupper((string)$storage_driver),'state'=>$storageReady?'up':'down'],
+        ['name'=>'Discord Presence','detail'=>$cacheAge===null?($de?'kein Worker-Update':'no worker update'):($de?'Update vor '.$cacheAge.'s':'updated '.$cacheAge.'s ago'),'state'=>$discordState],
+    ];
+    $problemCount=count(array_filter($services,fn($s)=>in_array($s['state'],['down','degraded'],true)));
+    $overall=$problemCount===0?'up':(count(array_filter($services,fn($s)=>$s['state']==='down'))?'down':'degraded');
+    $labels=['up'=>$de?'Betriebsbereit':'Operational','degraded'=>$de?'Eingeschränkt':'Degraded','down'=>$de?'Nicht verfügbar':'Unavailable','disabled'=>$de?'Deaktiviert':'Disabled'];
+    $toolList=[['shortener','URL Shortener'],['upload',$de?'Datei-Host':'File Host'],['paste','Paste Host'],['music','Music Promoter'],['metadata','Metadata Cleaner'],['secure_share','Secure Share'],['discord','Discord Presence'],['minecraft','Minecraft Status']];
+    header('Content-Type: text/html; charset=utf-8');
+    ?>
+<!DOCTYPE html><html lang="<?= h($lang) ?>"><head><link rel="icon" href="/logo.png" type="image/jpeg"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="30"><title>Status — 0x79</title><?php renderProductTheme(); ?>
+<style>
+.status-page{width:min(100% - 32px,1080px);margin:0 auto;padding:36px 0 70px}.status-hero{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;padding:28px 0;border-bottom:2px solid var(--ui-ink)}.status-kicker{font:700 10px ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--ui-muted)}.status-title{margin:8px 0 0;font:900 clamp(48px,8vw,88px)/.84 Arial,sans-serif;letter-spacing:-.075em;text-transform:uppercase}.status-summary{display:flex;align-items:center;gap:10px;border:1px solid var(--ui-rule);padding:12px 14px;font:700 10px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase}.status-dot{width:9px;height:9px;background:#55d66b;box-shadow:0 0 0 4px rgba(85,214,107,.12)}.state-degraded .status-dot,.status-dot.state-degraded{background:#fbbf24}.state-down .status-dot,.status-dot.state-down{background:#fb7185}.status-meta{display:flex;justify-content:space-between;gap:18px;padding:16px 0;color:var(--ui-muted);font:10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.1em}.status-section{margin-top:18px;border:1px solid var(--ui-rule);background:var(--ui-panel)}.status-section-head{display:flex;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--ui-rule);font:700 10px ui-monospace,monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--ui-muted)}.status-row{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;padding:17px 18px;border-bottom:1px solid var(--ui-rule)}.status-row:last-child{border-bottom:0}.status-name{font:800 15px Arial,sans-serif}.status-detail{margin-top:4px;color:var(--ui-muted);font:10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em}.status-badge{display:flex;align-items:center;gap:8px;font:700 9px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase}.status-badge i{width:7px;height:7px;background:#55d66b}.status-badge.state-degraded i{background:#fbbf24}.status-badge.state-down i{background:#fb7185}.status-badge.state-disabled i{background:var(--ui-muted)}.status-tools{display:grid;grid-template-columns:repeat(2,1fr)}.status-tools .status-row:nth-child(odd){border-right:1px solid var(--ui-rule)}@media(max-width:640px){.status-page{width:min(100% - 24px,1080px);padding-top:18px}.status-hero{grid-template-columns:1fr}.status-tools{grid-template-columns:1fr}.status-tools .status-row:nth-child(odd){border-right:0}}
+</style></head><body><main class="status-page">
+<section class="status-hero"><div><p class="status-kicker">0x79 / live status</p><h1 class="status-title">Status.</h1></div><div class="status-summary state-<?= h($overall) ?>"><i class="status-dot"></i><span><?= h($labels[$overall]) ?></span></div></section>
+<div class="status-meta"><span><?= $de?'Automatische Aktualisierung alle 30 Sekunden':'Auto refresh every 30 seconds' ?></span><time datetime="<?= h(gmdate('c')) ?>"><?= h(date('d.m.Y · H:i:s')) ?></time></div>
+<section class="status-section"><div class="status-section-head"><span><?= $de?'Infrastruktur':'Infrastructure' ?></span><span><?= count($services)-$problemCount ?>/<?= count($services) ?></span></div><?php foreach($services as $service): ?><div class="status-row"><div><div class="status-name"><?= h($service['name']) ?></div><div class="status-detail"><?= h($service['detail']) ?></div></div><span class="status-badge state-<?= h($service['state']) ?>"><i></i><?= h($labels[$service['state']]) ?></span></div><?php endforeach; ?></section>
+<section class="status-section"><div class="status-section-head"><span>Tools</span><a href="/tools" style="color:inherit">dashboard →</a></div><div class="status-tools"><?php foreach($toolList as [$key,$name]): $state=toolEnabled($key)?'up':'disabled'; ?><div class="status-row"><div class="status-name"><?= h($name) ?></div><span class="status-badge state-<?= h($state) ?>"><i></i><?= h($labels[$state]) ?></span></div><?php endforeach; ?></div></section>
+</main></body></html>
+    <?php
+    exit;
+}
+
 function renderAllPostsPage($posts) {
     global $lang, $t;
 
@@ -2879,6 +3157,7 @@ function renderPostPage($post) {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>404 — Not Found</title>
             <script src="https://cdn.tailwindcss.com"></script>
+            <?php renderUiPreferences(); ?>
         </head>
         <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] flex items-center justify-center font-mono">
             <div class="text-center p-6 border border-white/10 bg-[#101011] max-w-sm w-full">
@@ -3080,6 +3359,85 @@ function renderDiscordTrackerPage($presence = null, $error = '', $userId = '') {
     updateTimers(); setInterval(updateTimers, 1000);
 })();
 </script>
+</body></html>
+    <?php
+    exit;
+}
+
+function renderMinecraftTrackerPage($status = null, $error = '', $address = '') {
+    global $lang, $t;
+    $errors = [
+        'invalid_address' => $t['minecraft_invalid'] ?? 'Invalid server address.',
+        'invalid_port' => $t['minecraft_invalid'] ?? 'Invalid server address.',
+        'blocked_host' => $t['minecraft_invalid'] ?? 'Invalid server address.',
+        'unreachable' => $t['minecraft_offline'] ?? 'Server unreachable.',
+        'offline' => $t['minecraft_offline'] ?? 'Server offline.',
+        'invalid_response' => $t['minecraft_invalid_response'] ?? 'Invalid Minecraft response.',
+        'rate_limited' => $t['minecraft_rate_limited'] ?? 'Too many requests.',
+    ];
+    $online = (int)($status['players_online'] ?? 0); $max = (int)($status['players_max'] ?? 0);
+    $playerPercent = $max > 0 ? min(100, max(0, ($online / $max) * 100)) : 0;
+    header('Content-Type: text/html; charset=utf-8');
+    ?>
+<!DOCTYPE html>
+<html lang="<?= h($lang) ?>">
+<head><link rel="icon" href="/logo.png" type="image/jpeg">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= h($t['minecraft_title'] ?? 'Minecraft Server Status') ?> — 0x79</title>
+    <meta name="description" content="<?= h($t['minecraft_lead'] ?? '') ?>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Arial','Helvetica','sans-serif'],mono:['SFMono-Regular','Consolas','Liberation Mono','monospace']}}}};</script>
+    <?php renderProductTheme(); ?>
+</head>
+<body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased">
+<main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-7 lg:px-8">
+    <header class="flex items-center justify-between border-b border-white/10 pb-5">
+        <a href="/" class="flex items-center gap-2"><img src="/logo.png" alt="0x79" class="h-10 w-10 border border-white/10 object-cover"><span class="font-mono text-sm">0x79</span></a>
+        <nav class="flex items-center font-mono text-[10px] uppercase tracking-wider text-white/45"><a href="/" class="px-3 py-2 hover:text-white">home</a><a href="/minecraft" class="border-l border-white/10 px-3 py-2 text-white">minecraft</a></nav>
+    </header>
+
+    <section class="grid flex-1 gap-10 py-10 lg:grid-cols-[minmax(0,1fr)_540px] lg:py-16">
+        <div>
+            <p class="font-mono text-[10px] uppercase tracking-[.22em] text-[#65a30d]">status / java edition</p>
+            <h1 class="mt-4 max-w-2xl text-5xl font-black uppercase leading-[.85] tracking-[-.07em] sm:text-7xl"><?= h($t['minecraft_title'] ?? 'Minecraft Server Status') ?></h1>
+            <p class="mt-6 max-w-xl text-sm leading-6 text-white/50"><?= h($t['minecraft_lead'] ?? '') ?></p>
+            <form method="GET" action="/minecraft" class="mt-8 border-2 border-white/80 bg-[#101011] p-2">
+                <label for="minecraft-server" class="sr-only"><?= h($t['minecraft_address_label'] ?? 'Server address') ?></label>
+                <div class="flex flex-col gap-2 sm:flex-row"><input id="minecraft-server" type="text" name="server" value="<?= h($address) ?>" required maxlength="300" autocomplete="off" placeholder="<?= h($t['minecraft_address_placeholder'] ?? 'play.example.net') ?>" class="min-w-0 flex-1 bg-transparent px-3 py-3 font-mono text-sm outline-none placeholder:text-white/20"><button type="submit" class="bg-[#65a30d] px-5 py-3 font-mono text-xs font-bold uppercase text-white hover:bg-white hover:text-black"><?= h($t['minecraft_submit'] ?? 'check server') ?></button></div>
+            </form>
+            <p class="mt-3 font-mono text-[10px] leading-5 text-white/30"><?= h($t['minecraft_hint'] ?? '') ?></p>
+            <?php if ($error !== ''): ?><div class="mt-5 border border-[#fb7185]/40 bg-[#fb7185]/10 p-4 text-sm text-[#fda4af]"><?= h($errors[$error] ?? $errors['offline']) ?></div><?php endif; ?>
+        </div>
+
+        <div>
+        <?php if (is_array($status)): ?>
+            <section class="border border-white/15 bg-[#101011] p-5 shadow-[10px_10px_0_#65a30d] sm:p-7">
+                <div class="flex items-center gap-4 border-b border-white/10 pb-5">
+                    <div class="grid h-20 w-20 shrink-0 place-items-center overflow-hidden border border-white/10 bg-[#65a30d]/15"><?php if (!empty($status['favicon'])): ?><img src="<?= h($status['favicon']) ?>" alt="" class="h-full w-full [image-rendering:pixelated]"><?php else: ?><span class="font-mono text-3xl text-[#84cc16]">◆</span><?php endif; ?></div>
+                    <div class="min-w-0 flex-1"><p class="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[.16em] text-[#84cc16]"><i class="h-2 w-2 rounded-full bg-[#84cc16]"></i><?= h($t['minecraft_online'] ?? 'Server online') ?></p><h2 class="mt-2 truncate text-xl font-black tracking-[-.04em]"><?= h($status['address'] ?? $address) ?></h2><p class="mt-1 font-mono text-[9px] text-white/30"><?= h($t['minecraft_java'] ?? 'Java Edition') ?> · protocol <?= h((string)($status['protocol'] ?? 0)) ?></p></div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-px border-b border-white/10 bg-white/10 py-px">
+                    <div class="bg-[#101011] py-4 pr-2"><p class="font-mono text-[8px] uppercase tracking-wider text-white/30"><?= h($t['minecraft_players'] ?? 'Players') ?></p><p class="mt-1 text-lg font-black"><?= h((string)$online) ?><span class="text-xs font-normal text-white/30"> / <?= h((string)$max) ?></span></p></div>
+                    <div class="bg-[#101011] px-2 py-4"><p class="font-mono text-[8px] uppercase tracking-wider text-white/30"><?= h($t['minecraft_version'] ?? 'Version') ?></p><p class="mt-1 truncate text-sm font-bold"><?= h($status['version'] ?? 'Unknown') ?></p></div>
+                    <div class="bg-[#101011] py-4 pl-2"><p class="font-mono text-[8px] uppercase tracking-wider text-white/30"><?= h($t['minecraft_ping'] ?? 'Ping') ?></p><p class="mt-1 text-lg font-black"><?= h((string)($status['latency_ms'] ?? 0)) ?><span class="text-xs font-normal text-white/30"> ms</span></p></div>
+                </div>
+
+                <div class="mt-5"><div class="mb-2 flex justify-between font-mono text-[8px] uppercase tracking-wider text-white/30"><span><?= h($t['minecraft_players'] ?? 'Players') ?></span><span><?= h((string)round($playerPercent)) ?>%</span></div><div class="h-2 bg-white/10"><span class="block h-full bg-[#65a30d]" style="width:<?= h((string)$playerPercent) ?>%"></span></div></div>
+
+                <div class="mt-5 border border-white/10 bg-[#0b0b0c] p-4"><p class="font-mono text-[8px] uppercase tracking-[.16em] text-white/30"><?= h($t['minecraft_motd'] ?? 'Message of the day') ?></p><p class="mt-3 whitespace-pre-wrap text-sm leading-6 text-white/70"><?= h($status['motd'] ?? '') ?></p></div>
+
+                <div class="mt-5"><p class="font-mono text-[8px] uppercase tracking-[.16em] text-white/30"><?= h($t['minecraft_player_list'] ?? 'Online players') ?></p><div class="mt-3 flex flex-wrap gap-2"><?php if (!empty($status['players'])): foreach ($status['players'] as $player): ?><span class="border border-white/10 bg-[#0b0b0c] px-2.5 py-1.5 font-mono text-[9px] text-white/55"><?= h($player['name'] ?? '') ?></span><?php endforeach; else: ?><p class="text-xs text-white/30"><?= h($t['minecraft_no_sample'] ?? 'No player list published.') ?></p><?php endif; ?></div></div>
+
+                <div class="mt-5 flex flex-wrap gap-2 border-t border-white/10 pt-4 font-mono text-[8px] uppercase tracking-wider text-white/30"><?php if (!empty($status['srv_used'])): ?><span class="border border-white/10 px-2 py-1"><?= h($t['minecraft_srv'] ?? 'SRV record used') ?></span><?php endif; ?><?php if (!empty($status['enforces_secure_chat'])): ?><span class="border border-white/10 px-2 py-1"><?= h($t['minecraft_secure_chat'] ?? 'Secure chat enforced') ?></span><?php endif; ?><a href="/api/minecraft?server=<?= rawurlencode((string)($status['address'] ?? $address)) ?>" class="ml-auto border border-white/10 px-2 py-1 hover:text-white">JSON API ↗</a></div>
+            </section>
+        <?php else: ?>
+            <div class="grid min-h-[420px] place-items-center border border-dashed border-white/15 bg-[#101011]/50 p-8 text-center"><div><span class="font-mono text-6xl text-[#65a30d]">◆</span><p class="mt-5 font-mono text-xs uppercase tracking-[.18em] text-white/30"><?= h($t['minecraft_address_label'] ?? 'Server address') ?></p></div></div>
+        <?php endif; ?>
+        </div>
+    </section>
+    <footer class="flex justify-between border-t border-white/10 py-5 font-mono text-[10px] uppercase tracking-wider text-white/25"><span>0x79.one · <?= date('Y') ?></span><a href="/">↑ home</a></footer>
+</main>
 </body></html>
     <?php
     exit;

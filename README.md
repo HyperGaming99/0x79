@@ -10,6 +10,8 @@ Live at [0x79.one](https://0x79.one).
 - File and image uploads
 - Text and encrypted pastes
 - Music landing pages
+- Discord presence with REST and WebSocket APIs
+- Minecraft Java server status with MOTD, players, version, icon, and ping
 - Local EXIF metadata removal
 - User accounts, analytics, API keys, and an admin dashboard
 - German and English interface
@@ -87,6 +89,22 @@ php -S localhost:8000 index.php
 ```
 
 The socket server speaks a Lanyard-style subscribe protocol on port `8090`. Put it behind a WebSocket-capable reverse proxy and set `DISCORD_WS_PUBLIC_URL` to the public `wss://` address. `subscribe_to_all` stays disabled by default; enable it explicitly with `DISCORD_WS_ALLOW_SUBSCRIBE_ALL=true` only if exposing every cached member is intended.
+
+### Minecraft server status
+
+The optional `/minecraft` tool queries public Minecraft Java servers directly and follows `_minecraft._tcp` SRV records. Private and reserved network targets are rejected.
+
+```env
+TOOL_MINECRAFT_ENABLED=true
+MINECRAFT_QUERY_TIMEOUT=4
+```
+
+The JSON endpoint is available at `/api/minecraft?server=play.example.net`.
+
+### Tool dashboard and status
+
+- `/tools` provides a searchable, categorized directory of every enabled utility.
+- `/status` shows the current application, database, storage, Discord worker and tool states and refreshes every 30 seconds.
 
 Start the development server:
 

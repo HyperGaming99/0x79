@@ -30,6 +30,7 @@ function toolEnabled(string $tool): bool {
         'metadata'     => 'TOOL_METADATA_ENABLED',
         'secure_share' => 'TOOL_SECURE_SHARE_ENABLED',
         'discord'      => 'TOOL_DISCORD_ENABLED',
+        'minecraft'    => 'TOOL_MINECRAFT_ENABLED',
     ];
 
     if (!isset($variables[$tool])) return false;
@@ -50,7 +51,9 @@ $toolRoutes = [
     'metadata'         => 'metadata',
     'secure-share'     => 'secure_share',
     'discord'          => 'discord',
+    'minecraft'        => 'minecraft',
     'api/discord'      => 'discord',
+    'api/minecraft'    => 'minecraft',
     'api/music'        => 'music',
     'api/create-music' => 'music',
     'api/paste'        => 'paste',
@@ -123,6 +126,14 @@ if ($request_path === 'rss') {
     exit;
 }
 
+if ($request_path === 'tools') {
+    renderToolsDashboardPage();
+}
+
+if ($request_path === 'status') {
+    renderStatusPage();
+}
+
 if ($request_path === 'discord') {
     $discordId = trim((string)($_GET['user_id'] ?? ''));
     $discordError = '';
@@ -136,6 +147,19 @@ if ($request_path === 'discord') {
         }
     }
     renderDiscordTrackerPage($discordPresence, $discordError, $discordId);
+}
+
+if ($request_path === 'minecraft') {
+    $minecraftAddress = trim((string)($_GET['server'] ?? ''));
+    $minecraftError = ''; $minecraftStatus = null;
+    if ($minecraftAddress !== '') {
+        if (!rateLimit('minecraft_status', 20, 60)) $minecraftError = 'rate_limited';
+        else {
+            [$minecraftOk, $minecraftError, $minecraftStatus] = fetchMinecraftStatus($minecraftAddress);
+            if (!$minecraftOk) $minecraftStatus = null;
+        }
+    }
+    renderMinecraftTrackerPage($minecraftStatus, $minecraftError, $minecraftAddress);
 }
 
 if ($request_path === 'posts') {
@@ -454,6 +478,19 @@ if ($request_path === 'api/discord') {
         jsonResponse($payload, $status);
     }
     jsonResponse(['success' => true, 'data' => $presence]);
+}
+
+// GET /api/minecraft?server=play.example.net[:port]
+if ($request_path === 'api/minecraft') {
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { header('Allow: GET, OPTIONS'); http_response_code(204); exit; }
+    if ($_SERVER['REQUEST_METHOD'] !== 'GET') { header('Allow: GET, OPTIONS'); jsonResponse(['success' => false, 'error' => 'method_not_allowed'], 405); }
+    if (!rateLimit('minecraft_api', 30, 60)) jsonResponse(['success' => false, 'error' => 'rate_limited'], 429);
+    [$ok, $error, $status] = fetchMinecraftStatus(trim((string)($_GET['server'] ?? '')));
+    if (!$ok) {
+        $http = in_array($error, ['invalid_address', 'invalid_port', 'blocked_host'], true) ? 400 : ($error === 'offline' ? 404 : 502);
+        jsonResponse(['success' => false, 'error' => $error], $http);
+    }
+    jsonResponse(['success' => true, 'data' => $status]);
 }
 
 // ---------------------------------------------------------
@@ -887,6 +924,7 @@ if ($request_path === 'abuse') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($t['abuse_title']) ?> — 0x79</title>
     <link rel="icon" href="/logo.png" type="image/jpeg">
+    <?php renderUiPreferences(); ?>
     <style>
         body { margin:0; min-height:100vh; display:grid; place-items:center; font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; background:#0e0e10; color:#ebe9e3; padding:24px; }
         main { width:100%; max-width:520px; border:1px solid #ebe9e3; padding:24px; display:grid; gap:14px; }
@@ -1043,6 +1081,7 @@ if ($path_code !== '' || isset($_GET['c'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($t['title']) ?></title>
+    <?php renderUiPreferences(); ?>
     <style>
         body { margin:0; min-height:100vh; display:grid; place-items:center; font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; background:#0e0e10; color:#ebe9e3; padding:24px; }
         form { width:100%; max-width:420px; border:1px solid #ebe9e3; padding:24px; display:grid; gap:14px; }
@@ -1412,7 +1451,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
             <div class="flex flex-col justify-between border-black/25 py-8 lg:border-r lg:pr-10 lg:py-10">
                 <div class="flex items-center justify-between font-mono text-[10px] uppercase tracking-[.18em]">
                     <span><?= h($t['home_kicker']) ?></span>
-                    <span class="flex items-center gap-2"><i class="h-2 w-2 bg-[#37b24d]"></i> <?= h($t['home_online']) ?></span>
+                    <a href="/status" class="flex items-center gap-2 hover:underline"><i class="h-2 w-2 bg-[#37b24d]"></i> <?= h($t['home_online']) ?> ↗</a>
                 </div>
                 <h1 class="display my-10 max-w-[850px] font-black uppercase">
                 <?= h($t['home_h1']) ?>
@@ -1457,6 +1496,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
                 <p class="font-mono text-[10px] uppercase tracking-[.2em]"><?= h($t['home_directory_label']) ?></p>
                 <h2 class="mt-3 text-3xl font-black uppercase tracking-[-.06em]"><?= h($t['home_directory_title']) ?></h2>
                 <p class="mt-3 max-w-[220px] text-xs leading-5 text-black/55"><?= h($t['home_directory_lead']) ?></p>
+                <a href="/tools" class="mt-4 inline-flex border border-black px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wider hover:bg-black hover:text-white"><?= $lang === 'de' ? 'Tool-Dashboard' : 'Tool dashboard' ?> →</a>
             </div>
             <div class="grid border-t-2 border-black md:grid-cols-2">
                 <?php
@@ -1475,6 +1515,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
                      'icon' => 'M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z'],
                     ['tool' => 'discord', 'href' => '/discord', 'num' => '07', 'color' => '#5865F2', 'title' => $t['home_tool7_title'], 'desc' => $t['home_tool7_desc'], 'tags' => ['status', 'spotify', 'gateway'],
                      'icon' => 'M8.25 10.5h.008v.008H8.25V10.5zm7.5 0h.008v.008h-.008V10.5zM7.5 17.25c3 1.5 6 1.5 9 0m1.875-12A15.91 15.91 0 0112 3.75c-2.25 0-4.4.47-6.375 1.5C3.75 8.25 3 11.25 3 15c1.5 1.5 3 2.25 4.5 3l1.125-1.5M18.375 5.25C20.25 8.25 21 11.25 21 15c-1.5 1.5-3 2.25-4.5 3l-1.125-1.5'],
+                    ['tool' => 'minecraft', 'href' => '/minecraft', 'num' => '08', 'color' => '#65a30d', 'title' => $t['home_tool8_title'], 'desc' => $t['home_tool8_desc'], 'tags' => ['java', 'players', 'ping'],
+                     'icon' => 'M21 16.5V7.5L12 2.25 3 7.5v9l9 5.25 9-5.25zM3.27 6.96L12 12l8.73-5.04M12 22V12'],
                 ];
                 foreach ($toolCards as $tc): if (!toolEnabled($tc['tool'])) continue; ?>
                 <a href="<?= h($tc['href']) ?>" class="utility-row group grid min-h-[88px] grid-cols-[34px_1fr_auto] items-center gap-3 border-b border-black/25 px-2 py-3 md:odd:border-r md:px-4">
@@ -1525,6 +1567,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
                             <span class="font-mono text-xs text-white/40 transition group-hover:translate-x-1 group-hover:text-white"><?= h($t['home_showcase_play']) ?></span>
                         </div>
                         <p class="mt-5 text-center font-mono text-[9px] text-white/25"><?= h($t['home_showcase_powered']) ?></p>
+                    </div>
+                </div>
+            </a>
+        </section>
+        <?php endif; ?>
+
+        <?php if (toolEnabled('discord')): ?>
+        <!-- Discord Presence showcase -->
+        <section class="grid border-b border-black/25 py-10 lg:grid-cols-[minmax(0,1fr)_500px] lg:items-center lg:gap-16 lg:py-16">
+            <div class="max-w-xl pb-9 lg:pb-0">
+                <p class="font-mono text-[10px] uppercase tracking-[.2em] text-[#5865F2]"><?= h($t['home_discord_label']) ?></p>
+                <h2 class="mt-3 text-4xl font-black uppercase leading-[.9] tracking-[-.06em] sm:text-5xl"><?= h($t['home_discord_title']) ?></h2>
+                <p class="mt-5 max-w-md text-sm leading-6 text-black/60"><?= h($t['home_discord_lead']) ?></p>
+                <div class="mt-7 flex flex-wrap items-center gap-3">
+                    <a href="/discord" class="bg-[#5865F2] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-white transition hover:bg-black"><?= h($t['home_discord_cta']) ?></a>
+                    <span class="font-mono text-[10px] uppercase tracking-wider text-black/40"><?= h($t['home_discord_features']) ?></span>
+                </div>
+            </div>
+
+            <a href="/discord" aria-label="Open Discord Presence" class="group block border border-black bg-[#5865F2] p-3 shadow-[10px_10px_0_#11110f] transition hover:-translate-y-1 hover:shadow-[14px_14px_0_#11110f] sm:p-4">
+                <div class="overflow-hidden border border-white/10 bg-[#0d1117] text-white">
+                    <div class="flex items-center justify-between border-b border-white/10 px-4 py-3 font-mono text-[9px] uppercase tracking-[.18em] text-white/35">
+                        <span><?= h($t['home_discord_profile']) ?></span><span class="flex items-center gap-2 text-[#34d399]"><i class="h-2 w-2 rounded-full bg-[#34d399]"></i> online</span>
+                    </div>
+                    <div class="p-4 sm:p-5">
+                        <div class="flex items-center gap-4">
+                            <span class="relative h-16 w-16 shrink-0 overflow-visible rounded-2xl bg-[#5865F2] p-1"><img src="/logomark_0x79.jpg" alt="" class="h-full w-full rounded-xl object-cover"><i class="absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-4 border-[#0d1117] bg-[#34d399]"></i></span>
+                            <div class="min-w-0 flex-1"><h3 class="truncate text-xl font-black tracking-[-.05em]">0x79</h3><p class="font-mono text-[10px] text-white/35">@presence · desktop</p><div class="mt-2 flex gap-1"><span class="border border-white/10 px-1.5 py-0.5 font-mono text-[8px] uppercase text-white/40">gateway</span><span class="border border-white/10 px-1.5 py-0.5 font-mono text-[8px] uppercase text-white/40">websocket</span></div></div>
+                        </div>
+
+                        <div class="mt-5 border-l-4 border-[#1DB954] bg-white/[.035] p-3">
+                            <div class="flex gap-3"><span class="grid h-14 w-14 shrink-0 place-items-center rounded bg-[#1DB954]"><svg viewBox="0 0 24 24" class="h-7 w-7 fill-black" aria-hidden="true"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg></span><div class="min-w-0 flex-1"><p class="font-mono text-[8px] uppercase tracking-[.16em] text-[#1DB954]"><?= h($t['home_discord_listening']) ?></p><p class="mt-1 truncate text-sm font-bold">Midnight Signal</p><p class="truncate text-[10px] text-white/35">0x79 Radio</p><div class="mt-2 h-1 overflow-hidden rounded bg-white/10"><i class="block h-full w-[62%] rounded bg-[#1DB954]"></i></div><div class="mt-1 flex justify-between font-mono text-[8px] text-white/25"><span>1:33</span><span><?= h($t['discord_remaining'] ?? 'remaining') ?> 0:57 · 2:30</span></div></div></div>
+                        </div>
+
+                        <div class="mt-3 flex items-center gap-3 border border-white/10 bg-white/[.025] p-3">
+                            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#5865F2]/20 text-[#8b9cff]">◆</span>
+                            <div class="min-w-0 flex-1"><p class="font-mono text-[8px] uppercase tracking-[.16em] text-[#8b9cff]"><?= h($t['home_discord_playing']) ?></p><p class="mt-1 truncate text-xs font-bold">Discord Presence</p><p class="font-mono text-[8px] text-white/30"><?= h($t['home_discord_elapsed']) ?></p></div><span class="font-mono text-[9px] text-white/20">LIVE</span>
+                        </div>
                     </div>
                 </div>
             </a>

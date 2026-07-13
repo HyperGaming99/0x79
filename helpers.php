@@ -225,6 +225,147 @@ function streamDiscordAsset(?string $explicitUrl = null, int $maxAge = 3600): vo
     exit;
 }
 
+function minecraftParseAddress(string $input): array {
+    $input = trim($input);
+    if ($input === '' || strlen($input) > 300 || preg_match('/[\s\x00-\x1f]/', $input) || str_contains($input, '://')) return [false, 'invalid_address', null];
+    $host = $input; $port = 25565; $explicitPort = false;
+    if (preg_match('/^\[([^\]]+)\](?::([0-9]{1,5}))?$/', $input, $match)) {
+        $host = $match[1];
+        if (isset($match[2]) && $match[2] !== '') { $port = (int)$match[2]; $explicitPort = true; }
+    } elseif (substr_count($input, ':') === 1 && preg_match('/^(.+):([0-9]{1,5})$/', $input, $match)) {
+        $host = $match[1]; $port = (int)$match[2]; $explicitPort = true;
+    }
+    $host = strtolower(rtrim(trim($host), '.'));
+    if ($port < 1 || $port > 65535) return [false, 'invalid_port', null];
+    if (!filter_var($host, FILTER_VALIDATE_IP) && !preg_match('/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i', $host)) return [false, 'invalid_address', null];
+    if ($host === 'localhost' || str_ends_with($host, '.localhost')) return [false, 'blocked_host', null];
+    return [true, '', ['input' => $input, 'host' => $host, 'port' => $port, 'explicit_port' => $explicitPort]];
+}
+
+function minecraftPublicIps(string $host): array {
+    $isPublic = static fn(string $ip): bool => (bool)filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+    if (filter_var($host, FILTER_VALIDATE_IP)) return $isPublic($host) ? [$host] : [];
+    $records = @dns_get_record($host, DNS_A + DNS_AAAA);
+    if (!is_array($records) || !$records) return [];
+    $ips = [];
+    foreach ($records as $record) {
+        $ip = (string)($record['ip'] ?? $record['ipv6'] ?? '');
+        if ($ip === '' || !$isPublic($ip)) return [];
+        if (!in_array($ip, $ips, true)) $ips[] = $ip;
+    }
+    return $ips;
+}
+
+function minecraftVarInt(int $value): string {
+    $out = '';
+    do {
+        $byte = $value & 0x7f;
+        $value = ($value >> 7) & 0x01ffffff;
+        if ($value !== 0) $byte |= 0x80;
+        $out .= chr($byte);
+    } while ($value !== 0);
+    return $out;
+}
+
+function minecraftReadExact($stream, int $length): ?string {
+    $data = '';
+    while (strlen($data) < $length) {
+        $chunk = fread($stream, $length - strlen($data));
+        if ($chunk === false || $chunk === '') return null;
+        $data .= $chunk;
+    }
+    return $data;
+}
+
+function minecraftReadVarInt($stream): ?int {
+    $value = 0;
+    for ($position = 0; $position < 5; $position++) {
+        $raw = minecraftReadExact($stream, 1);
+        if ($raw === null) return null;
+        $byte = ord($raw); $value |= ($byte & 0x7f) << ($position * 7);
+        if (($byte & 0x80) === 0) return $value;
+    }
+    return null;
+}
+
+function minecraftChatText($value): string {
+    if (is_string($value) || is_numeric($value)) return (string)$value;
+    if (!is_array($value)) return '';
+    $text = (string)($value['text'] ?? '');
+    if (isset($value['translate']) && $text === '') $text = (string)$value['translate'];
+    foreach (($value['extra'] ?? []) as $part) $text .= minecraftChatText($part);
+    if (array_is_list($value)) { $text = ''; foreach ($value as $part) $text .= minecraftChatText($part); }
+    return $text;
+}
+
+function minecraftNormalizeFavicon($value): string {
+    $value = trim((string)$value);
+    if ($value === '') return '';
+    $payload = $value;
+    if (preg_match('#^data:image/png\s*;\s*base64\s*,(.*)$#is', $value, $match)) $payload = $match[1];
+    elseif (str_starts_with(strtolower($value), 'data:')) return '';
+    $payload = preg_replace('/\s+/', '', $payload);
+    if (!is_string($payload) || $payload === '' || strlen($payload) > 350000) return '';
+    $binary = base64_decode($payload, true);
+    if ($binary === false || strlen($binary) < 32 || strlen($binary) > 262144 || !str_starts_with($binary, "\x89PNG\r\n\x1a\n")) return '';
+    $info = @getimagesizefromstring($binary);
+    if (!is_array($info) || ($info[2] ?? null) !== IMAGETYPE_PNG || ($info[0] ?? 0) < 1 || ($info[1] ?? 0) < 1 || ($info[0] ?? 0) > 1024 || ($info[1] ?? 0) > 1024) return '';
+    return 'data:image/png;base64,' . base64_encode($binary);
+}
+
+function fetchMinecraftStatus(string $address): array {
+    [$valid, $error, $parsed] = minecraftParseAddress($address);
+    if (!$valid) return [false, $error, null];
+    $queryHost = $parsed['host']; $queryPort = $parsed['port']; $srvUsed = false;
+    if (!$parsed['explicit_port'] && !filter_var($queryHost, FILTER_VALIDATE_IP)) {
+        $records = @dns_get_record('_minecraft._tcp.' . $queryHost, DNS_SRV);
+        if (is_array($records) && $records) {
+            usort($records, static fn($a, $b) => ((int)($a['pri'] ?? 0) <=> (int)($b['pri'] ?? 0)) ?: ((int)($b['weight'] ?? 0) <=> (int)($a['weight'] ?? 0)));
+            $target = strtolower(rtrim((string)($records[0]['target'] ?? ''), '.')); $targetPort = (int)($records[0]['port'] ?? 0);
+            if ($target !== '' && $targetPort > 0 && $targetPort <= 65535) { $queryHost = $target; $queryPort = $targetPort; $srvUsed = true; }
+        }
+    }
+    $ips = minecraftPublicIps($queryHost);
+    if (!$ips) return [false, 'unreachable', null];
+    $timeout = max(1, min(10, (int)(getenv('MINECRAFT_QUERY_TIMEOUT') ?: 4)));
+    $stream = null; $started = microtime(true);
+    foreach ($ips as $ip) {
+        $endpoint = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ? "tcp://[{$ip}]:{$queryPort}" : "tcp://{$ip}:{$queryPort}";
+        $stream = @stream_socket_client($endpoint, $errno, $message, $timeout, STREAM_CLIENT_CONNECT);
+        if ($stream) break;
+    }
+    if (!$stream) return [false, 'offline', null];
+    stream_set_timeout($stream, $timeout);
+    $handshakeHost = $parsed['host'];
+    $handshake = minecraftVarInt(0) . minecraftVarInt(767) . minecraftVarInt(strlen($handshakeHost)) . $handshakeHost . pack('n', $queryPort) . minecraftVarInt(1);
+    $request = minecraftVarInt(strlen($handshake)) . $handshake . "\x01\x00";
+    if (fwrite($stream, $request) === false) { fclose($stream); return [false, 'unreachable', null]; }
+    $packetLength = minecraftReadVarInt($stream); $packetId = minecraftReadVarInt($stream); $jsonLength = minecraftReadVarInt($stream);
+    if ($packetLength === null || $packetId !== 0 || $jsonLength === null || $jsonLength < 2 || $jsonLength > 1048576) { fclose($stream); return [false, 'invalid_response', null]; }
+    $json = minecraftReadExact($stream, $jsonLength);
+    $status = $json !== null ? json_decode($json, true) : null;
+    if (!is_array($status)) { fclose($stream); return [false, 'invalid_response', null]; }
+    $pingStart = microtime(true); $nonce = (int)round($pingStart * 1000); $pingBody = minecraftVarInt(1) . pack('J', $nonce);
+    @fwrite($stream, minecraftVarInt(strlen($pingBody)) . $pingBody);
+    $pongLength = minecraftReadVarInt($stream); $pongId = minecraftReadVarInt($stream);
+    $latency = ($pongLength !== null && $pongId === 1 && minecraftReadExact($stream, 8) !== null) ? (int)round((microtime(true) - $pingStart) * 1000) : (int)round((microtime(true) - $started) * 1000);
+    fclose($stream);
+    $motd = preg_replace('/§[0-9A-FK-OR]/i', '', minecraftChatText($status['description'] ?? ''));
+    $motd = trim((string)preg_replace('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/', '', (string)$motd));
+    $players = is_array($status['players'] ?? null) ? $status['players'] : [];
+    $sample = [];
+    foreach (array_slice(is_array($players['sample'] ?? null) ? $players['sample'] : [], 0, 20) as $player) if (is_array($player) && trim((string)($player['name'] ?? '')) !== '') $sample[] = ['name' => (string)$player['name'], 'id' => (string)($player['id'] ?? '')];
+    $favicon = minecraftNormalizeFavicon($status['favicon'] ?? '');
+    return [true, '', [
+        'address' => $parsed['input'], 'host' => $parsed['host'], 'port' => $queryPort, 'srv_used' => $srvUsed,
+        'online' => true, 'latency_ms' => max(0, $latency), 'motd' => $motd,
+        'version' => (string)($status['version']['name'] ?? 'Unknown'), 'protocol' => (int)($status['version']['protocol'] ?? 0),
+        'players_online' => max(0, (int)($players['online'] ?? 0)), 'players_max' => max(0, (int)($players['max'] ?? 0)),
+        'players' => $sample, 'favicon' => $favicon,
+        'enforces_secure_chat' => (bool)($status['enforcesSecureChat'] ?? false),
+    ]];
+}
+
 // ---------------------------------------------------------
 // SPRACH-ERKENNUNG
 // ---------------------------------------------------------
@@ -264,74 +405,7 @@ function loadTranslations($supported) {
 
 $T = loadTranslations($supported_langs);
 function renderLangSelect($lang, $supported, $meta) {
-    $active = $meta[$lang] ?? ['flag' => '🏳️'];
-    ?>
-    <div class="relative inline-block text-left" id="custom-lang-select-container">
-        <button type="button" id="custom-lang-btn" class="flex h-8 items-center gap-2 border border-white/10 bg-[#0b0b0c] px-3 font-mono text-xs text-white/70 hover:text-white hover:border-white/20 transition-all duration-200 focus:outline-none">
-            <span class="flex items-center gap-1.5"><?= h(strtoupper($lang) . ' ' . $active['flag']) ?></span>
-            <span class="chevron text-[8px] text-white/40 transition-transform duration-200">▼</span>
-        </button>
-        <div id="custom-lang-dropdown" class="invisible opacity-0 absolute right-0 mt-1.5 w-28 border border-white/10 bg-[#0b0b0c] shadow-2xl transition-all duration-200 origin-top-right scale-95 z-50">
-            <div class="py-1 font-mono text-xs">
-                <?php foreach ($supported as $code): ?>
-                    <?php 
-                    $info = $meta[$code] ?? ['label' => strtoupper($code), 'flag' => '🏳️']; 
-                    $activeClass = $lang === $code ? 'bg-white/5 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/5';
-                    ?>
-                    <a href="?lang=<?= h($code) ?>" class="flex items-center justify-between px-3 py-2 transition-colors duration-150 <?= $activeClass ?>">
-                        <span><?= h(strtoupper($code) . ' ' . $info['flag']) ?></span>
-                        <?php if ($lang === $code): ?>
-                            <span class="text-[9px] text-white/40">✓</span>
-                        <?php endif; ?>
-                    </a>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    </div>
-    <script>
-    (function() {
-        const btn = document.getElementById('custom-lang-btn');
-        const dropdown = document.getElementById('custom-lang-dropdown');
-        if (!btn || !dropdown) return;
-        
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const isOpen = !dropdown.classList.contains('invisible');
-            if (isOpen) {
-                closeDropdown();
-            } else {
-                openDropdown();
-            }
-        });
-        
-        document.addEventListener('click', function(e) {
-            if (!dropdown.contains(e.target) && e.target !== btn) {
-                closeDropdown();
-            }
-        });
-        
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeDropdown();
-            }
-        });
-        
-        function openDropdown() {
-            dropdown.classList.remove('invisible', 'opacity-0', 'scale-95');
-            dropdown.classList.add('opacity-100', 'scale-100');
-            const chevron = btn.querySelector('.chevron');
-            if (chevron) chevron.style.transform = 'rotate(180deg)';
-        }
-        
-        function closeDropdown() {
-            dropdown.classList.add('invisible', 'opacity-0', 'scale-95');
-            dropdown.classList.remove('opacity-100', 'scale-100');
-            const chevron = btn.querySelector('.chevron');
-            if (chevron) chevron.style.transform = 'rotate(0deg)';
-        }
-    })();
-    </script>
-    <?php
+    echo '<span class="ui-preferences-anchor" aria-hidden="true"></span>';
 }
 
 // ---------------------------------------------------------
@@ -830,7 +904,7 @@ function isValidCode($code) {
 function isReservedCode($code) {
     $reserved = [
         'api', 'admin', 'abuse', 'upload', 'shorten', 'paste', 'raw', 'screenshot', 'preview-asset', 'file', 'files', 'login', 'logout', 'docs', 'assets', 'static',
-        'css', 'js', 'img', 'favicon', 'robots.txt', 'sitemap.xml', 'register', 'account', 'music', 'discord', 'discord-asset', 'discord-app-icon', 'rss'
+        'css', 'js', 'img', 'favicon', 'robots.txt', 'sitemap.xml', 'register', 'account', 'music', 'discord', 'discord-asset', 'discord-app-icon', 'minecraft', 'rss'
     ];
 
     return in_array(strtolower((string)$code), $reserved, true);
