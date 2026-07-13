@@ -1,21 +1,27 @@
 # 0x79
 
-A self-hosted URL shortener, file host, and paste service written in plain PHP.
+An independent, self-hosted web utility platform written in plain PHP.
 
-Live at [0x79.one](https://0x79.one).
+[![Release](https://img.shields.io/github/v/release/HyperGaming99/0x79?style=flat-square&color=b8ff31&label=release)](https://github.com/HyperGaming99/0x79/releases/latest)
+[![PHP](https://img.shields.io/badge/PHP-8%2B-777bb4?style=flat-square&logo=php&logoColor=white)](https://www.php.net/)
+[![Views](https://hits.sh/github.com/HyperGaming99/0x79.svg?style=flat-square&label=views&color=b8ff31)](https://hits.sh/github.com/HyperGaming99/0x79/)
+[![License](https://img.shields.io/badge/license-BSD--3--Clause-b8ff31?style=flat-square)](LICENSE)
+
+**Live:** [0x79.one](https://0x79.one) · [Tools](https://0x79.one/tools) · [Status](https://0x79.one/status) · [API docs](https://0x79.one/api/docs)
 
 ## Features
 
-- Short links with aliases, passwords, expiry dates, click limits, and QR codes
-- File and image uploads
-- Text and encrypted pastes
-- Music landing pages
-- Discord presence with REST and WebSocket APIs
-- Minecraft Java server status with MOTD, players, version, icon, and ping
-- Local EXIF metadata removal
-- User accounts, analytics, API keys, and an admin dashboard
-- German and English interface
-- Light and dark themes
+| Area | Included |
+| --- | --- |
+| URL shortener | Custom aliases, passwords, expiry dates, click limits, previews and branded QR codes |
+| File host | File and image uploads, public links and inline previews |
+| Paste host | Text, raw output, passwords, burn limits and encrypted pastes |
+| Music promoter | Release landing pages with verified streaming-platform links |
+| Discord Presence | Bot-backed presence, activities, Spotify, REST API and Lanyard-style WebSocket |
+| Minecraft status | Java Edition MOTD, version, player count, player sample, favicon and latency |
+| Privacy tools | Local metadata cleaning and AES-GCM secure sharing |
+| Platform | Accounts, analytics, API keys, admin dashboard, tool directory and live status page |
+| Interface | Shared responsive navigation, German/English language switch and light/dark themes |
 
 Guest content expires after 14 days. Content created with an account stays available unless an expiry date is set.
 
@@ -27,7 +33,7 @@ Guest content expires after 14 days. Content created with an account stays avail
 
 There is no framework or build step. The frontend is server-rendered HTML with Tailwind loaded from its CDN.
 
-## Setup
+## Quick start
 
 Clone the repository:
 
@@ -36,7 +42,13 @@ git clone https://github.com/HyperGaming99/0x79.git
 cd 0x79
 ```
 
-Create a `.env` file:
+Copy the example configuration:
+
+```sh
+cp .env.sample .env
+```
+
+At minimum, configure an admin key and one database/storage backend:
 
 ```env
 ADMIN_API_KEY=change-me
@@ -48,6 +60,31 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
+
+Start the development server:
+
+```sh
+php -S localhost:8000 index.php
+```
+
+Open [localhost:8000](http://localhost:8000). There is no framework, package installation or frontend build step.
+
+## Configuration
+
+Every public tool can be enabled or disabled independently:
+
+```env
+TOOL_SHORTENER_ENABLED=true
+TOOL_UPLOAD_ENABLED=true
+TOOL_PASTE_ENABLED=true
+TOOL_MUSIC_ENABLED=true
+TOOL_METADATA_ENABLED=true
+TOOL_SECURE_SHARE_ENABLED=true
+TOOL_DISCORD_ENABLED=true
+TOOL_MINECRAFT_ENABLED=true
+```
+
+Disabled tools disappear from the dashboard and their creation pages and APIs return `404`.
 
 For PostgreSQL, set `DB_DRIVER=postgres` and configure `POSTGRES_DSN` or the individual `POSTGRES_*` values. Run `schema.sql` to create the tables.
 
@@ -106,14 +143,6 @@ The JSON endpoint is available at `/api/minecraft?server=play.example.net`.
 - `/tools` provides a searchable, categorized directory of every enabled utility.
 - `/status` shows the current application, database, storage, Discord worker and tool states and refreshes every 30 seconds.
 
-Start the development server:
-
-```sh
-php -S localhost:8000 index.php
-```
-
-Open [localhost:8000](http://localhost:8000).
-
 ## Docker
 
 Create the `.env` file described above, then run:
@@ -136,8 +165,37 @@ docker pull ghcr.io/hypergaming99/0x79:latest
 
 ## API
 
-API documentation is available at `/api/docs`. Create an account to generate an API key.
+Interactive documentation is available at [`/api/docs`](https://0x79.one/api/docs). Create an account to generate an API key for write endpoints.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /api/discord?user_id=…` | Discord presence in a Lanyard-compatible response shape |
+| `GET /api/minecraft?server=…` | Minecraft Java server status |
+| `POST /api/paste` | Create a paste |
+| `POST /api/file` | Upload a file |
+| `POST /api/music` | Create a music landing page |
+| `WS /discord/socket` | Live Discord presence subscriptions |
+
+## Main routes
+
+| Route | Page |
+| --- | --- |
+| `/tools` | Searchable tool dashboard with categories and activation state |
+| `/status` | Application, backend, worker and tool status; refreshes every 30 seconds |
+| `/posts` | News and project updates |
+| `/account` | User content, analytics and API-key management |
+| `/admin` | Administration dashboard |
 
 ## Security
 
 Do not commit `.env`. Uploads are type-checked, SVG uploads are blocked, and short-link targets are checked against private and blocked hosts.
+
+## License and attribution
+
+0x79 is licensed under the [BSD 3-Clause License](LICENSE). You may use, modify and redistribute the software, including commercially, as long as the copyright notice and license text remain included.
+
+The attribution requirement is fulfilled by retaining the copyright notice and complete license text in source distributions or accompanying documentation. A visible project credit can use:
+
+```text
+0x79 by HyperGaming99 — https://github.com/HyperGaming99/0x79
+```
