@@ -186,6 +186,12 @@ Interactive documentation is available at [`/api/docs`](https://0x79.one/api/doc
 | `/account` | User content, analytics and API-key management |
 | `/admin` | Administration dashboard |
 
+## Star history
+
+[![0x79 Star History](assets/star-history.svg)](https://github.com/HyperGaming99/0x79/stargazers)
+
+The chart is generated inside this repository and updated daily by GitHub Actions. No public access token is embedded in the README.
+
 ## Security
 
 Do not commit `.env`. Uploads are type-checked, SVG uploads are blocked, and short-link targets are checked against private and blocked hosts.
