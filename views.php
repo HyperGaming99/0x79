@@ -55,7 +55,8 @@ function renderUiPreferences(bool $withTheme = false): void {
             });
             var navItems = [
                 ['/tools', 'tools'], ['/discord', 'discord'], ['/minecraft', 'minecraft'],
-                ['/posts', 'posts'], ['/status', 'status'], ['/api/docs', 'api']
+                ['/posts', 'posts'], ['/status', 'status'], ['/api/docs', 'api'],
+                ['https://github.com/HyperGaming99/0x79', 'github']
             ];
             var navbar = document.createElement('header');
             navbar.className = 'ui-global-nav';
@@ -67,9 +68,11 @@ function renderUiPreferences(bool $withTheme = false): void {
             links.className = 'ui-global-links';
             navItems.forEach(function (item) {
                 var link = document.createElement('a');
+                var isExternal = item[0].indexOf('http') === 0;
                 link.className = 'ui-global-link' + (location.pathname === item[0] || (item[0] === '/posts' && location.pathname.indexOf('/post/') === 0) ? ' is-active' : '');
                 link.href = item[0];
                 link.textContent = item[1];
+                if (isExternal) { link.target = '_blank'; link.rel = 'noopener'; }
                 links.appendChild(link);
             });
             var account = document.createElement('a');
