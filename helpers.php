@@ -1015,6 +1015,21 @@ function requireAdminCsrf() {
     }
 }
 
+function userCsrfToken() {
+    if (empty($_SESSION['user_csrf'])) {
+        $_SESSION['user_csrf'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['user_csrf'];
+}
+
+function requireUserCsrf() {
+    $token = (string)($_POST['csrf'] ?? '');
+    if (empty($_SESSION['user_csrf']) || !hash_equals($_SESSION['user_csrf'], $token)) {
+        http_response_code(403);
+        exit('invalid csrf token');
+    }
+}
+
 function requireAdminSession() {
     if (!isAdminLoggedIn()) {
         header('Location: /admin');
@@ -1097,7 +1112,7 @@ function getUserApiKeyFromRequest() {
         return trim($m[1]);
     }
 
-    return trim((string)($_POST['api_key'] ?? $_GET['api_key'] ?? ''));
+    return trim((string)($_POST['api_key'] ?? ''));
 }
 
 function requireUserApiAuth() {

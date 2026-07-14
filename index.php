@@ -207,7 +207,10 @@ if ($request_path === 'login') {
 }
 
 if ($request_path === 'logout') {
-    unset($_SESSION['user_id'], $_SESSION['last_api_key']);
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        requireUserCsrf();
+    }
+    unset($_SESSION['user_id'], $_SESSION['last_api_key'], $_SESSION['user_csrf']);
     header('Location: /');
     exit;
 }
@@ -230,6 +233,7 @@ if ($request_path === 'account/stats') {
 if ($request_path === 'account/action') {
     if (!isUserLoggedIn()) { header('Location: /login'); exit; }
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit('method not allowed'); }
+    requireUserCsrf();
     $action = (string)($_POST['action'] ?? '');
     $uid = currentUserId();
     if ($action === 'delete_link') {
@@ -908,7 +912,11 @@ if ($request_path === 'abuse') {
     $saveError = '';
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        [$saved, $saveError] = createAbuseReport($reported_link, $reason);
+        if (!checkCreateRateLimit(5, 3600)) {
+            $saveError = 'zu viele meldungen. bitte später erneut versuchen.';
+        } else {
+            [$saved, $saveError] = createAbuseReport($reported_link, $reason);
+        }
     }
 
     $subject = 'Abuse report for ' . $host;
@@ -1186,7 +1194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
+    <script nonce="<?= $csp_nonce ?>">
         tailwind.config = {
             theme: {
                 extend: {
@@ -1371,7 +1379,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
         </footer>
     </main>
 
-    <script>
+    <script nonce="<?= $csp_nonce ?>">
         function copyLink(btn, url) {
             navigator.clipboard.writeText(url).then(function () {
                 btn.textContent = btn.dataset.copied;
@@ -1394,7 +1402,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
     <link rel="icon" href="/logo.png" type="image/jpeg">
     <meta name="description" content="URL shortener, file/image host and paste host.">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
+    <script nonce="<?= $csp_nonce ?>">
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Arial','Helvetica','sans-serif'], mono: ['SFMono-Regular','Consolas','Liberation Mono','monospace'] } } } };
     </script>
     <?php renderProductTheme(); ?>

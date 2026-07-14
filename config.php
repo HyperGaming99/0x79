@@ -22,11 +22,18 @@ if (session_status() === PHP_SESSION_NONE) {
 // ---------------------------------------------------------
 // SECURITY HEADERS (gegen XSS / Script-Injection / Clickjacking)
 // ---------------------------------------------------------
-$embed_preview = isset($_GET['embed_preview']) && $_GET['embed_preview'] === '1';
+// Per-request nonce for inline scripts (replaces unsafe-inline).
+$csp_nonce = base64_encode(random_bytes(16));
+
+// embed_preview only permitted on short-link paths (alphanumeric codes).
+$_csp_path = trim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
+$embed_preview = isset($_GET['embed_preview']) && $_GET['embed_preview'] === '1'
+    && preg_match('/^[A-Za-z0-9]{1,32}$/', $_csp_path);
+unset($_csp_path);
 $frame_ancestors = $embed_preview ? "'self'" : "'none'";
 
 header("Content-Security-Policy: default-src 'self'; "
-    . "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; "
+    . "script-src 'self' 'nonce-{$csp_nonce}' https://cdn.tailwindcss.com; "
     . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
     // preview-asset läuft über dieselbe Domain. Fonts müssen deshalb 'self' erlauben.
     . "font-src 'self' data: blob: https://fonts.gstatic.com; "
@@ -38,6 +45,7 @@ header("Content-Security-Policy: default-src 'self'; "
     . "frame-ancestors " . $frame_ancestors . "; "
     . "base-uri 'self'; "
     . "object-src 'none'");
+header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: ' . ($embed_preview ? 'SAMEORIGIN' : 'DENY'));
 header('Referrer-Policy: no-referrer');

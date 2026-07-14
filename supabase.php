@@ -88,7 +88,7 @@ function pgRestRequest($method, $url, $body = null) {
     try {
         $pdo = pgConnect();
     } catch (Throwable $e) {
-        return [500, json_encode(['message' => $e->getMessage()]), $e->getMessage()];
+        return [500, json_encode(['message' => 'database connection error']), 'db_connection_error'];
     }
 
     $parts = parse_url((string)$url);
@@ -304,10 +304,16 @@ function createUserAccount($username, $password) {
 
 function loginUserAccount($username, $password) {
     $user = fetchUserByUsername($username);
-    if (!$user || empty($user['password_hash']) || !password_verify((string)$password, (string)$user['password_hash'])) {
+    if (!$user || empty($user['password_hash'])) {
+        // constant-time dummy verify prevents username enumeration via timing
+        password_verify('dummy', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012345');
+        return [false, 'invalid_login', null];
+    }
+    if (!password_verify((string)$password, (string)$user['password_hash'])) {
         return [false, 'invalid_login', null];
     }
 
+    session_regenerate_id(true);
     $_SESSION['user_id'] = $user['id'];
     return [true, null, $user];
 }
