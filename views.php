@@ -44,7 +44,7 @@ function renderUiPreferences(bool $withTheme = false): void {
         @media(max-width:1050px){.ui-global-links{display:none}.ui-global-menu{display:block}}
         @media(max-width:760px){.ui-global-nav-inner{padding:0 12px}.ui-global-menu+.ui-preferences-anchor{margin-left:0}.ui-global-brand{padding-right:12px}.ui-preferences.is-embedded{display:flex!important;position:static;right:auto;bottom:auto;height:100%;border-width:0 0 0 1px;box-shadow:none;background:transparent}.ui-pref-language,.ui-theme-switch{height:57px;min-width:35px}}
     </style>
-    <script nonce="<?= $csp_nonce ?>">
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">
         document.addEventListener('DOMContentLoaded', function () {
             if (document.querySelector('.ui-preferences')) return;
             var currentLang = <?= json_encode($currentLang, JSON_UNESCAPED_SLASHES) ?>;
@@ -163,7 +163,7 @@ function renderUiPreferences(bool $withTheme = false): void {
 function renderProductTheme(): void {
     renderUiPreferences(true);
     ?>
-    <script nonce="<?= $csp_nonce ?>">
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">
         (function () {
             var saved = localStorage.getItem('0x79-theme');
             var preferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
@@ -253,7 +253,7 @@ function renderUserAuthPage($mode, $error = '') {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script nonce="<?= $csp_nonce ?>">
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','sans-serif'], mono: ['JetBrains Mono','ui-monospace','monospace'] } } } };
     </script>
     <?php renderProductTheme(); ?>
@@ -354,7 +354,7 @@ function renderUserAccountPage($notice = '') {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script nonce="<?= $csp_nonce ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
     <style>
         details.rowedit summary{list-style:none;cursor:pointer}
         details.rowedit summary::-webkit-details-marker{display:none}
@@ -600,7 +600,7 @@ function renderUserAccountPage($notice = '') {
         <span>account · <?= date('Y') ?></span>
     </footer>
 </main>
-<script nonce="<?= $csp_nonce ?>">
+<script nonce="<?= $GLOBALS['csp_nonce'] ?>">
 function copyText(btn, text){
     navigator.clipboard.writeText(text).then(function(){
         var o = btn.textContent;
@@ -658,7 +658,7 @@ function renderLinkStatsPage($code, $clicks) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script nonce="<?= $csp_nonce ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
     <?php renderProductTheme(); ?>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
@@ -860,7 +860,7 @@ function renderMusicPromoterPage($error = '', $short_url = '', $music_url = '') 
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script nonce="<?= $csp_nonce ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
     <?php renderProductTheme(); ?>
     <style>
         .pf-row{display:none}
@@ -988,7 +988,7 @@ function renderMusicPromoterPage($error = '', $short_url = '', $music_url = '') 
 
         <footer class="mt-8 flex flex-col justify-between gap-2 border-t border-white/10 py-5 font-mono text-xs text-white/30 sm:flex-row"><span>0x79.one</span><span>Music Promoter · <?= date('Y') ?></span></footer>
     </main>
-    <script nonce="<?= $csp_nonce ?>">
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">
     function copyLink(btn,url){navigator.clipboard.writeText(url).then(function(){var o=btn.textContent;btn.textContent=btn.dataset.copied;setTimeout(function(){btn.textContent=btn.dataset.copy},1600);});}
 
     (function(){
@@ -1079,7 +1079,7 @@ function renderMusicLandingPage($row) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script nonce="<?= $csp_nonce ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
     <?php renderUiPreferences(); ?>
     <style>
         @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -1147,7 +1147,7 @@ function renderMusicLandingPage($row) {
             </div>
         </section>
     </main>
-    <script nonce="<?= $csp_nonce ?>">
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">
     (function(){
         var b=document.getElementById('shareBtn');
         b.addEventListener('click',function(){
@@ -2336,7 +2336,7 @@ function renderUploadPage($error = '', $short_url = '') {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script nonce="<?= $csp_nonce ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
     <?php renderProductTheme(); ?>
     <style>
         #dz.over{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.04)}
@@ -2499,7 +2499,7 @@ function renderUploadPage($error = '', $short_url = '') {
         <span>fftrclo.store · takeitdown.space · mydiscordiscool.store · fckdupfuture.com · <?= date('Y') ?></span>
     </footer>
 </main>
-<script nonce="<?= $csp_nonce ?>">
+<script nonce="<?= $GLOBALS['csp_nonce'] ?>">
 const MAX = <?= $maxBytes ?>;
 let file = null, t0 = 0;
 
@@ -2625,7 +2625,7 @@ function renderPastePage($error = '', $paste_url = '', $raw_url = '') {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script nonce="<?= $csp_nonce ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
     <?php renderProductTheme(); ?>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
@@ -2736,7 +2736,7 @@ function renderPasteView($row, $code) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script nonce="<?= $csp_nonce ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
     <?php renderUiPreferences(); ?>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
@@ -2790,7 +2790,7 @@ function renderPasteView($row, $code) {
                     <pre id="decrypted-content" class="hidden font-mono text-sm leading-relaxed p-6 bg-[#101011] border border-white/10 overflow-auto whitespace-pre-wrap word-break-all rounded-lg select-text"></pre>
                 </div>
 
-                <script nonce="<?= $csp_nonce ?>">
+                <script nonce="<?= $GLOBALS['csp_nonce'] ?>">
                     const rawContent = <?= json_encode($content) ?>;
 
                     async function hexToBytes(hex) {
@@ -3020,7 +3020,7 @@ function renderToolsDashboardPage(): void {
     </div>
     <p class="tools-empty" id="tools-empty"><?= $de ? 'Kein passendes Tool gefunden.' : 'No matching tool found.' ?></p>
 </main>
-<script nonce="<?= $csp_nonce ?>">
+<script nonce="<?= $GLOBALS['csp_nonce'] ?>">
 (function(){var search=document.getElementById('tools-search'),buttons=[].slice.call(document.querySelectorAll('.tools-filter')),cards=[].slice.call(document.querySelectorAll('.tool-card')),active='all',empty=document.getElementById('tools-empty');function update(){var q=search.value.trim().toLowerCase(),shown=0;cards.forEach(function(card){var ok=(active==='all'||card.dataset.category===active)&&(!q||card.dataset.search.indexOf(q)!==-1);card.style.display=ok?'grid':'none';if(ok)shown++;});empty.style.display=shown?'none':'block';}search.addEventListener('input',update);buttons.forEach(function(button){button.addEventListener('click',function(){active=button.dataset.filter;buttons.forEach(function(x){x.classList.toggle('active',x===button)});update();});});})();
 </script>
 </body></html>
@@ -3079,7 +3079,7 @@ function renderAllPostsPage($posts) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($t['news_all_title']) ?> — 0x79</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script nonce="<?= $csp_nonce ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Arial','Helvetica','sans-serif'],mono:['SFMono-Regular','Consolas','Liberation Mono','monospace']}}}};</script>
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Arial','Helvetica','sans-serif'],mono:['SFMono-Regular','Consolas','Liberation Mono','monospace']}}}};</script>
     <?php renderProductTheme(); ?>
     <style>
         :root{--paper:#e8e6df;--ink:#11110f;--accent:#b8ff31;--rule:rgba(17,17,15,.22)}
@@ -3193,7 +3193,7 @@ function renderPostPage($post) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($title) ?> — 0x79</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script nonce="<?= $csp_nonce ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Arial','Helvetica','sans-serif'],mono:['SFMono-Regular','Consolas','Liberation Mono','monospace']}}}};</script>
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Arial','Helvetica','sans-serif'],mono:['SFMono-Regular','Consolas','Liberation Mono','monospace']}}}};</script>
     <?php renderProductTheme(); ?>
     <style>:root{--paper:#e8e6df;--ink:#11110f;--rule:rgba(17,17,15,.22)}html[data-theme="dark"]{--paper:#11110f;--ink:#e8e6df;--rule:rgba(232,230,223,.22)}body{background:var(--paper)!important;color:var(--ink)!important}html[data-theme="dark"] body [class*="bg-[#e8e6df]"]{background-color:rgba(17,17,15,.95)!important}html[data-theme="dark"] body [class*="border-black"]{border-color:var(--rule)!important}html[data-theme="dark"] body [class*="bg-black"]{background-color:var(--ink)!important}</style>
 </head>
@@ -3267,7 +3267,7 @@ function renderDiscordTrackerPage($presence = null, $error = '', $userId = '') {
     <title><?= h($t['discord_title'] ?? 'Discord Presence') ?> — 0x79</title>
     <meta name="description" content="<?= h($t['discord_lead'] ?? '') ?>">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script nonce="<?= $csp_nonce ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Arial','Helvetica','sans-serif'],mono:['SFMono-Regular','Consolas','Liberation Mono','monospace']}}}};</script>
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Arial','Helvetica','sans-serif'],mono:['SFMono-Regular','Consolas','Liberation Mono','monospace']}}}};</script>
     <?php renderProductTheme(); ?>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased">
@@ -3336,7 +3336,7 @@ function renderDiscordTrackerPage($presence = null, $error = '', $userId = '') {
     </section>
     <footer class="flex justify-between border-t border-white/10 py-5 font-mono text-[10px] uppercase tracking-wider text-white/25"><span>0x79.one · <?= date('Y') ?></span><a href="/">↑ home</a></footer>
 </main>
-<script nonce="<?= $csp_nonce ?>">
+<script nonce="<?= $GLOBALS['csp_nonce'] ?>">
 (() => {
     const formatTime = seconds => {
         seconds = Math.max(0, Math.floor(seconds));
@@ -3393,7 +3393,7 @@ function renderMinecraftTrackerPage($status = null, $error = '', $address = '') 
     <title><?= h($t['minecraft_title'] ?? 'Minecraft Server Status') ?> — 0x79</title>
     <meta name="description" content="<?= h($t['minecraft_lead'] ?? '') ?>">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script nonce="<?= $csp_nonce ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Arial','Helvetica','sans-serif'],mono:['SFMono-Regular','Consolas','Liberation Mono','monospace']}}}};</script>
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Arial','Helvetica','sans-serif'],mono:['SFMono-Regular','Consolas','Liberation Mono','monospace']}}}};</script>
     <?php renderProductTheme(); ?>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased">
@@ -3465,7 +3465,7 @@ function renderMetadataStripperPage() {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script nonce="<?= $csp_nonce ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
     <?php renderProductTheme(); ?>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
@@ -3550,7 +3550,7 @@ function renderMetadataStripperPage() {
         </footer>
     </main>
 
-    <script nonce="<?= $csp_nonce ?>">
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('fileInput');
         const results = document.getElementById('results');
@@ -3674,7 +3674,7 @@ function renderSecureSharePage($error = '', $pasteUrl = '') {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script nonce="<?= $csp_nonce ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}};</script>
     <?php renderProductTheme(); ?>
 </head>
 <body class="min-h-screen bg-[#0b0b0c] text-[#f5f2ea] antialiased selection:bg-[#f5f2ea] selection:text-[#0b0b0c]">
@@ -3768,7 +3768,7 @@ function renderSecureSharePage($error = '', $pasteUrl = '') {
         </footer>
     </main>
 
-    <script nonce="<?= $csp_nonce ?>">
+    <script nonce="<?= $GLOBALS['csp_nonce'] ?>">
         const encTypeSelect = document.getElementById('enc_type');
         const pwdLabel = document.getElementById('pwd_label');
         const customPassword = document.getElementById('custom_password');
