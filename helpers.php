@@ -65,7 +65,7 @@ function fetchDiscordPresence(string $userId): array {
     $presence['listening_to_spotify'] = is_array($presence['spotify']);
 
     $cachedUser = is_array($presence['discord_user'] ?? null) ? $presence['discord_user'] : [];
-    if (trim((string)($cachedUser['username'] ?? '')) === '') {
+    if (trim((string)($cachedUser['username'] ?? '')) === '' || !array_key_exists('primary_guild', $cachedUser)) {
         $profile = discordFetchUserProfile($userId);
         if ($profile) $presence['discord_user'] = array_replace($cachedUser, $profile);
     }
@@ -76,7 +76,9 @@ function discordPresenceCachePath(): string {
     $configured = trim((string)(getenv('DISCORD_PRESENCE_CACHE') ?: '.discord-presence.json'));
     if ($configured === '') $configured = '.discord-presence.json';
     if (str_starts_with($configured, '/')) return $configured;
-    return __DIR__ . '/' . ltrim($configured, '/');
+    $base = basename($configured);
+    if ($base === '' || $base === '.' || $base === '..') $base = '.discord-presence.json';
+    return __DIR__ . '/' . $base;
 }
 
 function discordInviteUrl(): string {
@@ -128,7 +130,139 @@ function discordFetchUserProfile(string $userId): ?array {
         'discriminator' => (string)($profile['discriminator'] ?? '0'),
         'avatar' => $profile['avatar'] ?? null,
         'public_flags' => (int)($profile['public_flags'] ?? 0),
+        'avatar_decoration_data' => is_array($profile['avatar_decoration_data'] ?? null) ? $profile['avatar_decoration_data'] : null,
+        'primary_guild' => is_array($profile['primary_guild'] ?? null) ? $profile['primary_guild'] : null,
     ];
+}
+
+function discordCardOptions(array $input): array {
+    $theme = (string)($input['theme'] ?? 'default');
+    if (!in_array($theme, ['default', 'midnight', 'discord'], true)) $theme = 'default';
+    $background = strtoupper(ltrim(trim((string)($input['background'] ?? '101011')), '#'));
+    if (!preg_match('/^[0-9A-F]{6}$/', $background)) $background = '101011';
+    $idleMessage = trim((string)($input['idle_message'] ?? 'I\'m not currently doing anything!'));
+    if ($idleMessage === '') $idleMessage = 'I\'m not currently doing anything!';
+    $idleMessage = function_exists('mb_substr') ? mb_substr($idleMessage, 0, 100) : substr($idleMessage, 0, 100);
+    preg_match_all('/\b[0-9]{15,22}\b/', (string)($input['hide_apps'] ?? ''), $matches);
+    $hiddenApps = array_slice(array_values(array_unique($matches[0] ?? [])), 0, 20);
+    $flags = ['static_avatar', 'show_display_name', 'hide_decoration', 'hide_status', 'hide_activity_time', 'hide_server_tag', 'hide_badges', 'hide_profile', 'hide_spotify', 'hide_activity', 'hide_discriminator'];
+    $options = [
+        'tab' => (($input['tab'] ?? '') === 'settings') ? 'settings' : 'presence',
+        'background' => $background,
+        'radius' => max(0, min(32, (int)($input['radius'] ?? 0))),
+        'idle_message' => $idleMessage,
+        'hide_apps' => $hiddenApps,
+        'theme' => $theme,
+    ];
+    foreach ($flags as $flag) $options[$flag] = isset($input[$flag]) && (string)$input[$flag] !== '0';
+    return $options;
+}
+
+function discordPublicBadges(int $flags): array {
+    $definitions = [
+        1 => ['Discord Staff', '5e74e9b61934fc1f67c65515d1f7e60d'],
+        2 => ['Discord Partner', '3f9748e53446a137a052f3454e2de41e'],
+        4 => ['HypeSquad Events', 'bf01d1073931f921909045f3a39fd264'],
+        8 => ['Bug Hunter Level 1', '2717692c7dca7289b35297368a940dd0'],
+        64 => ['HypeSquad Bravery', '8a88d63823d8a71cd5e390baa45efa02'],
+        128 => ['HypeSquad Brilliance', '011940fd013da3f7fb926e4a1cd2e618'],
+        256 => ['HypeSquad Balance', '3aa41de486fa12454c3761e8e223442e'],
+        512 => ['Early Supporter', '7060786766c9c840eb3019e725d2b358'],
+        16384 => ['Bug Hunter Level 2', '848f79194d4be5ff5f81505cbd0ce1e6'],
+        65536 => ['Verified Bot', 'f2459b691ac7453ed6039bbcfaccbfcd'],
+        131072 => ['Early Verified Bot Developer', '6df5892e0f35b051f8b61eace34f4967'],
+        262144 => ['Moderator Programs Alumni', 'fee1624003e2fee35cb398e125dc479b'],
+        4194304 => ['Active Developer', '6bdc42827a38498929a4920da12695d9'],
+    ];
+    $badges = [];
+    foreach ($definitions as $bit => $badge) {
+        if (($flags & $bit) !== $bit) continue;
+        $cdn = 'https://cdn.discordapp.com/badge-icons/' . $badge[1] . '.png';
+        $badges[] = [$badge[0], discordAssetProxyUrl($cdn), $cdn];
+    }
+    return $badges;
+}
+
+function discordAvatarDecorationUrl(array $user): string {
+    $cdn = discordAvatarDecorationCdnUrl($user);
+    return $cdn !== '' ? discordAssetProxyUrl($cdn) : '';
+}
+
+function discordAvatarDecorationCdnUrl(array $user): string {
+    $asset = trim((string)($user['avatar_decoration_data']['asset'] ?? ''));
+    if (!preg_match('/^[A-Za-z0-9_]{8,128}$/', $asset)) return '';
+    return 'https://cdn.discordapp.com/avatar-decoration-presets/' . $asset . '.png?size=256&passthrough=true';
+}
+
+function discordServerTag(array $user): array {
+    $guild = is_array($user['primary_guild'] ?? null) ? $user['primary_guild'] : [];
+    $guildId = (string)($guild['identity_guild_id'] ?? '');
+    $tag = trim((string)($guild['tag'] ?? ''));
+    $badge = trim((string)($guild['badge'] ?? ''));
+    if (empty($guild['identity_enabled']) || !preg_match('/^[0-9]{15,22}$/', $guildId) || $tag === '') return ['', '', ''];
+    $tag = function_exists('mb_substr') ? mb_substr($tag, 0, 4) : substr($tag, 0, 4);
+    $badgeCdn = preg_match('/^[A-Za-z0-9_]{8,128}$/', $badge)
+        ? 'https://cdn.discordapp.com/guild-tag-badges/' . $guildId . '/' . $badge . '.png?size=32' : '';
+    return [$tag, $badgeCdn !== '' ? discordAssetProxyUrl($badgeCdn) : '', $badgeCdn];
+}
+
+function discordAvatarCdnUrl(array $user, bool $static = false): string {
+    $avatar = (string)($user['avatar'] ?? '');
+    $uid = (string)($user['id'] ?? '');
+    if ($avatar !== '' && preg_match('/^[A-Za-z0-9_]+$/', $avatar) && preg_match('/^[0-9]{15,22}$/', $uid)) {
+        $animated = str_starts_with($avatar, 'a_') && !$static;
+        return 'https://cdn.discordapp.com/avatars/' . $uid . '/' . $avatar . ($animated ? '.gif' : '.png') . '?size=256';
+    }
+    $discriminator = (string)($user['discriminator'] ?? '0');
+    $index = $discriminator !== '0' ? ((int)$discriminator % 5) : (((int)$uid >> 22) % 6);
+    return 'https://cdn.discordapp.com/embed/avatars/' . $index . '.png';
+}
+
+function discordAssetDataUri(string $url): string {
+    if (!discordAssetAllowed($url)) return '';
+    $cacheDir = rtrim(sys_get_temp_dir(), '/') . '/0x79-discord-assets';
+    $cacheFile = $cacheDir . '/' . hash('sha256', $url) . '.data';
+    if (is_file($cacheFile) && filemtime($cacheFile) > time() - 21600) {
+        $cached = file_get_contents($cacheFile);
+        if (is_string($cached) && str_starts_with($cached, 'data:image/')) return $cached;
+    }
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 4,
+        CURLOPT_TIMEOUT => 8,
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_USERAGENT => '0x79-discord-readme-card/1.0',
+    ]);
+    $body = curl_exec($ch);
+    $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $type = strtolower(trim((string)curl_getinfo($ch, CURLINFO_CONTENT_TYPE)));
+    curl_close($ch);
+    if (!is_string($body) || $status !== 200 || strlen($body) > 2 * 1024 * 1024) return '';
+    $mime = match(true) {
+        str_starts_with($type, 'image/png') => 'image/png',
+        str_starts_with($type, 'image/jpeg') => 'image/jpeg',
+        str_starts_with($type, 'image/webp') => 'image/webp',
+        str_starts_with($type, 'image/gif') => 'image/gif',
+        default => '',
+    };
+    if ($mime === '') return '';
+    $data = 'data:' . $mime . ';base64,' . base64_encode($body);
+    if ((is_dir($cacheDir) || @mkdir($cacheDir, 0700, true)) && is_writable($cacheDir)) {
+        $tmp = $cacheFile . '.' . getmypid() . '.tmp';
+        if (file_put_contents($tmp, $data, LOCK_EX) !== false) @rename($tmp, $cacheFile);
+    }
+    return $data;
+}
+
+function discordReadmeCardQuery(string $userId, array $options): string {
+    $query = ['user_id' => $userId];
+    foreach (['background', 'radius', 'idle_message', 'theme'] as $key) $query[$key] = $options[$key];
+    if (!empty($options['hide_apps'])) $query['hide_apps'] = implode(',', $options['hide_apps']);
+    foreach (['static_avatar', 'show_display_name', 'hide_decoration', 'hide_status', 'hide_activity_time', 'hide_server_tag', 'hide_badges', 'hide_profile', 'hide_spotify', 'hide_activity', 'hide_discriminator'] as $key) {
+        if (!empty($options[$key])) $query[$key] = '1';
+    }
+    return http_build_query($query, '', '&', PHP_QUERY_RFC3986);
 }
 
 function discordAssetAllowed(string $url): bool {
@@ -218,7 +352,14 @@ function streamDiscordAsset(?string $explicitUrl = null, int $maxAge = 3600): vo
         http_response_code(404);
         exit('not found');
     }
-    header('Content-Type: ' . strtok($type, ';'));
+    $safe_type = match(true) {
+        str_starts_with($type, 'image/png')  => 'image/png',
+        str_starts_with($type, 'image/jpeg') => 'image/jpeg',
+        str_starts_with($type, 'image/gif')  => 'image/gif',
+        str_starts_with($type, 'image/webp') => 'image/webp',
+        default => 'application/octet-stream',
+    };
+    header('Content-Type: ' . $safe_type);
     header('Cache-Control: public, max-age=' . max(60, min(86400, $maxAge)));
     header('X-Content-Type-Options: nosniff');
     echo $body;

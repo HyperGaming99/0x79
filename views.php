@@ -3230,8 +3230,114 @@ function renderPostPage($post) {
     exit;
 }
 
-function renderDiscordTrackerPage($presence = null, $error = '', $userId = '') {
+function discordSvgTrim(string $value, int $length): string {
+    $value = trim(preg_replace('/\s+/u', ' ', $value) ?? $value);
+    if (function_exists('mb_strlen') && mb_strlen($value) > $length) return mb_substr($value, 0, max(1, $length - 1)) . '…';
+    return strlen($value) > $length ? substr($value, 0, max(1, $length - 1)) . '…' : $value;
+}
+
+function discordSvgDuration(int $milliseconds): string {
+    $seconds = max(0, (int)floor($milliseconds / 1000));
+    $hours = intdiv($seconds, 3600);
+    $minutes = intdiv($seconds % 3600, 60);
+    return $hours > 0 ? $hours . 'h ' . $minutes . 'm' : $minutes . 'm';
+}
+
+function renderDiscordReadmeCardSvg($presence = null, $error = '', $userId = '', $options = []) {
+    $options = array_replace(discordCardOptions([]), is_array($options) ? $options : []);
+    $user = is_array($presence['discord_user'] ?? null) ? $presence['discord_user'] : [];
+    $status = (string)($presence['discord_status'] ?? 'offline');
+    $statusColors = ['online' => '#23a55a', 'idle' => '#f0b232', 'dnd' => '#f23f43', 'offline' => '#80848e'];
+    $statusColor = $statusColors[$status] ?? '#80848e';
+    $background = '#' . $options['background'];
+    if ($options['theme'] === 'midnight') $background = '#090b12';
+    if ($options['theme'] === 'discord') $background = '#111214';
+    $radius = $options['radius'] > 0 ? $options['radius'] : 16;
+    $avatar = $user ? discordAssetDataUri(discordAvatarCdnUrl($user, true)) : '';
+    $decoration = $user && empty($options['hide_decoration']) ? discordAssetDataUri(discordAvatarDecorationCdnUrl($user)) : '';
+    [$serverTag, , $serverBadgeCdn] = $user && empty($options['hide_server_tag']) ? discordServerTag($user) : ['', '', ''];
+    $serverBadge = $serverBadgeCdn !== '' ? discordAssetDataUri($serverBadgeCdn) : '';
+    $badges = $user && empty($options['hide_badges']) ? discordPublicBadges((int)($user['public_flags'] ?? 0)) : [];
+    $badgeImages = [];
+    foreach (array_slice($badges, 0, 10) as $badge) {
+        $src = discordAssetDataUri((string)($badge[2] ?? ''));
+        if ($src !== '') $badgeImages[] = [$badge[0], $src];
+    }
+    $spotify = is_array($presence['spotify'] ?? null) && empty($options['hide_spotify']) ? $presence['spotify'] : null;
+    $activity = null;
+    if (empty($options['hide_activity'])) {
+        foreach ((is_array($presence['activities'] ?? null) ? $presence['activities'] : []) as $candidate) {
+            if (!is_array($candidate) || strcasecmp((string)($candidate['name'] ?? ''), 'Spotify') === 0) continue;
+            if (in_array((string)($candidate['application_id'] ?? ''), $options['hide_apps'], true)) continue;
+            $activity = $candidate; break;
+        }
+    }
+    $albumArt = $spotify ? discordAssetDataUri((string)($spotify['album_art_url'] ?? '')) : '';
+    $name = discordSvgTrim((string)(!empty($options['show_display_name']) ? ($user['global_name'] ?? $user['username'] ?? 'Discord User') : ($user['username'] ?? $user['global_name'] ?? 'Discord User')), 30);
+    $handle = '@' . discordSvgTrim((string)($user['username'] ?? ''), 28);
+    if (empty($options['hide_discriminator']) && (string)($user['discriminator'] ?? '0') !== '0') $handle .= '#' . $user['discriminator'];
+    $nowMs = (int)round(microtime(true) * 1000);
+    $errorText = [
+        'invalid_id' => 'Invalid Discord user ID', 'not_found' => 'User is not on this Discord server',
+        'unavailable' => 'Discord presence is unavailable', 'not_configured' => 'Discord bot is not configured',
+        'rate_limited' => 'Too many requests — try again shortly',
+    ][$error] ?? 'Discord presence is unavailable';
+    header('Content-Type: image/svg+xml; charset=utf-8');
+    header('Cache-Control: public, max-age=30, stale-while-revalidate=120');
+    header('X-Content-Type-Options: nosniff');
+    ?>
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="250" viewBox="0 0 680 250" role="img" aria-label="Discord presence for <?= h($name ?: $userId) ?>">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="<?= h($background) ?>"/><stop offset="1" stop-color="#161821"/></linearGradient>
+    <linearGradient id="accent" x1="0" x2="1"><stop stop-color="#5865f2"/><stop offset=".55" stop-color="#8b5cf6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+    <clipPath id="avatar"><circle cx="65" cy="68" r="38"/></clipPath><clipPath id="art"><rect x="24" y="142" width="72" height="72" rx="12"/></clipPath>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#000" flood-opacity=".35"/></filter>
+    <style>.title{font:700 24px Arial,sans-serif;fill:#f8fafc}.body{font:500 13px Arial,sans-serif;fill:#a5adbd}.label{font:700 10px Arial,sans-serif;letter-spacing:1.4px}.mono{font:500 11px ui-monospace,SFMono-Regular,Consolas,monospace}.strong{font:700 16px Arial,sans-serif;fill:#f8fafc}</style>
+  </defs>
+  <rect x="8" y="8" width="664" height="234" rx="<?= h((string)$radius) ?>" fill="url(#bg)" stroke="#ffffff" stroke-opacity=".12" filter="url(#shadow)"/>
+  <rect x="8" y="8" width="664" height="4" rx="2" fill="url(#accent)"/>
+  <?php if (!$presence || !$user): ?>
+  <circle cx="56" cy="67" r="24" fill="#5865f2" fill-opacity=".15"/><circle cx="56" cy="67" r="7" fill="#5865f2"/>
+  <text x="96" y="60" class="title">Discord Presence</text><text x="96" y="83" class="body"><?= h($errorText) ?></text>
+  <line x1="24" y1="116" x2="656" y2="116" stroke="#fff" stroke-opacity=".08"/>
+  <text x="24" y="158" class="label" fill="#818cf8">0X79.ONE / LIVE CARD</text><text x="24" y="187" class="body">Open the Discord Presence tool to configure this card.</text>
+  <?php else: ?>
+  <?php if (empty($options['hide_profile'])): ?>
+  <circle cx="65" cy="68" r="42" fill="#fff" fill-opacity=".06"/><?php if ($avatar !== ''): ?><image href="<?= h($avatar) ?>" x="27" y="30" width="76" height="76" clip-path="url(#avatar)" preserveAspectRatio="xMidYMid slice"/><?php endif; ?><?php if ($decoration !== ''): ?><image href="<?= h($decoration) ?>" x="18" y="21" width="94" height="94"/><?php endif; ?>
+  <?php if (empty($options['hide_status'])): ?><circle cx="92" cy="95" r="11" fill="<?= h($background) ?>"/><circle cx="92" cy="95" r="7" fill="<?= h($statusColor) ?>"/><?php endif; ?>
+  <text x="122" y="55" class="title"><?= h($name) ?></text><text x="122" y="78" class="mono" fill="#8b93a7"><?= h($handle) ?></text>
+  <?php $badgeX = 122; foreach ($badgeImages as $badge): ?><title><?= h($badge[0]) ?></title><image href="<?= h($badge[1]) ?>" x="<?= h((string)$badgeX) ?>" y="88" width="20" height="20"/><?php $badgeX += 26; endforeach; ?>
+  <?php if ($serverTag !== ''): ?><rect x="<?= h((string)$badgeX) ?>" y="87" width="54" height="23" rx="7" fill="#fff" fill-opacity=".08"/><?php if ($serverBadge !== ''): ?><image href="<?= h($serverBadge) ?>" x="<?= h((string)($badgeX + 5)) ?>" y="92" width="13" height="13"/><?php endif; ?><text x="<?= h((string)($badgeX + ($serverBadge !== '' ? 22 : 8))) ?>" y="103" class="mono" fill="#d6d9e0"><?= h($serverTag) ?></text><?php endif; ?>
+  <?php endif; ?>
+  <?php if (empty($options['hide_status'])): ?><rect x="556" y="34" width="92" height="30" rx="15" fill="<?= h($statusColor) ?>" fill-opacity=".13"/><circle cx="573" cy="49" r="4" fill="<?= h($statusColor) ?>"/><text x="585" y="53" class="label" fill="<?= h($statusColor) ?>"><?= h(strtoupper($status)) ?></text><?php endif; ?>
+  <line x1="24" y1="124" x2="656" y2="124" stroke="#fff" stroke-opacity=".08"/>
+  <?php if ($spotify): $start=(int)($spotify['timestamps']['start']??0); $end=(int)($spotify['timestamps']['end']??0); $duration=max(1,$end-$start); $progress=max(0,min(1,($nowMs-$start)/$duration)); ?>
+  <?php if ($albumArt !== ''): ?><rect x="24" y="142" width="72" height="72" rx="12" fill="#fff" fill-opacity=".06"/><image href="<?= h($albumArt) ?>" x="24" y="142" width="72" height="72" clip-path="url(#art)" preserveAspectRatio="xMidYMid slice"/><?php else: ?><rect x="24" y="142" width="72" height="72" rx="12" fill="#1db954" fill-opacity=".18"/><circle cx="60" cy="178" r="17" fill="#1db954"/><path d="M49 173c8-2 17-1 23 3M51 180c7-2 14-1 19 2M53 186c5-1 10-.5 14 1" fill="none" stroke="#08130c" stroke-width="3" stroke-linecap="round"/><?php endif; ?>
+  <text x="116" y="153" class="label" fill="#1db954">LISTENING ON SPOTIFY</text><text x="116" y="179" class="strong"><?= h(discordSvgTrim((string)($spotify['song'] ?? ''), 46)) ?></text><text x="116" y="199" class="body"><?= h(discordSvgTrim((string)($spotify['artist'] ?? ''), 58)) ?></text>
+  <?php if (empty($options['hide_activity_time']) && $start > 0 && $end > $start): ?><rect x="116" y="213" width="510" height="4" rx="2" fill="#fff" fill-opacity=".09"/><rect x="116" y="213" width="<?= h((string)round(510*$progress)) ?>" height="4" rx="2" fill="#1db954"/><text x="626" y="203" text-anchor="end" class="mono" fill="#71798b"><?= h(discordSvgDuration(max(0, $end-$nowMs))) ?> left</text><?php endif; ?>
+  <?php elseif ($activity): $activityStart=(int)($activity['timestamps']['start']??0); ?>
+  <rect x="24" y="142" width="72" height="72" rx="12" fill="#5865f2" fill-opacity=".14"/><path d="M48 166h24l8 14-7 12-8-8H55l-8 8-7-12 8-14Z" fill="none" stroke="#818cf8" stroke-width="3" stroke-linejoin="round"/><circle cx="52" cy="175" r="2" fill="#818cf8"/><circle cx="68" cy="175" r="2" fill="#818cf8"/>
+  <text x="116" y="153" class="label" fill="#818cf8">CURRENT ACTIVITY</text><text x="116" y="179" class="strong"><?= h(discordSvgTrim((string)($activity['name'] ?? 'Activity'), 46)) ?></text><text x="116" y="199" class="body"><?= h(discordSvgTrim((string)($activity['details'] ?? $activity['state'] ?? ''), 58)) ?></text><?php if (empty($options['hide_activity_time']) && $activityStart > 0): ?><text x="626" y="199" text-anchor="end" class="mono" fill="#818cf8">for <?= h(discordSvgDuration($nowMs-$activityStart)) ?></text><?php endif; ?>
+  <?php else: ?>
+  <rect x="24" y="145" width="56" height="56" rx="16" fill="#5865f2" fill-opacity=".12"/><path d="M41 173h22M52 162v22" stroke="#818cf8" stroke-width="2" stroke-linecap="round"/><text x="100" y="165" class="label" fill="#818cf8">NO PUBLIC ACTIVITY</text><text x="100" y="191" class="body"><?= h(discordSvgTrim((string)$options['idle_message'], 64)) ?></text>
+  <?php endif; ?>
+  <text x="648" y="231" text-anchor="end" class="mono" fill="#596174">0x79.one · live Discord presence</text>
+  <?php endif; ?>
+</svg><?php
+    exit;
+}
+
+function renderDiscordTrackerPage($presence = null, $error = '', $userId = '', $options = []) {
     global $lang, $t;
+
+    $options = array_replace(discordCardOptions([]), is_array($options) ? $options : []);
+    $settingsTab = $options['tab'] === 'settings';
+    $rawEmbedHost = (string)($_SERVER['HTTP_HOST'] ?? '0x79.one');
+    $embedHost = preg_match('/^(?:[A-Za-z0-9.-]+|\[[0-9A-Fa-f:]+\])(?::[0-9]{1,5})?$/', $rawEmbedHost) ? $rawEmbedHost : cleanHost($rawEmbedHost);
+    $embedScheme = preg_match('/^(?:127\.0\.0\.1|localhost)(?::|$)/', $embedHost) ? 'http' : 'https';
+    $embedQuery = preg_match('/^[0-9]{15,22}$/', (string)$userId) ? discordReadmeCardQuery((string)$userId, $options) : '';
+    $embedUrl = $embedQuery !== '' ? $embedScheme . '://' . $embedHost . '/discord-card.svg?' . $embedQuery : '';
+    $embedMarkdown = $embedUrl !== '' ? '[![Discord Presence](' . $embedUrl . ')](' . $embedScheme . '://' . $embedHost . '/discord?user_id=' . rawurlencode((string)$userId) . ')' : '';
 
     $errorMessages = [
         'invalid_id'   => $t['discord_invalid_id'] ?? 'Invalid Discord user ID.',
@@ -3249,15 +3355,22 @@ function renderDiscordTrackerPage($presence = null, $error = '', $userId = '') {
         $avatar = (string)($user['avatar'] ?? '');
         $uid = (string)($user['id'] ?? '');
         if ($avatar !== '' && preg_match('/^[A-Za-z0-9_]+$/', $avatar) && preg_match('/^[0-9]+$/', $uid)) {
-            $avatarUrl = 'https://cdn.discordapp.com/avatars/' . $uid . '/' . $avatar . (str_starts_with($avatar, 'a_') ? '.gif' : '.png') . '?size=256';
+            $animated = str_starts_with($avatar, 'a_') && empty($options['static_avatar']);
+            $avatarUrl = 'https://cdn.discordapp.com/avatars/' . $uid . '/' . $avatar . ($animated ? '.gif' : '.png') . '?size=256';
         } else {
             $index = ((int)($user['discriminator'] ?? 0)) % 5;
             $avatarUrl = 'https://cdn.discordapp.com/embed/avatars/' . $index . '.png';
         }
     }
     $avatarSrc = $avatarUrl !== '' ? discordAssetProxyUrl($avatarUrl) : '';
+    $decorationSrc = empty($options['hide_decoration']) ? discordAvatarDecorationUrl($user) : '';
+    [$serverTag, $serverBadge] = empty($options['hide_server_tag']) ? discordServerTag($user) : ['', ''];
+    $badges = empty($options['hide_badges']) ? discordPublicBadges((int)($user['public_flags'] ?? 0)) : [];
     $spotify = is_array($presence['spotify'] ?? null) ? $presence['spotify'] : null;
     $activities = is_array($presence['activities'] ?? null) ? $presence['activities'] : [];
+    $cardBackground = '#' . $options['background'];
+    if ($options['theme'] === 'midnight') $cardBackground = '#090b12';
+    if ($options['theme'] === 'discord') $cardBackground = '#111214';
     header('Content-Type: text/html; charset=utf-8');
     ?>
 <!DOCTYPE html>
@@ -3282,40 +3395,71 @@ function renderDiscordTrackerPage($presence = null, $error = '', $userId = '') {
             <p class="font-mono text-[10px] uppercase tracking-[.22em] text-[#5865F2]">presence / gateway</p>
             <h1 class="mt-4 max-w-2xl text-5xl font-black uppercase leading-[.85] tracking-[-.07em] sm:text-7xl"><?= h($t['discord_title'] ?? 'Discord Presence') ?></h1>
             <p class="mt-6 max-w-xl text-sm leading-6 text-white/50"><?= h($t['discord_lead'] ?? '') ?></p>
+            <div class="mt-7 flex border-b border-white/10 font-mono text-[10px] font-bold uppercase tracking-wider"><a href="/discord<?= $userId !== '' ? '?user_id=' . rawurlencode($userId) : '' ?>" class="border-b-2 px-4 py-3 <?= !$settingsTab ? 'border-[#5865F2] text-white' : 'border-transparent text-white/35 hover:text-white' ?>"><?= h($t['discord_tab_presence'] ?? 'Discord') ?></a><a href="/discord?tab=settings<?= $userId !== '' ? '&amp;user_id=' . rawurlencode($userId) : '' ?>" class="border-b-2 px-4 py-3 <?= $settingsTab ? 'border-[#5865F2] text-white' : 'border-transparent text-white/35 hover:text-white' ?>"><?= h($t['discord_tab_settings'] ?? 'Card settings') ?></a></div>
             <form method="GET" action="/discord" class="mt-8 border-2 border-white/80 bg-[#101011] p-2">
+                <?php if ($settingsTab): ?><input type="hidden" name="tab" value="settings"><?php endif; ?>
                 <label for="discord-user-id" class="sr-only"><?= h($t['discord_id_label'] ?? 'Discord user ID') ?></label>
                 <div class="flex flex-col gap-2 sm:flex-row"><input id="discord-user-id" type="text" inputmode="numeric" pattern="[0-9]{15,22}" name="user_id" value="<?= h($userId) ?>" required placeholder="<?= h($t['discord_id_placeholder'] ?? '') ?>" class="min-w-0 flex-1 bg-transparent px-3 py-3 font-mono text-sm outline-none placeholder:text-white/20"><button type="submit" class="bg-[#5865F2] px-5 py-3 font-mono text-xs font-bold uppercase text-white hover:bg-white hover:text-black"><?= h($t['discord_submit'] ?? 'fetch status') ?></button></div>
             </form>
             <p class="mt-3 font-mono text-[10px] leading-5 text-white/30"><?= h($t['discord_hint'] ?? '') ?></p>
+            <?php if ($settingsTab): ?>
+            <form method="GET" action="/discord" class="mt-6 border border-white/15 bg-[#101011] p-5">
+                <input type="hidden" name="tab" value="settings"><input type="hidden" name="user_id" value="<?= h($userId) ?>">
+                <div class="mb-5 flex items-center justify-between"><div><p class="font-mono text-[9px] uppercase tracking-[.18em] text-[#5865F2]"><?= h($t['discord_card_config'] ?? 'Card configurator') ?></p><h2 class="mt-1 text-lg font-bold"><?= h($t['discord_card_customize'] ?? 'Customize Discord card') ?></h2></div><button type="submit" class="bg-[#5865F2] px-4 py-2 font-mono text-[10px] font-bold uppercase text-white hover:bg-white hover:text-black"><?= h($t['discord_apply'] ?? 'apply') ?></button></div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <label class="text-xs text-white/65"><span class="mb-2 block"><?= h($t['discord_background'] ?? 'Background color') ?></span><span class="flex border border-white/15 bg-black/20"><b class="px-3 py-2 font-mono text-white/25">#</b><input name="background" value="<?= h($options['background']) ?>" maxlength="6" pattern="[0-9A-Fa-f]{6}" class="min-w-0 flex-1 bg-transparent py-2 pr-3 font-mono text-xs outline-none"></span></label>
+                    <label class="text-xs text-white/65"><span class="mb-2 block"><?= h($t['discord_radius'] ?? 'Border radius') ?></span><span class="flex border border-white/15 bg-black/20"><input type="number" name="radius" value="<?= h((string)$options['radius']) ?>" min="0" max="32" class="min-w-0 flex-1 bg-transparent px-3 py-2 font-mono text-xs outline-none"><b class="px-3 py-2 font-mono text-white/25">px</b></span></label>
+                    <label class="text-xs text-white/65"><span class="mb-2 block"><?= h($t['discord_idle_message'] ?? 'Idle message') ?></span><input name="idle_message" value="<?= h($options['idle_message']) ?>" maxlength="100" class="w-full border border-white/15 bg-black/20 px-3 py-2 font-mono text-xs outline-none"></label>
+                    <label class="text-xs text-white/65"><span class="mb-2 block"><?= h($t['discord_hide_apps'] ?? 'Hide apps by ID') ?></span><input name="hide_apps" value="<?= h(implode(', ', $options['hide_apps'])) ?>" placeholder="1302143410907648071, …" class="w-full border border-white/15 bg-black/20 px-3 py-2 font-mono text-xs outline-none"></label>
+                    <label class="text-xs text-white/65 sm:col-span-2"><span class="mb-2 block"><?= h($t['discord_theme'] ?? 'Theme') ?></span><select name="theme" class="w-full border border-white/15 bg-[#0b0b0c] px-3 py-2 font-mono text-xs outline-none"><option value="default" <?= $options['theme'] === 'default' ? 'selected' : '' ?>>0x79</option><option value="midnight" <?= $options['theme'] === 'midnight' ? 'selected' : '' ?>>Midnight</option><option value="discord" <?= $options['theme'] === 'discord' ? 'selected' : '' ?>>Discord</option></select></label>
+                </div>
+                <?php $toggles = [
+                    'static_avatar' => $t['discord_static_avatar'] ?? 'Disable animated avatar', 'show_display_name' => $t['discord_show_display_name'] ?? 'Show display name',
+                    'hide_decoration' => $t['discord_hide_decoration'] ?? 'Hide avatar decoration', 'hide_status' => $t['discord_hide_status'] ?? 'Hide status',
+                    'hide_activity_time' => $t['discord_hide_activity_time'] ?? 'Hide activity time', 'hide_server_tag' => $t['discord_hide_server_tag'] ?? 'Hide server tag',
+                    'hide_badges' => $t['discord_hide_badges'] ?? 'Hide badges', 'hide_profile' => $t['discord_hide_profile'] ?? 'Hide profile',
+                    'hide_spotify' => $t['discord_hide_spotify'] ?? 'Hide Spotify', 'hide_activity' => $t['discord_hide_activity'] ?? 'Hide activities',
+                    'hide_discriminator' => $t['discord_hide_discriminator'] ?? 'Hide discriminator',
+                ]; ?>
+                <div class="mt-5 grid gap-x-5 gap-y-3 border-t border-white/10 pt-5 sm:grid-cols-2"><?php foreach ($toggles as $key => $label): ?><label class="flex cursor-pointer items-start gap-2 text-xs text-white/60 hover:text-white"><input type="checkbox" name="<?= h($key) ?>" value="1" <?= !empty($options[$key]) ? 'checked' : '' ?> class="mt-0.5 h-4 w-4 accent-[#5865F2]"><span><?= h($label) ?></span></label><?php endforeach; ?></div>
+                <p class="mt-5 border-t border-white/10 pt-4 font-mono text-[9px] leading-4 text-white/30"><?= h($t['discord_share_hint'] ?? 'The settings remain in the URL, so you can share the configured card directly.') ?></p>
+                <?php if ($embedUrl !== ''): ?><section class="mt-5 border-t border-white/10 pt-5"><div class="flex items-end justify-between gap-3"><div><p class="font-mono text-[9px] uppercase tracking-[.18em] text-[#22d3ee]"><?= h($t['discord_github_embed'] ?? 'GitHub README card') ?></p><h3 class="mt-1 text-sm font-bold"><?= h($t['discord_github_ready'] ?? 'Ready to embed') ?></h3></div><a href="<?= h($embedUrl) ?>" target="_blank" rel="noopener" class="font-mono text-[9px] uppercase text-white/35 hover:text-white"><?= h($t['discord_open_svg'] ?? 'open SVG ↗') ?></a></div><div class="mt-3 overflow-hidden rounded-xl border border-white/10 bg-black/20 p-2"><img src="<?= h($embedUrl) ?>" alt="Discord README card preview" class="block h-auto w-full"></div><label for="discord-markdown" class="mt-4 block font-mono text-[9px] uppercase tracking-wider text-white/35"><?= h($t['discord_markdown_label'] ?? 'Markdown for README.md') ?></label><textarea id="discord-markdown" readonly rows="4" class="mt-2 w-full resize-none border border-white/15 bg-black/25 p-3 font-mono text-[10px] leading-5 text-white/60 outline-none"><?= h($embedMarkdown) ?></textarea><button type="button" onclick="copyDiscordMarkdown(this)" data-copy="<?= h($t['discord_copy_markdown'] ?? 'copy Markdown') ?>" data-copied="<?= h($t['copied'] ?? 'copied') ?>" class="mt-2 w-full border border-[#5865F2]/50 bg-[#5865F2]/10 px-4 py-2.5 font-mono text-[10px] font-bold uppercase text-[#a5b4fc] hover:bg-[#5865F2] hover:text-white"><?= h($t['discord_copy_markdown'] ?? 'copy Markdown') ?></button></section><?php endif; ?>
+            </form>
+            <?php endif; ?>
             <?php if ($error !== ''): ?><div class="mt-5 border border-[#fb7185]/40 bg-[#fb7185]/10 p-4 text-sm text-[#fda4af]"><p><?= h($errorMessages[$error] ?? $errorMessages['unavailable']) ?></p><?php if ($error === 'not_found'): ?><a href="<?= h(discordInviteUrl()) ?>" target="_blank" rel="noopener nofollow" class="mt-3 inline-block border border-[#fda4af]/40 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wider text-[#fda4af] hover:bg-[#fda4af] hover:text-[#0b0b0c]"><?= h($t['discord_join'] ?? 'join Discord →') ?></a><?php endif; ?></div><?php endif; ?>
         </div>
 
         <div>
         <?php if ($presence && $user): ?>
-            <section class="border border-white/15 bg-[#101011] p-5 shadow-[10px_10px_0_#5865F2] sm:p-7">
+            <section class="border border-white/15 p-5 shadow-[10px_10px_0_#5865F2] sm:p-7" style="background:<?= h($cardBackground) ?>;border-radius:<?= h((string)$options['radius']) ?>px">
+                <?php if (empty($options['hide_profile'])): ?>
                 <div class="flex items-center gap-4 border-b border-white/10 pb-5">
-                    <div class="relative h-20 w-20 shrink-0 bg-white/5"><?php if ($avatarSrc): ?><img src="<?= h($avatarSrc) ?>" alt="" class="h-full w-full object-cover"><?php else: ?><span class="grid h-full place-items-center text-2xl">?</span><?php endif; ?><i class="absolute bottom-0 right-0 h-5 w-5 rounded-full border-4 border-[#101011]" style="background:<?= h($statusColor) ?>"></i></div>
-                    <div class="min-w-0"><h2 class="truncate text-2xl font-black tracking-[-.05em]"><?= h($user['global_name'] ?? $user['username'] ?? 'Discord User') ?></h2><p class="mt-1 font-mono text-xs text-white/40">@<?= h($user['username'] ?? '') ?> · <?= h($user['id'] ?? '') ?></p><p class="mt-2 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider"><i class="h-2 w-2 rounded-full" style="background:<?= h($statusColor) ?>"></i><?= h($status) ?></p></div>
+                    <div class="relative h-20 w-20 shrink-0 bg-white/5"><?php if ($avatarSrc): ?><img src="<?= h($avatarSrc) ?>" alt="" class="h-full w-full object-cover"><?php else: ?><span class="grid h-full place-items-center text-2xl">?</span><?php endif; ?><?php if ($decorationSrc): ?><img src="<?= h($decorationSrc) ?>" alt="" class="pointer-events-none absolute -inset-2 h-24 w-24 max-w-none object-contain"><?php endif; ?><?php if (empty($options['hide_status'])): ?><i class="absolute bottom-0 right-0 h-5 w-5 rounded-full border-4" style="background:<?= h($statusColor) ?>;border-color:<?= h($cardBackground) ?>"></i><?php endif; ?></div>
+                    <div class="min-w-0 flex-1"><div class="flex min-w-0 items-center gap-2"><h2 class="truncate text-2xl font-black tracking-[-.05em]"><?= h(!empty($options['show_display_name']) ? ($user['global_name'] ?? $user['username'] ?? 'Discord User') : ($user['username'] ?? $user['global_name'] ?? 'Discord User')) ?></h2><?php if ($serverTag !== ''): ?><span class="inline-flex shrink-0 items-center gap-1 rounded bg-white/10 px-1.5 py-1 font-mono text-[9px] font-bold"><?php if ($serverBadge): ?><img src="<?= h($serverBadge) ?>" alt="" class="h-3.5 w-3.5"><?php endif; ?><?= h($serverTag) ?></span><?php endif; ?></div><p class="mt-1 font-mono text-xs text-white/40">@<?= h($user['username'] ?? '') ?><?php if (empty($options['hide_discriminator']) && (string)($user['discriminator'] ?? '0') !== '0'): ?>#<?= h($user['discriminator']) ?><?php endif; ?> · <?= h($user['id'] ?? '') ?></p><?php if ($badges): ?><div class="mt-2 flex flex-wrap items-center gap-1.5" aria-label="Discord badges"><?php foreach ($badges as $badge): ?><span title="<?= h($badge[0]) ?>" class="inline-flex h-5 w-5 items-center justify-center"><img src="<?= h($badge[1]) ?>" alt="<?= h($badge[0]) ?>" class="h-5 w-5 object-contain"></span><?php endforeach; ?></div><?php endif; ?><?php if (empty($options['hide_status'])): ?><p class="mt-2 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider"><i class="h-2 w-2 rounded-full" style="background:<?= h($statusColor) ?>"></i><?= h($status) ?></p><?php endif; ?></div>
                 </div>
+                <?php endif; ?>
 
+                <?php if (empty($options['hide_status'])): ?>
                 <div class="grid grid-cols-2 gap-px border-b border-white/10 bg-white/10 py-px">
-                    <div class="bg-[#101011] py-4"><p class="font-mono text-[9px] uppercase tracking-wider text-white/30"><?= h($t['discord_status'] ?? 'Status') ?></p><p class="mt-1 text-sm font-semibold capitalize"><?= h($status) ?></p></div>
-                    <div class="bg-[#101011] py-4 pl-4"><p class="font-mono text-[9px] uppercase tracking-wider text-white/30"><?= h($t['discord_devices'] ?? 'Active on') ?></p><div class="mt-1 flex flex-wrap gap-1 font-mono text-[9px] uppercase"><?php foreach ([['active_on_discord_desktop','discord_desktop'],['active_on_discord_mobile','discord_mobile'],['active_on_discord_web','discord_web']] as $device): if (empty($presence[$device[0]])) continue; ?><span class="border border-white/15 px-1.5 py-0.5"><?= h($t[$device[1]] ?? $device[1]) ?></span><?php endforeach; ?></div></div>
+                    <div class="py-4" style="background:<?= h($cardBackground) ?>"><p class="font-mono text-[9px] uppercase tracking-wider text-white/30"><?= h($t['discord_status'] ?? 'Status') ?></p><p class="mt-1 text-sm font-semibold capitalize"><?= h($status) ?></p></div>
+                    <div class="py-4 pl-4" style="background:<?= h($cardBackground) ?>"><p class="font-mono text-[9px] uppercase tracking-wider text-white/30"><?= h($t['discord_devices'] ?? 'Active on') ?></p><div class="mt-1 flex flex-wrap gap-1 font-mono text-[9px] uppercase"><?php foreach ([['active_on_discord_desktop','discord_desktop'],['active_on_discord_mobile','discord_mobile'],['active_on_discord_web','discord_web']] as $device): if (empty($presence[$device[0]])) continue; ?><span class="border border-white/15 px-1.5 py-0.5"><?= h($t[$device[1]] ?? $device[1]) ?></span><?php endforeach; ?></div></div>
                 </div>
+                <?php endif; ?>
 
-                <?php if ($spotify): $art = discordAssetProxyUrl((string)($spotify['album_art_url'] ?? '')); $trackId = (string)($spotify['track_id'] ?? '');
+                <?php if ($spotify && empty($options['hide_spotify'])): $art = discordAssetProxyUrl((string)($spotify['album_art_url'] ?? '')); $trackId = (string)($spotify['track_id'] ?? '');
                     $spotifyStart = (int)($spotify['timestamps']['start'] ?? 0); $spotifyEnd = (int)($spotify['timestamps']['end'] ?? 0);
                 ?>
                 <div class="mt-5 border-l-4 border-[#1DB954] bg-[#0b0b0c] p-4">
                     <div class="flex gap-4"><?php if ($art): ?><img src="<?= h($art) ?>" alt="" class="h-20 w-20 shrink-0 object-cover"><?php endif; ?><div class="min-w-0"><p class="font-mono text-[9px] uppercase tracking-[.18em] text-[#1DB954]"><?= h($t['discord_listening'] ?? 'Now listening') ?></p><h3 class="mt-1 truncate font-bold"><?= h($spotify['song'] ?? '') ?></h3><p class="mt-1 truncate text-xs text-white/50"><?= h($spotify['artist'] ?? '') ?></p><p class="mt-1 truncate font-mono text-[9px] text-white/25"><?= h($spotify['album'] ?? '') ?></p></div></div>
-                    <?php if ($spotifyStart > 0 && $spotifyEnd > $spotifyStart): ?><div class="mt-4" data-discord-progress data-start="<?= h((string)$spotifyStart) ?>" data-end="<?= h((string)$spotifyEnd) ?>" data-remaining-label="<?= h($t['discord_remaining'] ?? 'remaining') ?>" data-ended-label="<?= h($t['discord_ended'] ?? 'ended') ?>"><div class="h-1 overflow-hidden rounded-full bg-white/10"><i data-progress-bar class="block h-full rounded-full bg-[#1DB954]" style="width:0%"></i></div><div class="mt-1.5 flex justify-between font-mono text-[9px] text-white/35"><span data-progress-elapsed>0:00</span><span><b data-progress-remaining class="font-normal text-white/25"></b> · <span data-progress-duration>0:00</span></span></div></div><?php endif; ?>
+                    <?php if (empty($options['hide_activity_time']) && $spotifyStart > 0 && $spotifyEnd > $spotifyStart): ?><div class="mt-4" data-discord-progress data-start="<?= h((string)$spotifyStart) ?>" data-end="<?= h((string)$spotifyEnd) ?>" data-remaining-label="<?= h($t['discord_remaining'] ?? 'remaining') ?>" data-ended-label="<?= h($t['discord_ended'] ?? 'ended') ?>"><div class="h-1 overflow-hidden rounded-full bg-white/10"><i data-progress-bar class="block h-full rounded-full bg-[#1DB954]" style="width:0%"></i></div><div class="mt-1.5 flex justify-between font-mono text-[9px] text-white/35"><span data-progress-elapsed>0:00</span><span><b data-progress-remaining class="font-normal text-white/25"></b> · <span data-progress-duration>0:00</span></span></div></div><?php endif; ?>
                     <?php if (preg_match('/^[A-Za-z0-9]+$/', $trackId)): ?><a href="https://open.spotify.com/track/<?= h($trackId) ?>" target="_blank" rel="noopener nofollow" class="mt-3 inline-block font-mono text-[9px] uppercase text-white/40 hover:text-white"><?= h($t['discord_open_spotify'] ?? 'open on Spotify') ?></a><?php endif; ?>
                 </div>
                 <?php endif; ?>
-                <?php if (!$spotify): ?><p class="mt-4 border border-white/10 p-3 font-mono text-[9px] leading-4 text-white/25"><?= h($t['discord_spotify_hidden'] ?? '') ?></p><?php endif; ?>
+                <?php if (!$spotify && empty($options['hide_spotify'])): ?><p class="mt-4 border border-white/10 p-3 font-mono text-[9px] leading-4 text-white/25"><?= h($t['discord_spotify_hidden'] ?? '') ?></p><?php endif; ?>
 
+                <?php if (empty($options['hide_activity'])): ?>
                 <div class="mt-6"><p class="font-mono text-[9px] uppercase tracking-[.18em] text-white/30"><?= h($t['discord_activities'] ?? 'Activities') ?></p><div class="mt-3 grid gap-2">
-                <?php $shown = 0; foreach ($activities as $activity): if (!is_array($activity) || strcasecmp((string)($activity['name'] ?? ''), 'Spotify') === 0) continue; $shown++;
+                <?php $shown = 0; foreach ($activities as $activity): if (!is_array($activity) || strcasecmp((string)($activity['name'] ?? ''), 'Spotify') === 0 || in_array((string)($activity['application_id'] ?? ''), $options['hide_apps'], true)) continue; $shown++;
                     $appId = (string)($activity['application_id'] ?? '');
                     $activityImage = discordActivityAssetUrl($activity, 'large');
                     $activitySmallImage = discordActivityAssetUrl($activity, 'small');
@@ -3324,9 +3468,10 @@ function renderDiscordTrackerPage($presence = null, $error = '', $userId = '') {
                     $activityEmoji = (string)($activity['emoji']['name'] ?? '');
                     $activityStart = (int)($activity['timestamps']['start'] ?? 0); $activityEnd = (int)($activity['timestamps']['end'] ?? 0);
                 ?>
-                    <article class="border border-white/10 bg-[#0b0b0c] p-3"><div class="flex items-start gap-3"><?php if ($activityImage): ?><span class="relative h-14 w-14 shrink-0"><img src="<?= h($activityImage) ?>" alt="" class="h-14 w-14 rounded-lg border border-white/10 bg-white/5 object-cover"><?php if ($activitySmallImage): ?><img src="<?= h($activitySmallImage) ?>" alt="" class="absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-[#0b0b0c] bg-[#171719] object-cover"><?php endif; ?></span><?php elseif ($activityEmoji !== ''): ?><span class="grid h-14 w-14 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-2xl"><?= h($activityEmoji) ?></span><?php else: ?><span class="grid h-14 w-14 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-lg text-white/25">◆</span><?php endif; ?><div class="min-w-0 flex-1"><h3 class="truncate text-sm font-semibold"><?= h($activity['name'] ?? 'Activity') ?></h3><?php if (!empty($activity['details'])): ?><p class="mt-1 truncate text-xs text-white/50"><?= h($activity['details']) ?></p><?php endif; ?><?php if (!empty($activity['state'])): ?><p class="mt-1 truncate font-mono text-[9px] text-white/30"><?= h($activity['state']) ?></p><?php endif; ?><?php if (!empty($activity['assets']['large_text'])): ?><p class="mt-1 truncate font-mono text-[8px] uppercase tracking-wider text-white/20"><?= h($activity['assets']['large_text']) ?></p><?php endif; ?><?php if ($activityStart > 0): ?><p class="mt-2 font-mono text-[9px] text-[#5865F2]" data-discord-elapsed data-start="<?= h((string)$activityStart) ?>" data-end="<?= h((string)$activityEnd) ?>" data-elapsed-label="<?= h($t['discord_elapsed'] ?? 'running for') ?>" data-remaining-label="<?= h($t['discord_remaining'] ?? 'remaining') ?>" data-ended-label="<?= h($t['discord_ended'] ?? 'ended') ?>"></p><?php endif; ?></div><span class="font-mono text-[9px] text-white/20">#<?= h((string)$shown) ?></span></div></article>
-                <?php endforeach; if ($shown === 0): ?><p class="border border-white/10 p-4 text-xs text-white/35"><?= h($t['discord_no_activities'] ?? 'No public activities.') ?></p><?php endif; ?>
+                    <article class="border border-white/10 bg-[#0b0b0c] p-3"><div class="flex items-start gap-3"><?php if ($activityImage): ?><span class="relative h-14 w-14 shrink-0"><img src="<?= h($activityImage) ?>" alt="" class="h-14 w-14 rounded-lg border border-white/10 bg-white/5 object-cover"><?php if ($activitySmallImage): ?><img src="<?= h($activitySmallImage) ?>" alt="" class="absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-[#0b0b0c] bg-[#171719] object-cover"><?php endif; ?></span><?php elseif ($activityEmoji !== ''): ?><span class="grid h-14 w-14 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-2xl"><?= h($activityEmoji) ?></span><?php else: ?><span class="grid h-14 w-14 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-lg text-white/25">◆</span><?php endif; ?><div class="min-w-0 flex-1"><h3 class="truncate text-sm font-semibold"><?= h($activity['name'] ?? 'Activity') ?></h3><?php if (!empty($activity['details'])): ?><p class="mt-1 truncate text-xs text-white/50"><?= h($activity['details']) ?></p><?php endif; ?><?php if (!empty($activity['state'])): ?><p class="mt-1 truncate font-mono text-[9px] text-white/30"><?= h($activity['state']) ?></p><?php endif; ?><?php if (!empty($activity['assets']['large_text'])): ?><p class="mt-1 truncate font-mono text-[8px] uppercase tracking-wider text-white/20"><?= h($activity['assets']['large_text']) ?></p><?php endif; ?><?php if (empty($options['hide_activity_time']) && $activityStart > 0): ?><p class="mt-2 font-mono text-[9px] text-[#5865F2]" data-discord-elapsed data-start="<?= h((string)$activityStart) ?>" data-end="<?= h((string)$activityEnd) ?>" data-elapsed-label="<?= h($t['discord_elapsed'] ?? 'running for') ?>" data-remaining-label="<?= h($t['discord_remaining'] ?? 'remaining') ?>" data-ended-label="<?= h($t['discord_ended'] ?? 'ended') ?>"></p><?php endif; ?></div><span class="font-mono text-[9px] text-white/20">#<?= h((string)$shown) ?></span></div></article>
+                <?php endforeach; if ($shown === 0): ?><p class="border border-white/10 p-4 text-xs text-white/35"><?= h($options['idle_message']) ?></p><?php endif; ?>
                 </div></div>
+                <?php endif; ?>
                 <p class="mt-6 border-t border-white/10 pt-4 text-center font-mono text-[9px] text-white/20"><?= h($t['discord_powered'] ?? 'Presence data received through your own Discord bot') ?></p>
             </section>
         <?php else: ?>
@@ -3338,6 +3483,14 @@ function renderDiscordTrackerPage($presence = null, $error = '', $userId = '') {
 </main>
 <script nonce="<?= $GLOBALS['csp_nonce'] ?>">
 (() => {
+    window.copyDiscordMarkdown = button => {
+        const field = document.getElementById('discord-markdown');
+        if (!field) return;
+        navigator.clipboard.writeText(field.value).then(() => {
+            button.textContent = button.dataset.copied;
+            setTimeout(() => button.textContent = button.dataset.copy, 1500);
+        });
+    };
     const formatTime = seconds => {
         seconds = Math.max(0, Math.floor(seconds));
         const hours = Math.floor(seconds / 3600);

@@ -86,6 +86,8 @@ function dgPresence(array $presence, array $knownUser = []): ?array {
             'discriminator' => (string)($user['discriminator'] ?? '0'),
             'avatar' => $user['avatar'] ?? null,
             'public_flags' => (int)($user['public_flags'] ?? 0),
+            'avatar_decoration_data' => is_array($user['avatar_decoration_data'] ?? null) ? $user['avatar_decoration_data'] : null,
+            'primary_guild' => is_array($user['primary_guild'] ?? null) ? $user['primary_guild'] : null,
         ],
         'discord_status' => (string)($presence['status'] ?? 'offline'),
         'active_on_discord_desktop' => isset($clients['desktop']),

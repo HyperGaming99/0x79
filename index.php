@@ -51,6 +51,7 @@ $toolRoutes = [
     'metadata'         => 'metadata',
     'secure-share'     => 'secure_share',
     'discord'          => 'discord',
+    'discord-card.svg' => 'discord',
     'minecraft'        => 'minecraft',
     'api/discord'      => 'discord',
     'api/minecraft'    => 'minecraft',
@@ -146,7 +147,20 @@ if ($request_path === 'discord') {
             if (!$discordOk) $discordPresence = null;
         }
     }
-    renderDiscordTrackerPage($discordPresence, $discordError, $discordId);
+    renderDiscordTrackerPage($discordPresence, $discordError, $discordId, discordCardOptions($_GET));
+}
+
+if ($request_path === 'discord-card.svg') {
+    $discordId = trim((string)($_GET['user_id'] ?? ''));
+    $discordError = '';
+    $discordPresence = null;
+    if (!rateLimit('discord_readme_card', 120, 60)) {
+        $discordError = 'rate_limited';
+    } else {
+        [$discordOk, $discordError, $discordPresence] = fetchDiscordPresence($discordId);
+        if (!$discordOk) $discordPresence = null;
+    }
+    renderDiscordReadmeCardSvg($discordPresence, $discordError, $discordId, discordCardOptions($_GET));
 }
 
 if ($request_path === 'minecraft') {
@@ -464,6 +478,9 @@ if ($request_path === 'api/discord') {
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
         header('Allow: GET, OPTIONS');
         jsonResponse(['success' => false, 'error' => 'method_not_allowed'], 405);
+    }
+    if (!rateLimit('discord_api', 30, 60)) {
+        jsonResponse(['success' => false, 'error' => 'rate_limited'], 429);
     }
     $userId = trim((string)($_GET['user_id'] ?? $_GET['id'] ?? ''));
     [$ok, $error, $presence] = fetchDiscordPresence($userId);
