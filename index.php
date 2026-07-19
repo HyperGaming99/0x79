@@ -1198,6 +1198,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
         }
     }
 }
+
+$public_monthly_analytics = [
+    'month' => gmdate('Y-m'),
+    'visitors' => null,
+    'clicks' => null,
+    'links' => null,
+];
+if ($request_path === '') {
+    logMonthlyLandingVisit();
+    $public_monthly_analytics = fetchPublicMonthlyAnalytics();
+}
+$format_public_stat = static function ($value) use ($lang): string {
+    if ($value === null || !is_numeric($value)) return '—';
+    return number_format((int)$value, 0, '', $lang === 'de' ? '.' : ',');
+};
 ?>
 <?php if ($request_path === 'shorten'): ?><!DOCTYPE html>
 <html lang="<?= h($lang) ?>">
@@ -1515,6 +1530,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isse
                 <span class="px-5"><?= h($t['home_ticker']) ?></span>
             </div>
         </div>
+
+        <!-- Public monthly analytics -->
+        <section class="grid border-b border-black/25 sm:grid-cols-3 lg:grid-cols-[280px_repeat(3,minmax(0,1fr))]" aria-label="<?= h($t['home_stats_label']) ?>">
+            <div class="border-b border-black/25 bg-black p-5 text-[#e8e6df] sm:col-span-3 lg:col-span-1 lg:border-b-0 lg:border-r">
+                <p class="font-mono text-[9px] uppercase tracking-[.2em] text-[#b8ff31]"><?= h($t['home_stats_label']) ?></p>
+                <h2 class="mt-3 text-2xl font-black uppercase leading-[.9] tracking-[-.055em]"><?= h($t['home_stats_title']) ?></h2>
+                <p class="mt-4 max-w-[220px] font-mono text-[9px] leading-4 text-white/40"><?= h($t['home_stats_privacy']) ?></p>
+            </div>
+            <?php foreach ([
+                ['visitors', 'home_stats_visitors', '#b8ff31'],
+                ['clicks', 'home_stats_clicks', '#60a5fa'],
+                ['links', 'home_stats_links', '#a78bfa'],
+            ] as $stat): ?>
+            <div class="relative flex min-h-[150px] flex-col justify-between border-b border-black/25 p-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
+                <i class="absolute right-5 top-5 h-2.5 w-2.5" style="background:<?= h($stat[2]) ?>"></i>
+                <p class="font-mono text-[9px] uppercase tracking-[.16em] text-black/45"><?= h($t[$stat[1]]) ?></p>
+                <p class="font-mono text-4xl font-black tracking-[-.07em] tabular-nums" title="<?= h($t[$stat[1]]) ?>"><?= h($format_public_stat($public_monthly_analytics[$stat[0]] ?? null)) ?></p>
+            </div>
+            <?php endforeach; ?>
+        </section>
 
         <section class="grid border-b border-black/25 py-10 lg:grid-cols-[220px_1fr] lg:gap-10 lg:py-12">
             <div class="mb-7 lg:mb-0">

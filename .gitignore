@@ -26,3 +26,6 @@ Thumbs.db
 # Temp / scratch
 /tmp/
 *.tmp
+
+# Local Uptime Kuma theme (paste into the external Kuma instance)
+/assets/uptime-kuma-status.css

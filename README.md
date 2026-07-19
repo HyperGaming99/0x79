@@ -88,6 +88,17 @@ Disabled tools disappear from the dashboard and their creation pages and APIs re
 
 For PostgreSQL, set `DB_DRIVER=postgres` and configure `POSTGRES_DSN` or the individual `POSTGRES_*` values. Run `schema.sql` to create the tables.
 
+### Public monthly analytics
+
+The landing page shows privacy-friendly totals for unique visitors, short-link clicks and newly created links in the current month. Existing installations must run the latest `schema.sql` (in the Supabase SQL Editor or through `psql`) once to create `site_visits`. Configure a stable random hashing salt:
+
+```env
+ANALYTICS_SALT=replace-with-the-output-of-openssl-rand-hex-32
+```
+
+Visitor analytics stores no raw IP address or User-Agent. A salted fingerprint that changes every month is used only to avoid counting the same visitor repeatedly.
+Supabase deployments should configure `SUPABASE_SERVICE_ROLE_KEY`; the visitor table has RLS enabled and is intentionally unavailable through the anon key.
+
 For S3 or MinIO, set `STORAGE_DRIVER=s3` and provide:
 
 ```env

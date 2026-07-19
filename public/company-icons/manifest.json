@@ -1,0 +1,3508 @@
+{
+    "source": "Simple Icons and official brand assets",
+    "version": "16.26.0",
+    "license": "See README and individual sources",
+    "count": 500,
+    "icons": [
+        {
+            "name": ".NET",
+            "slug": "dotnet",
+            "file": "dotnet.svg",
+            "hex": "#512BD4",
+            "source": "https://github.com/dotnet/brand/blob/c7d0f51b8ec59531332d05fb27a5b758a7a3d689/logo/dotnet-logo.svg"
+        },
+        {
+            "name": "1&1",
+            "slug": "1and1",
+            "file": "1and1.svg",
+            "hex": "#003D8F",
+            "source": "https://www.united-internet.de/en/newsroom/media-center/logos.html"
+        },
+        {
+            "name": "1Password",
+            "slug": "1password",
+            "file": "1password.svg",
+            "hex": "#145FE4",
+            "source": "https://1password.com/press"
+        },
+        {
+            "name": "3M",
+            "slug": "3m",
+            "file": "3m.svg",
+            "hex": "#FF0000",
+            "source": "https://www.3m.com"
+        },
+        {
+            "name": "7Zip",
+            "slug": "7zip",
+            "file": "7zip.svg",
+            "hex": "#000000",
+            "source": "https://commons.wikimedia.org/wiki/File:7ziplogo.svg"
+        },
+        {
+            "name": "99designs",
+            "slug": "99designs",
+            "file": "99designs.svg",
+            "hex": "#FE5F50",
+            "source": "https://99designs.com/branding"
+        },
+        {
+            "name": "ABB",
+            "slug": "abb",
+            "file": "abb.svg",
+            "hex": "#FF000F",
+            "source": "https://global.abb"
+        },
+        {
+            "name": "Abbott",
+            "slug": "abbott",
+            "file": "abbott.svg",
+            "hex": "#008FC7",
+            "source": "https://commons.wikimedia.org/wiki/File:Logo_Abbott_Laboratories.svg"
+        },
+        {
+            "name": "Abbvie",
+            "slug": "abbvie",
+            "file": "abbvie.svg",
+            "hex": "#071D49",
+            "source": "https://www.abbvie.com"
+        },
+        {
+            "name": "Accenture",
+            "slug": "accenture",
+            "file": "accenture.svg",
+            "hex": "#A100FF",
+            "source": "https://www.accenture.com"
+        },
+        {
+            "name": "Acer",
+            "slug": "acer",
+            "file": "acer.svg",
+            "hex": "#83B81A",
+            "source": "https://www.acer.com"
+        },
+        {
+            "name": "Activision",
+            "slug": "activision",
+            "file": "activision.svg",
+            "hex": "#000000",
+            "source": "https://www.activision.com"
+        },
+        {
+            "name": "Adafruit",
+            "slug": "adafruit",
+            "file": "adafruit.svg",
+            "hex": "#000000",
+            "source": "https://www.adafruit.com"
+        },
+        {
+            "name": "AdGuard",
+            "slug": "adguard",
+            "file": "adguard.svg",
+            "hex": "#68BC71",
+            "source": "https://adguard.com/en/media-materials.html"
+        },
+        {
+            "name": "Adidas",
+            "slug": "adidas",
+            "file": "adidas.svg",
+            "hex": "#000000",
+            "source": "https://www.adidas.com"
+        },
+        {
+            "name": "ADP",
+            "slug": "adp",
+            "file": "adp.svg",
+            "hex": "#D0271D",
+            "source": "https://www.adp.com"
+        },
+        {
+            "name": "Adyen",
+            "slug": "adyen",
+            "file": "adyen.svg",
+            "hex": "#0ABF53",
+            "source": "https://www.adyen.com/press-and-media/presskit"
+        },
+        {
+            "name": "Aeroflot",
+            "slug": "aeroflot",
+            "file": "aeroflot.svg",
+            "hex": "#02458D",
+            "source": "https://www.aeroflot.ru/ru-en/information/onboard/press"
+        },
+        {
+            "name": "Air Canada",
+            "slug": "aircanada",
+            "file": "aircanada.svg",
+            "hex": "#F01428",
+            "source": "https://www.aircanada.com"
+        },
+        {
+            "name": "Air China",
+            "slug": "airchina",
+            "file": "airchina.svg",
+            "hex": "#E30E17",
+            "source": "https://www.airchina.com.cn/en/investor_relations"
+        },
+        {
+            "name": "Air France",
+            "slug": "airfrance",
+            "file": "airfrance.svg",
+            "hex": "#002157",
+            "source": "https://www.airfrance.fr"
+        },
+        {
+            "name": "Air India",
+            "slug": "airindia",
+            "file": "airindia.svg",
+            "hex": "#DA0E29",
+            "source": "https://www.airindia.com"
+        },
+        {
+            "name": "Airbnb",
+            "slug": "airbnb",
+            "file": "airbnb.svg",
+            "hex": "#FF5A5F",
+            "source": "https://www.airbnb.com"
+        },
+        {
+            "name": "Airbus",
+            "slug": "airbus",
+            "file": "airbus.svg",
+            "hex": "#00205B",
+            "source": "https://brand.airbus.com/en/asset-library/airbus-logo"
+        },
+        {
+            "name": "Airtable",
+            "slug": "airtable",
+            "file": "airtable.svg",
+            "hex": "#18BFFF",
+            "source": "https://airtable.com/newsroom"
+        },
+        {
+            "name": "Akamai",
+            "slug": "akamai",
+            "file": "akamai.svg",
+            "hex": "#0096D6",
+            "source": "https://www.akamai.com"
+        },
+        {
+            "name": "Algolia",
+            "slug": "algolia",
+            "file": "algolia.svg",
+            "hex": "#003DFF",
+            "source": "https://algolia.frontify.com/d/1AZwVNcFZiu7/style-guide#/basics/algolia-logo"
+        },
+        {
+            "name": "Alibaba Cloud",
+            "slug": "alibabacloud",
+            "file": "alibabacloud.svg",
+            "hex": "#FF6A00",
+            "source": "https://www.alibabagroup.com/en/ir/reports"
+        },
+        {
+            "name": "Alibaba.com",
+            "slug": "alibabadotcom",
+            "file": "alibabadotcom.svg",
+            "hex": "#FF6A00",
+            "source": "https://www.alibabagroup.com/en/ir/reports"
+        },
+        {
+            "name": "AliExpress",
+            "slug": "aliexpress",
+            "file": "aliexpress.svg",
+            "hex": "#FF4747",
+            "source": "https://www.alibabagroup.com/en/ir/reports"
+        },
+        {
+            "name": "Alipay",
+            "slug": "alipay",
+            "file": "alipay.svg",
+            "hex": "#1677FF",
+            "source": "https://global.alipay.com/docs/ac/website_hk/design"
+        },
+        {
+            "name": "Allegro",
+            "slug": "allegro",
+            "file": "allegro.svg",
+            "hex": "#FF5A00",
+            "source": "https://allegro.pl"
+        },
+        {
+            "name": "Alwaysdata",
+            "slug": "alwaysdata",
+            "file": "alwaysdata.svg",
+            "hex": "#E9568E",
+            "source": "https://www.alwaysdata.com"
+        },
+        {
+            "name": "AMD",
+            "slug": "amd",
+            "file": "amd.svg",
+            "hex": "#ED1C24",
+            "source": "https://www.amd.com"
+        },
+        {
+            "name": "American Airlines",
+            "slug": "americanairlines",
+            "file": "americanairlines.svg",
+            "hex": "#0078D2",
+            "source": "https://news.aa.com"
+        },
+        {
+            "name": "American Express",
+            "slug": "americanexpress",
+            "file": "americanexpress.svg",
+            "hex": "#2E77BC",
+            "source": "https://commons.wikimedia.org/wiki/File:American_Express_logo_(2018).svg"
+        },
+        {
+            "name": "Anaconda",
+            "slug": "anaconda",
+            "file": "anaconda.svg",
+            "hex": "#44A833",
+            "source": "https://www.anaconda.com"
+        },
+        {
+            "name": "Android",
+            "slug": "android",
+            "file": "android.svg",
+            "hex": "#3DDC84",
+            "source": "https://partnermarketinghub.withgoogle.com/brands/android/visual-identity/visual-identity/logo-lock-ups"
+        },
+        {
+            "name": "Android Auto",
+            "slug": "androidauto",
+            "file": "androidauto.svg",
+            "hex": "#3DDC84",
+            "source": "https://thepartnermarketinghub.withgoogle.com/brands/android-auto"
+        },
+        {
+            "name": "Android Studio",
+            "slug": "androidstudio",
+            "file": "androidstudio.svg",
+            "hex": "#3DDC84",
+            "source": "https://developer.android.com/studio"
+        },
+        {
+            "name": "Angular",
+            "slug": "angular",
+            "file": "angular.svg",
+            "hex": "#0F0F11",
+            "source": "https://angular.dev/press-kit"
+        },
+        {
+            "name": "Ansible",
+            "slug": "ansible",
+            "file": "ansible.svg",
+            "hex": "#EE0000",
+            "source": "https://www.ansible.com/logos"
+        },
+        {
+            "name": "Ant Design",
+            "slug": "antdesign",
+            "file": "antdesign.svg",
+            "hex": "#0170FE",
+            "source": "https://ant.design"
+        },
+        {
+            "name": "Anthropic",
+            "slug": "anthropic",
+            "file": "anthropic.svg",
+            "hex": "#191919",
+            "source": "https://www.anthropic.com"
+        },
+        {
+            "name": "Apache",
+            "slug": "apache",
+            "file": "apache.svg",
+            "hex": "#D22128",
+            "source": "https://www.apache.org/foundation/press/kit"
+        },
+        {
+            "name": "Apache Airflow",
+            "slug": "apacheairflow",
+            "file": "apacheairflow.svg",
+            "hex": "#017CEE",
+            "source": "https://apache.org/logos"
+        },
+        {
+            "name": "Apache Cassandra",
+            "slug": "apachecassandra",
+            "file": "apachecassandra.svg",
+            "hex": "#1287B1",
+            "source": "https://www.apache.org/logos"
+        },
+        {
+            "name": "Apache CloudStack",
+            "slug": "apachecloudstack",
+            "file": "apachecloudstack.svg",
+            "hex": "#2AA5DC",
+            "source": "https://apache.org/logos"
+        },
+        {
+            "name": "Apache Cordova",
+            "slug": "apachecordova",
+            "file": "apachecordova.svg",
+            "hex": "#E8E8E8",
+            "source": "https://cordova.apache.org/artwork"
+        },
+        {
+            "name": "Apache CouchDB",
+            "slug": "apachecouchdb",
+            "file": "apachecouchdb.svg",
+            "hex": "#E42528",
+            "source": "https://apache.org/logos"
+        },
+        {
+            "name": "Apache Flink",
+            "slug": "apacheflink",
+            "file": "apacheflink.svg",
+            "hex": "#E6526F",
+            "source": "https://apache.org/logos"
+        },
+        {
+            "name": "Apache Hadoop",
+            "slug": "apachehadoop",
+            "file": "apachehadoop.svg",
+            "hex": "#66CCFF",
+            "source": "https://apache.org/logos"
+        },
+        {
+            "name": "Apache Hive",
+            "slug": "apachehive",
+            "file": "apachehive.svg",
+            "hex": "#FDEE21",
+            "source": "https://apache.org/logos"
+        },
+        {
+            "name": "Apache Kafka",
+            "slug": "apachekafka",
+            "file": "apachekafka.svg",
+            "hex": "#231F20",
+            "source": "https://apache.org/logos"
+        },
+        {
+            "name": "Apache Maven",
+            "slug": "apachemaven",
+            "file": "apachemaven.svg",
+            "hex": "#C71A36",
+            "source": "https://apache.org/logos"
+        },
+        {
+            "name": "Apache OpenOffice",
+            "slug": "apacheopenoffice",
+            "file": "apacheopenoffice.svg",
+            "hex": "#0E85CD",
+            "source": "https://apache.org/logos"
+        },
+        {
+            "name": "Apache Spark",
+            "slug": "apachespark",
+            "file": "apachespark.svg",
+            "hex": "#E25A1C",
+            "source": "https://apache.org/logos"
+        },
+        {
+            "name": "Apache Tomcat",
+            "slug": "apachetomcat",
+            "file": "apachetomcat.svg",
+            "hex": "#F8DC75",
+            "source": "https://apache.org/logos"
+        },
+        {
+            "name": "AppGallery",
+            "slug": "appgallery",
+            "file": "appgallery.svg",
+            "hex": "#FF0000",
+            "source": "https://appgallery.huawei.com"
+        },
+        {
+            "name": "Apple",
+            "slug": "apple",
+            "file": "apple.svg",
+            "hex": "#000000",
+            "source": "https://www.apple.com"
+        },
+        {
+            "name": "Apple Music",
+            "slug": "applemusic",
+            "file": "applemusic.svg",
+            "hex": "#FA243C",
+            "source": "https://www.apple.com/itunes/marketing-on-music/identity-guidelines.html#apple-music-icon"
+        },
+        {
+            "name": "Apple Pay",
+            "slug": "applepay",
+            "file": "applepay.svg",
+            "hex": "#000000",
+            "source": "https://developer.apple.com/apple-pay/marketing"
+        },
+        {
+            "name": "Apple Podcasts",
+            "slug": "applepodcasts",
+            "file": "applepodcasts.svg",
+            "hex": "#9933CC",
+            "source": "https://www.apple.com/itunes/marketing-on-podcasts/identity-guidelines.html#apple-podcasts-icon"
+        },
+        {
+            "name": "Apple TV",
+            "slug": "appletv",
+            "file": "appletv.svg",
+            "hex": "#000000",
+            "source": "https://en.wikipedia.org/wiki/File:Apple_TV_(logo).svg"
+        },
+        {
+            "name": "Arch Linux",
+            "slug": "archlinux",
+            "file": "archlinux.svg",
+            "hex": "#1793D1",
+            "source": "https://www.archlinux.org/art"
+        },
+        {
+            "name": "Arduino",
+            "slug": "arduino",
+            "file": "arduino.svg",
+            "hex": "#00878F",
+            "source": "https://www.arduino.cc"
+        },
+        {
+            "name": "Argo",
+            "slug": "argo",
+            "file": "argo.svg",
+            "hex": "#EF7B4D",
+            "source": "https://github.com/cncf/artwork/blob/c2e619cdf85e8bac090ceca7c0834c5cfedf9426/projects/argo/icon/black/argo-icon-black.svg"
+        },
+        {
+            "name": "Asana",
+            "slug": "asana",
+            "file": "asana.svg",
+            "hex": "#F06A6A",
+            "source": "https://asana.com/brand"
+        },
+        {
+            "name": "Astro",
+            "slug": "astro",
+            "file": "astro.svg",
+            "hex": "#BC52EE",
+            "source": "https://astro.build/press"
+        },
+        {
+            "name": "ASUS",
+            "slug": "asus",
+            "file": "asus.svg",
+            "hex": "#000000",
+            "source": "https://www.asus.com"
+        },
+        {
+            "name": "Atlassian",
+            "slug": "atlassian",
+            "file": "atlassian.svg",
+            "hex": "#0052CC",
+            "source": "https://atlassian.design/resources/logo-library"
+        },
+        {
+            "name": "Audi",
+            "slug": "audi",
+            "file": "audi.svg",
+            "hex": "#BB0A30",
+            "source": "https://www.audi.com/ci/en/intro/basics/rings.html"
+        },
+        {
+            "name": "Auth0",
+            "slug": "auth0",
+            "file": "auth0.svg",
+            "hex": "#EB5424",
+            "source": "https://auth0.com"
+        },
+        {
+            "name": "Autodesk",
+            "slug": "autodesk",
+            "file": "autodesk.svg",
+            "hex": "#000000",
+            "source": "https://brand.autodesk.com/brand-system/logo"
+        },
+        {
+            "name": "Avast",
+            "slug": "avast",
+            "file": "avast.svg",
+            "hex": "#FF7800",
+            "source": "https://press.avast.com/media-materials#logos-and-brand-guidelines"
+        },
+        {
+            "name": "Awesome Lists",
+            "slug": "awesomelists",
+            "file": "awesomelists.svg",
+            "hex": "#FC60A8",
+            "source": "https://github.com/sindresorhus/awesome/tree/52b6dbacde01c2595f2133a5378cb8d2f89906fa/media/logo.svg"
+        },
+        {
+            "name": "Babel",
+            "slug": "babel",
+            "file": "babel.svg",
+            "hex": "#F9DC3E",
+            "source": "https://github.com/babel/website/blob/93330158b6ecca1ab88d3be8dbf661f5c2da6c76/website/static/img/babel-black.svg"
+        },
+        {
+            "name": "Backblaze",
+            "slug": "backblaze",
+            "file": "backblaze.svg",
+            "hex": "#E21E29",
+            "source": "https://www.backblaze.com/company/news.html"
+        },
+        {
+            "name": "Baidu",
+            "slug": "baidu",
+            "file": "baidu.svg",
+            "hex": "#2932E1",
+            "source": "https://www.baidu.com"
+        },
+        {
+            "name": "Bandcamp",
+            "slug": "bandcamp",
+            "file": "bandcamp.svg",
+            "hex": "#408294",
+            "source": "https://bandcamp.com/buttons"
+        },
+        {
+            "name": "Beats by Dre",
+            "slug": "beatsbydre",
+            "file": "beatsbydre.svg",
+            "hex": "#E01F3D",
+            "source": "https://www.beatsbydre.com"
+        },
+        {
+            "name": "Bitbucket",
+            "slug": "bitbucket",
+            "file": "bitbucket.svg",
+            "hex": "#0052CC",
+            "source": "https://atlassian.design/resources/logo-library"
+        },
+        {
+            "name": "Bitcoin",
+            "slug": "bitcoin",
+            "file": "bitcoin.svg",
+            "hex": "#F7931A",
+            "source": "https://bitcoin.org"
+        },
+        {
+            "name": "Bitdefender",
+            "slug": "bitdefender",
+            "file": "bitdefender.svg",
+            "hex": "#ED1C24",
+            "source": "https://brand.bitdefender.com"
+        },
+        {
+            "name": "Bitly",
+            "slug": "bitly",
+            "file": "bitly.svg",
+            "hex": "#EE6123",
+            "source": "https://bitly.com/pages/press"
+        },
+        {
+            "name": "Bitrise",
+            "slug": "bitrise",
+            "file": "bitrise.svg",
+            "hex": "#683D87",
+            "source": "https://www.bitrise.io/presskit"
+        },
+        {
+            "name": "Bitwarden",
+            "slug": "bitwarden",
+            "file": "bitwarden.svg",
+            "hex": "#175DDC",
+            "source": "https://bitwarden.com/brand"
+        },
+        {
+            "name": "Blackberry",
+            "slug": "blackberry",
+            "file": "blackberry.svg",
+            "hex": "#000000",
+            "source": "https://www.blackberry.com"
+        },
+        {
+            "name": "Blender",
+            "slug": "blender",
+            "file": "blender.svg",
+            "hex": "#E87D0D",
+            "source": "https://www.blender.org/about/logo"
+        },
+        {
+            "name": "Blogger",
+            "slug": "blogger",
+            "file": "blogger.svg",
+            "hex": "#FF5722",
+            "source": "https://www.blogger.com"
+        },
+        {
+            "name": "Bluetooth",
+            "slug": "bluetooth",
+            "file": "bluetooth.svg",
+            "hex": "#0082FC",
+            "source": "https://www.bluetooth.com/develop-with-bluetooth/marketing-branding"
+        },
+        {
+            "name": "BMW",
+            "slug": "bmw",
+            "file": "bmw.svg",
+            "hex": "#0066B1",
+            "source": "https://bmw.com"
+        },
+        {
+            "name": "Boeing",
+            "slug": "boeing",
+            "file": "boeing.svg",
+            "hex": "#1D439C",
+            "source": "https://commons.wikimedia.org/wiki/File:Boeing_full_logo.svg"
+        },
+        {
+            "name": "Booking.com",
+            "slug": "bookingdotcom",
+            "file": "bookingdotcom.svg",
+            "hex": "#003A9A",
+            "source": "https://www.bookingholdings.com/media-room"
+        },
+        {
+            "name": "Bootstrap",
+            "slug": "bootstrap",
+            "file": "bootstrap.svg",
+            "hex": "#7952B3",
+            "source": "https://getbootstrap.com/docs/5.3/about/brand"
+        },
+        {
+            "name": "Bosch",
+            "slug": "bosch",
+            "file": "bosch.svg",
+            "hex": "#EA0016",
+            "source": "https://www.bosch.de"
+        },
+        {
+            "name": "Brave",
+            "slug": "brave",
+            "file": "brave.svg",
+            "hex": "#FB542B",
+            "source": "https://brave.com/brave-branding-assets"
+        },
+        {
+            "name": "Broadcom",
+            "slug": "broadcom",
+            "file": "broadcom.svg",
+            "hex": "#E31837",
+            "source": "https://www.broadcom.com/support"
+        },
+        {
+            "name": "Bruno",
+            "slug": "bruno",
+            "file": "bruno.svg",
+            "hex": "#F4AA41",
+            "source": "https://www.usebruno.com"
+        },
+        {
+            "name": "BT",
+            "slug": "bt",
+            "file": "bt.svg",
+            "hex": "#6400AA",
+            "source": "https://www.bt.com"
+        },
+        {
+            "name": "Buffer",
+            "slug": "buffer",
+            "file": "buffer.svg",
+            "hex": "#231F20",
+            "source": "https://buffer.com"
+        },
+        {
+            "name": "Bugatti",
+            "slug": "bugatti",
+            "file": "bugatti.svg",
+            "hex": "#000000",
+            "source": "https://newsroom.bugatti.com"
+        },
+        {
+            "name": "Bugcrowd",
+            "slug": "bugcrowd",
+            "file": "bugcrowd.svg",
+            "hex": "#F26822",
+            "source": "https://www.bugcrowd.com/about/press-kit"
+        },
+        {
+            "name": "Bun",
+            "slug": "bun",
+            "file": "bun.svg",
+            "hex": "#000000",
+            "source": "https://bun.sh/press-kit"
+        },
+        {
+            "name": "Burger King",
+            "slug": "burgerking",
+            "file": "burgerking.svg",
+            "hex": "#D62300",
+            "source": "https://www.bk.com"
+        },
+        {
+            "name": "Buy Me A Coffee",
+            "slug": "buymeacoffee",
+            "file": "buymeacoffee.svg",
+            "hex": "#FFDD00",
+            "source": "https://www.buymeacoffee.com/brand"
+        },
+        {
+            "name": "ByteDance",
+            "slug": "bytedance",
+            "file": "bytedance.svg",
+            "hex": "#3C8CFF",
+            "source": "https://www.bytedance.com"
+        },
+        {
+            "name": "C",
+            "slug": "c",
+            "file": "c.svg",
+            "hex": "#A8B9CC",
+            "source": "https://commons.wikimedia.org/wiki/File:The_C_Programming_Language_logo.svg"
+        },
+        {
+            "name": "C++",
+            "slug": "cplusplus",
+            "file": "cplusplus.svg",
+            "hex": "#00599C",
+            "source": "https://github.com/isocpp/logos/tree/64ef037049f87ac74875dbe72695e59118b52186"
+        },
+        {
+            "name": "Cachet",
+            "slug": "cachet",
+            "file": "cachet.svg",
+            "hex": "#7ED321",
+            "source": "https://cachethq.io/press"
+        },
+        {
+            "name": "Calendly",
+            "slug": "calendly",
+            "file": "calendly.svg",
+            "hex": "#006BFF",
+            "source": "https://calendly.com/newsroom"
+        },
+        {
+            "name": "Carrefour",
+            "slug": "carrefour",
+            "file": "carrefour.svg",
+            "hex": "#004E9F",
+            "source": "https://en.wikipedia.org/wiki/File:Carrefour_logo_no_tag.svg"
+        },
+        {
+            "name": "Celery",
+            "slug": "celery",
+            "file": "celery.svg",
+            "hex": "#37814A",
+            "source": "https://github.com/celery/celery/blob/4d77ddddb10797011dc10dd2e4e1e7a7467b8431/docs/images/favicon.ico"
+        },
+        {
+            "name": "CentOS",
+            "slug": "centos",
+            "file": "centos.svg",
+            "hex": "#262577",
+            "source": "https://wiki.centos.org/ArtWork/Brand/Logo"
+        },
+        {
+            "name": "Charles",
+            "slug": "charles",
+            "file": "charles.svg",
+            "hex": "#F3F5F5",
+            "source": "https://www.charlesproxy.com"
+        },
+        {
+            "name": "Checkmarx",
+            "slug": "checkmarx",
+            "file": "checkmarx.svg",
+            "hex": "#54B848",
+            "source": "https://www.checkmarx.com/resources/datasheets/"
+        },
+        {
+            "name": "Circle",
+            "slug": "circle",
+            "file": "circle.svg",
+            "hex": "#8669AE",
+            "source": "https://www.circle.com"
+        },
+        {
+            "name": "CircleCI",
+            "slug": "circleci",
+            "file": "circleci.svg",
+            "hex": "#343434",
+            "source": "https://circleci.com/press"
+        },
+        {
+            "name": "Cisco",
+            "slug": "cisco",
+            "file": "cisco.svg",
+            "hex": "#1BA0D7",
+            "source": "https://www.cisco.com"
+        },
+        {
+            "name": "Clarifai",
+            "slug": "clarifai",
+            "file": "clarifai.svg",
+            "hex": "#1955FF",
+            "source": "https://www.clarifai.com"
+        },
+        {
+            "name": "ClickHouse",
+            "slug": "clickhouse",
+            "file": "clickhouse.svg",
+            "hex": "#FFCC01",
+            "source": "https://github.com/ClickHouse/ClickHouse/blob/12bd453a43819176d25ecf247033f6cb1af54beb/website/images/logo-clickhouse.svg"
+        },
+        {
+            "name": "CLion",
+            "slug": "clion",
+            "file": "clion.svg",
+            "hex": "#000000",
+            "source": "https://www.jetbrains.com/company/brand/logos/"
+        },
+        {
+            "name": "Clockify",
+            "slug": "clockify",
+            "file": "clockify.svg",
+            "hex": "#03A9F4",
+            "source": "https://clockify.me/brand-assets"
+        },
+        {
+            "name": "Cloud 66",
+            "slug": "cloud66",
+            "file": "cloud66.svg",
+            "hex": "#3C72B9",
+            "source": "https://www.cloud66.com"
+        },
+        {
+            "name": "Cloudflare",
+            "slug": "cloudflare",
+            "file": "cloudflare.svg",
+            "hex": "#F38020",
+            "source": "https://www.cloudflare.com/logo/"
+        },
+        {
+            "name": "Cloudinary",
+            "slug": "cloudinary",
+            "file": "cloudinary.svg",
+            "hex": "#3448C5",
+            "source": "https://cloudinary.com"
+        },
+        {
+            "name": "CMake",
+            "slug": "cmake",
+            "file": "cmake.svg",
+            "hex": "#064F8C",
+            "source": "https://www.kitware.com/platforms/"
+        },
+        {
+            "name": "CNN",
+            "slug": "cnn",
+            "file": "cnn.svg",
+            "hex": "#CC0000",
+            "source": "https://edition.cnn.com"
+        },
+        {
+            "name": "Code Climate",
+            "slug": "codeclimate",
+            "file": "codeclimate.svg",
+            "hex": "#000000",
+            "source": "https://codeclimate.com/github/codeclimate/python-test-reporter/badges/"
+        },
+        {
+            "name": "Codeberg",
+            "slug": "codeberg",
+            "file": "codeberg.svg",
+            "hex": "#2185D0",
+            "source": "https://codeberg.org/Codeberg/Design/src/commit/ac514aa9aaa2457d4af3c3e13df3ab136d22a49a/logo/special/codeberg-logo_special_fake-transaprency.svg"
+        },
+        {
+            "name": "Codecademy",
+            "slug": "codecademy",
+            "file": "codecademy.svg",
+            "hex": "#1F4056",
+            "source": "https://www.codecademy.com"
+        },
+        {
+            "name": "CodeChef",
+            "slug": "codechef",
+            "file": "codechef.svg",
+            "hex": "#5B4638",
+            "source": "https://www.codechef.com"
+        },
+        {
+            "name": "Codecov",
+            "slug": "codecov",
+            "file": "codecov.svg",
+            "hex": "#F01F7A",
+            "source": "https://codecov.io"
+        },
+        {
+            "name": "Codeforces",
+            "slug": "codeforces",
+            "file": "codeforces.svg",
+            "hex": "#1F8ACB",
+            "source": "https://codeforces.com"
+        },
+        {
+            "name": "CodeIgniter",
+            "slug": "codeigniter",
+            "file": "codeigniter.svg",
+            "hex": "#EF4223",
+            "source": "https://www.codeigniter.com/help/legal"
+        },
+        {
+            "name": "CodeSandbox",
+            "slug": "codesandbox",
+            "file": "codesandbox.svg",
+            "hex": "#151515",
+            "source": "https://codesandbox.io/CodeSandbox-Press-Kit.zip"
+        },
+        {
+            "name": "CoffeeScript",
+            "slug": "coffeescript",
+            "file": "coffeescript.svg",
+            "hex": "#2F2625",
+            "source": "https://coffeescript.org"
+        },
+        {
+            "name": "Coinbase",
+            "slug": "coinbase",
+            "file": "coinbase.svg",
+            "hex": "#0052FF",
+            "source": "https://www.coinbase.com/press"
+        },
+        {
+            "name": "Composer",
+            "slug": "composer",
+            "file": "composer.svg",
+            "hex": "#885630",
+            "source": "https://getcomposer.org"
+        },
+        {
+            "name": "Confluence",
+            "slug": "confluence",
+            "file": "confluence.svg",
+            "hex": "#172B4D",
+            "source": "https://www.atlassian.com/company/news/press-kit"
+        },
+        {
+            "name": "Consul",
+            "slug": "consul",
+            "file": "consul.svg",
+            "hex": "#F24C53",
+            "source": "https://www.hashicorp.com/brand"
+        },
+        {
+            "name": "Crunchyroll",
+            "slug": "crunchyroll",
+            "file": "crunchyroll.svg",
+            "hex": "#FF5E00",
+            "source": "https://www.crunchyroll.com"
+        },
+        {
+            "name": "Cryptomator",
+            "slug": "cryptomator",
+            "file": "cryptomator.svg",
+            "hex": "#49B04A",
+            "source": "https://github.com/cryptomator/docs/blob/795a5a414b7e848cbfd4502a4ff63cfdb3adfb15/source/img/logo-mono-white.svg"
+        },
+        {
+            "name": "CSS",
+            "slug": "css",
+            "file": "css.svg",
+            "hex": "#663399",
+            "source": "https://github.com/CSS-Next/logo.css/blob/bacc20878227204b283c68a6b935f8279e06b0cd/css.svg"
+        },
+        {
+            "name": "curl",
+            "slug": "curl",
+            "file": "curl.svg",
+            "hex": "#073551",
+            "source": "https://curl.haxx.se/logo/"
+        },
+        {
+            "name": "D3",
+            "slug": "d3",
+            "file": "d3.svg",
+            "hex": "#F9A03C",
+            "source": "https://github.com/d3/d3-logo/tree/6d9c471aa852033501d00ca63fe73d9f8be82d1d"
+        },
+        {
+            "name": "Dacia",
+            "slug": "dacia",
+            "file": "dacia.svg",
+            "hex": "#646B52",
+            "source": "https://commons.wikimedia.org/wiki/File:Dacia-Logo-2021.svg"
+        },
+        {
+            "name": "Dailymotion",
+            "slug": "dailymotion",
+            "file": "dailymotion.svg",
+            "hex": "#0A0A0A",
+            "source": "https://careers.dailymotion.com"
+        },
+        {
+            "name": "daisyUI",
+            "slug": "daisyui",
+            "file": "daisyui.svg",
+            "hex": "#FFC63A",
+            "source": "https://daisyui.com/brand"
+        },
+        {
+            "name": "Databricks",
+            "slug": "databricks",
+            "file": "databricks.svg",
+            "hex": "#FF3621",
+            "source": "https://www.databricks.com"
+        },
+        {
+            "name": "Datadog",
+            "slug": "datadog",
+            "file": "datadog.svg",
+            "hex": "#632CA6",
+            "source": "https://www.datadoghq.com/about/resources"
+        },
+        {
+            "name": "DataGrip",
+            "slug": "datagrip",
+            "file": "datagrip.svg",
+            "hex": "#000000",
+            "source": "https://www.jetbrains.com/company/brand/logos/"
+        },
+        {
+            "name": "DBeaver",
+            "slug": "dbeaver",
+            "file": "dbeaver.svg",
+            "hex": "#382923",
+            "source": "https://dbeaver.com"
+        },
+        {
+            "name": "Debian",
+            "slug": "debian",
+            "file": "debian.svg",
+            "hex": "#A81D33",
+            "source": "https://www.debian.org/logos"
+        },
+        {
+            "name": "DeepL",
+            "slug": "deepl",
+            "file": "deepl.svg",
+            "hex": "#0F2B46",
+            "source": "https://www.deepl.com/press.html"
+        },
+        {
+            "name": "Deliveroo",
+            "slug": "deliveroo",
+            "file": "deliveroo.svg",
+            "hex": "#00CCBC",
+            "source": "https://deliveroo.com"
+        },
+        {
+            "name": "Dell",
+            "slug": "dell",
+            "file": "dell.svg",
+            "hex": "#007DB8",
+            "source": "https://www.dell.com"
+        },
+        {
+            "name": "Deno",
+            "slug": "deno",
+            "file": "deno.svg",
+            "hex": "#000000",
+            "source": "https://github.com/denoland/docs/blob/5dee713844c7447f80acd4093caa9d350d80bf36/static/img/logo.svg"
+        },
+        {
+            "name": "dev.to",
+            "slug": "devdotto",
+            "file": "devdotto.svg",
+            "hex": "#0A0A0A",
+            "source": "https://dev.to"
+        },
+        {
+            "name": "DHL",
+            "slug": "dhl",
+            "file": "dhl.svg",
+            "hex": "#FFCC00",
+            "source": "https://www.dpdhl-brands.com/dhl/en/guides/design-basics/logo-and-claim.html"
+        },
+        {
+            "name": "DigitalOcean",
+            "slug": "digitalocean",
+            "file": "digitalocean.svg",
+            "hex": "#0080FF",
+            "source": "https://www.digitalocean.com/press/"
+        },
+        {
+            "name": "Directus",
+            "slug": "directus",
+            "file": "directus.svg",
+            "hex": "#263238",
+            "source": "https://directus.io"
+        },
+        {
+            "name": "Discord",
+            "slug": "discord",
+            "file": "discord.svg",
+            "hex": "#5865F2",
+            "source": "https://discord.com/branding"
+        },
+        {
+            "name": "Django",
+            "slug": "django",
+            "file": "django.svg",
+            "hex": "#092E20",
+            "source": "https://www.djangoproject.com/community/logos/"
+        },
+        {
+            "name": "Docker",
+            "slug": "docker",
+            "file": "docker.svg",
+            "hex": "#2496ED",
+            "source": "https://www.docker.com/company/newsroom/media-resources"
+        },
+        {
+            "name": "Douban",
+            "slug": "douban",
+            "file": "douban.svg",
+            "hex": "#2D963D",
+            "source": "https://www.douban.com/about"
+        },
+        {
+            "name": "Dribbble",
+            "slug": "dribbble",
+            "file": "dribbble.svg",
+            "hex": "#EA4C89",
+            "source": "https://dribbble.com/branding"
+        },
+        {
+            "name": "Dropbox",
+            "slug": "dropbox",
+            "file": "dropbox.svg",
+            "hex": "#0061FF",
+            "source": "https://www.dropbox.com/branding"
+        },
+        {
+            "name": "DuckDB",
+            "slug": "duckdb",
+            "file": "duckdb.svg",
+            "hex": "#FFF000",
+            "source": "https://duckdb.org"
+        },
+        {
+            "name": "DuckDuckGo",
+            "slug": "duckduckgo",
+            "file": "duckduckgo.svg",
+            "hex": "#DE5833",
+            "source": "https://github.com/duckduckgo/duckduckgo-privacy-extension/blob/5c6ac8d6a07421adbfb97ee2ff855dd7655f8d71/shared/img/logo-small-grayscale.svg"
+        },
+        {
+            "name": "Dungeons & Dragons",
+            "slug": "dungeonsanddragons",
+            "file": "dungeonsanddragons.svg",
+            "hex": "#ED1C24",
+            "source": "https://dnd.wizards.com/articles/features/basicrules"
+        },
+        {
+            "name": "eBay",
+            "slug": "ebay",
+            "file": "ebay.svg",
+            "hex": "#E53238",
+            "source": "https://go.developer.ebay.com/logos"
+        },
+        {
+            "name": "Eclipse Adoptium",
+            "slug": "eclipseadoptium",
+            "file": "eclipseadoptium.svg",
+            "hex": "#FF1464",
+            "source": "https://www.eclipse.org/org/artwork/"
+        },
+        {
+            "name": "Eclipse IDE",
+            "slug": "eclipseide",
+            "file": "eclipseide.svg",
+            "hex": "#2C2255",
+            "source": "https://www.eclipse.org/artwork/"
+        },
+        {
+            "name": "Elastic",
+            "slug": "elastic",
+            "file": "elastic.svg",
+            "hex": "#005571",
+            "source": "https://www.elastic.co/brand"
+        },
+        {
+            "name": "Electron",
+            "slug": "electron",
+            "file": "electron.svg",
+            "hex": "#47848F",
+            "source": "https://www.electronjs.org"
+        },
+        {
+            "name": "Element",
+            "slug": "element",
+            "file": "element.svg",
+            "hex": "#0DBD8B",
+            "source": "https://element.io"
+        },
+        {
+            "name": "ElevenLabs",
+            "slug": "elevenlabs",
+            "file": "elevenlabs.svg",
+            "hex": "#000000",
+            "source": "https://elevenlabs.io/brand"
+        },
+        {
+            "name": "Elgato",
+            "slug": "elgato",
+            "file": "elgato.svg",
+            "hex": "#101010",
+            "source": "https://www.elgato.com/en/media-room"
+        },
+        {
+            "name": "Elixir",
+            "slug": "elixir",
+            "file": "elixir.svg",
+            "hex": "#4B275F",
+            "source": "https://github.com/elixir-lang/elixir-lang.github.com/tree/031746384ee23b9be19298c92a9699c56cc05845/images/logo"
+        },
+        {
+            "name": "Elm",
+            "slug": "elm",
+            "file": "elm.svg",
+            "hex": "#1293D8",
+            "source": "https://github.com/elm/foundation.elm-lang.org/blob/2d097b317d8af2aaeab49284830260a32d817305/assets/elm_logo.svg"
+        },
+        {
+            "name": "Elsevier",
+            "slug": "elsevier",
+            "file": "elsevier.svg",
+            "hex": "#FF6C00",
+            "source": "https://www.elsevier.com"
+        },
+        {
+            "name": "Embarcadero",
+            "slug": "embarcadero",
+            "file": "embarcadero.svg",
+            "hex": "#ED1F35",
+            "source": "https://www.embarcadero.com/news/logo"
+        },
+        {
+            "name": "Emby",
+            "slug": "emby",
+            "file": "emby.svg",
+            "hex": "#52B54B",
+            "source": "https://emby.media"
+        },
+        {
+            "name": "Epic Games",
+            "slug": "epicgames",
+            "file": "epicgames.svg",
+            "hex": "#313131",
+            "source": "https://dev.epicgames.com/docs/services/en-US/EpicAccountServices/DesignGuidelines/index.html#epicgamesbrandguidelines"
+        },
+        {
+            "name": "Ericsson",
+            "slug": "ericsson",
+            "file": "ericsson.svg",
+            "hex": "#0082F0",
+            "source": "https://www.ericsson.com/en/newsroom/media-kits/logo"
+        },
+        {
+            "name": "esbuild",
+            "slug": "esbuild",
+            "file": "esbuild.svg",
+            "hex": "#FFCF00",
+            "source": "https://github.com/evanw/esbuild/blob/ac542f913908d7326b65eb2e01f0559ed135a40e/images/logo.svg"
+        },
+        {
+            "name": "ESLint",
+            "slug": "eslint",
+            "file": "eslint.svg",
+            "hex": "#4B32C3",
+            "source": "https://eslint.org"
+        },
+        {
+            "name": "Espressif",
+            "slug": "espressif",
+            "file": "espressif.svg",
+            "hex": "#E7352C",
+            "source": "https://www.espressif.com"
+        },
+        {
+            "name": "Etsy",
+            "slug": "etsy",
+            "file": "etsy.svg",
+            "hex": "#F16521",
+            "source": "https://www.etsy.com/uk/press"
+        },
+        {
+            "name": "Evernote",
+            "slug": "evernote",
+            "file": "evernote.svg",
+            "hex": "#00A82D",
+            "source": "https://evernote.com/about-us"
+        },
+        {
+            "name": "Exercism",
+            "slug": "exercism",
+            "file": "exercism.svg",
+            "hex": "#009CAB",
+            "source": "https://github.com/exercism/website-icons/blob/2ad12baa465acfaa74efc5da27a6a12f8b05e3d0/exercism/logo-icon.svg"
+        },
+        {
+            "name": "Express",
+            "slug": "express",
+            "file": "express.svg",
+            "hex": "#0A0A0A",
+            "source": "https://github.com/openjs-foundation/artwork/blob/3816245ebbf4707bdafde748350ac8476b6b5b62/projects/express/express-icon-black.svg"
+        },
+        {
+            "name": "Facebook",
+            "slug": "facebook",
+            "file": "facebook.svg",
+            "hex": "#0866FF",
+            "source": "https://about.meta.com/brand/resources/facebook/logo"
+        },
+        {
+            "name": "FastAPI",
+            "slug": "fastapi",
+            "file": "fastapi.svg",
+            "hex": "#009688",
+            "source": "https://github.com/tiangolo/fastapi/blob/ffb4f77a11f83132b521ba0aac6c95792c19e797/docs/en/docs/img/icon-white.svg"
+        },
+        {
+            "name": "Fastly",
+            "slug": "fastly",
+            "file": "fastly.svg",
+            "hex": "#FF282D",
+            "source": "https://assets.fastly.com/style-guide/docs/"
+        },
+        {
+            "name": "FedEx",
+            "slug": "fedex",
+            "file": "fedex.svg",
+            "hex": "#4D148C",
+            "source": "https://newsroom.fedex.com"
+        },
+        {
+            "name": "Ferrari",
+            "slug": "ferrari",
+            "file": "ferrari.svg",
+            "hex": "#D40000",
+            "source": "https://www.ferrari.com"
+        },
+        {
+            "name": "Ferrari N.V.",
+            "slug": "ferrarinv",
+            "file": "ferrarinv.svg",
+            "hex": "#EB2E2C",
+            "source": "https://corporate.ferrari.com"
+        },
+        {
+            "name": "Fiat",
+            "slug": "fiat",
+            "file": "fiat.svg",
+            "hex": "#941711",
+            "source": "https://www.fcaci.com/x/FIATv15"
+        },
+        {
+            "name": "Fido Alliance",
+            "slug": "fidoalliance",
+            "file": "fidoalliance.svg",
+            "hex": "#FFBF3B",
+            "source": "https://fidoalliance.org/overview/legal/logo-usage/"
+        },
+        {
+            "name": "Figma",
+            "slug": "figma",
+            "file": "figma.svg",
+            "hex": "#F24E1E",
+            "source": "https://www.figma.com/using-the-figma-brand/"
+        },
+        {
+            "name": "FileZilla",
+            "slug": "filezilla",
+            "file": "filezilla.svg",
+            "hex": "#BF0000",
+            "source": "https://commons.wikimedia.org/wiki/File:FileZilla_logo.svg"
+        },
+        {
+            "name": "Firebase",
+            "slug": "firebase",
+            "file": "firebase.svg",
+            "hex": "#DD2C00",
+            "source": "https://firebase.google.com/brand-guidelines"
+        },
+        {
+            "name": "Firefox",
+            "slug": "firefox",
+            "file": "firefox.svg",
+            "hex": "#FF7139",
+            "source": "https://mozilla.design/firefox/logos-usage/"
+        },
+        {
+            "name": "Flask",
+            "slug": "flask",
+            "file": "flask.svg",
+            "hex": "#3BABC3",
+            "source": "https://github.com/pallets/flask/blob/85c5d93cbd049c4bd0679c36fd1ddcae8c37b642/docs/_static/flask-icon.svg"
+        },
+        {
+            "name": "Flatpak",
+            "slug": "flatpak",
+            "file": "flatpak.svg",
+            "hex": "#4A90D9",
+            "source": "https://flatpak.org/press"
+        },
+        {
+            "name": "Flickr",
+            "slug": "flickr",
+            "file": "flickr.svg",
+            "hex": "#0063DC",
+            "source": "https://www.flickr.com"
+        },
+        {
+            "name": "Fluent Bit",
+            "slug": "fluentbit",
+            "file": "fluentbit.svg",
+            "hex": "#49BDA5",
+            "source": "https://github.com/fluent/fluent-bit/blob/cdb35721d06242d66a729656282831ccd1589ca2/snap/fluent-bit.svg"
+        },
+        {
+            "name": "Flutter",
+            "slug": "flutter",
+            "file": "flutter.svg",
+            "hex": "#02569B",
+            "source": "https://flutter.dev/brand"
+        },
+        {
+            "name": "Fly.io",
+            "slug": "flydotio",
+            "file": "flydotio.svg",
+            "hex": "#24175B",
+            "source": "https://fly.io/docs/about/brand"
+        },
+        {
+            "name": "FMOD",
+            "slug": "fmod",
+            "file": "fmod.svg",
+            "hex": "#000000",
+            "source": "https://www.fmod.com/attribution"
+        },
+        {
+            "name": "Ford",
+            "slug": "ford",
+            "file": "ford.svg",
+            "hex": "#00274E",
+            "source": "https://secure.ford.com/brochures/"
+        },
+        {
+            "name": "Foursquare",
+            "slug": "foursquare",
+            "file": "foursquare.svg",
+            "hex": "#3333FF",
+            "source": "https://foursquare.com/brand/"
+        },
+        {
+            "name": "FreeBSD",
+            "slug": "freebsd",
+            "file": "freebsd.svg",
+            "hex": "#AB2B28",
+            "source": "https://www.freebsdfoundation.org/about/project/"
+        },
+        {
+            "name": "Fujifilm",
+            "slug": "fujifilm",
+            "file": "fujifilm.svg",
+            "hex": "#FB0020",
+            "source": "https://www.fujifilm.com"
+        },
+        {
+            "name": "Fujitsu",
+            "slug": "fujitsu",
+            "file": "fujitsu.svg",
+            "hex": "#FF0000",
+            "source": "https://www.fujitsu.com/global/about/brandmanagement/logo/"
+        },
+        {
+            "name": "Garmin",
+            "slug": "garmin",
+            "file": "garmin.svg",
+            "hex": "#000000",
+            "source": "https://creative.garmin.com/styleguide/logo/"
+        },
+        {
+            "name": "Gatsby",
+            "slug": "gatsby",
+            "file": "gatsby.svg",
+            "hex": "#663399",
+            "source": "https://www.gatsbyjs.com/guidelines/logo"
+        },
+        {
+            "name": "GeeksforGeeks",
+            "slug": "geeksforgeeks",
+            "file": "geeksforgeeks.svg",
+            "hex": "#2F8D46",
+            "source": "https://www.geeksforgeeks.org"
+        },
+        {
+            "name": "GIMP",
+            "slug": "gimp",
+            "file": "gimp.svg",
+            "hex": "#8C8073",
+            "source": "https://gitlab.gnome.org/GNOME/gimp-data/-/blob/e62f1905dcef7ec831ea6c052bb035eb37eaa69e/images/logo/gimp-logo-unicolor.svg"
+        },
+        {
+            "name": "Git",
+            "slug": "git",
+            "file": "git.svg",
+            "hex": "#F03C2E",
+            "source": "https://git-scm.com/community/logos"
+        },
+        {
+            "name": "Gitea",
+            "slug": "gitea",
+            "file": "gitea.svg",
+            "hex": "#609926",
+            "source": "https://github.com/go-gitea/gitea/blob/e0c753e770a64cda5e3900aa1da3d7e1f3263c9a/assets/logo.svg"
+        },
+        {
+            "name": "GitHub",
+            "slug": "github",
+            "file": "github.svg",
+            "hex": "#181717",
+            "source": "https://github.com/logos"
+        },
+        {
+            "name": "GitHub Actions",
+            "slug": "githubactions",
+            "file": "githubactions.svg",
+            "hex": "#2088FF",
+            "source": "https://github.com/features/actions"
+        },
+        {
+            "name": "GitHub Copilot",
+            "slug": "githubcopilot",
+            "file": "githubcopilot.svg",
+            "hex": "#000000",
+            "source": "https://primer.style/foundations/icons/copilot-24"
+        },
+        {
+            "name": "GitHub Pages",
+            "slug": "githubpages",
+            "file": "githubpages.svg",
+            "hex": "#222222",
+            "source": "https://pages.github.com"
+        },
+        {
+            "name": "GitLab",
+            "slug": "gitlab",
+            "file": "gitlab.svg",
+            "hex": "#FC6D26",
+            "source": "https://about.gitlab.com/press/press-kit/"
+        },
+        {
+            "name": "GNOME",
+            "slug": "gnome",
+            "file": "gnome.svg",
+            "hex": "#4A86CF",
+            "source": "https://wiki.gnome.org/Engagement/BrandGuidelines"
+        },
+        {
+            "name": "GNU",
+            "slug": "gnu",
+            "file": "gnu.svg",
+            "hex": "#A42E2B",
+            "source": "https://gnu.org"
+        },
+        {
+            "name": "Go",
+            "slug": "go",
+            "file": "go.svg",
+            "hex": "#00ADD8",
+            "source": "https://blog.golang.org/go-brand"
+        },
+        {
+            "name": "GoDaddy",
+            "slug": "godaddy",
+            "file": "godaddy.svg",
+            "hex": "#1BDBDB",
+            "source": "https://aboutus.godaddy.net/newsroom/media-resources/"
+        },
+        {
+            "name": "Godot Engine",
+            "slug": "godotengine",
+            "file": "godotengine.svg",
+            "hex": "#478CBF",
+            "source": "https://godotengine.org/press"
+        },
+        {
+            "name": "GoFundMe",
+            "slug": "gofundme",
+            "file": "gofundme.svg",
+            "hex": "#00B964",
+            "source": "https://www.gofundme.com"
+        },
+        {
+            "name": "GOG.com",
+            "slug": "gogdotcom",
+            "file": "gogdotcom.svg",
+            "hex": "#86328A",
+            "source": "https://www.cdprojekt.com/en/media/logotypes/"
+        },
+        {
+            "name": "Goodreads",
+            "slug": "goodreads",
+            "file": "goodreads.svg",
+            "hex": "#1E1914",
+            "source": "https://www.goodreads.com/about/press"
+        },
+        {
+            "name": "Google",
+            "slug": "google",
+            "file": "google.svg",
+            "hex": "#4285F4",
+            "source": "https://partnermarketinghub.withgoogle.com"
+        },
+        {
+            "name": "Google Chrome",
+            "slug": "googlechrome",
+            "file": "googlechrome.svg",
+            "hex": "#4285F4",
+            "source": "https://www.google.com/chrome"
+        },
+        {
+            "name": "Google Cloud",
+            "slug": "googlecloud",
+            "file": "googlecloud.svg",
+            "hex": "#4285F4",
+            "source": "https://cloud.google.com"
+        },
+        {
+            "name": "Gradle",
+            "slug": "gradle",
+            "file": "gradle.svg",
+            "hex": "#02303A",
+            "source": "https://gradle.com/brand"
+        },
+        {
+            "name": "Grafana",
+            "slug": "grafana",
+            "file": "grafana.svg",
+            "hex": "#F46800",
+            "source": "https://grafana.com"
+        },
+        {
+            "name": "GraphQL",
+            "slug": "graphql",
+            "file": "graphql.svg",
+            "hex": "#E10098",
+            "source": "https://graphql.org/brand"
+        },
+        {
+            "name": "Grav",
+            "slug": "grav",
+            "file": "grav.svg",
+            "hex": "#221E1F",
+            "source": "https://getgrav.org/media"
+        },
+        {
+            "name": "Greenhouse",
+            "slug": "greenhouse",
+            "file": "greenhouse.svg",
+            "hex": "#24A47F",
+            "source": "https://brand.greenhouse.io/brand-portal/p/6"
+        },
+        {
+            "name": "gulp",
+            "slug": "gulp",
+            "file": "gulp.svg",
+            "hex": "#CF4647",
+            "source": "https://github.com/gulpjs/artwork/blob/4e14158817ac88e9a5c02b3b307e6f630fe222fb/gulp-white-text.svg"
+        },
+        {
+            "name": "Hack Club",
+            "slug": "hackclub",
+            "file": "hackclub.svg",
+            "hex": "#EC3750",
+            "source": "https://hackclub.com/brand"
+        },
+        {
+            "name": "Hackaday",
+            "slug": "hackaday",
+            "file": "hackaday.svg",
+            "hex": "#1A1A1A",
+            "source": "https://hackaday.com"
+        },
+        {
+            "name": "HackerRank",
+            "slug": "hackerrank",
+            "file": "hackerrank.svg",
+            "hex": "#00EA64",
+            "source": "https://www.hackerrank.com/about-us/"
+        },
+        {
+            "name": "HashiCorp",
+            "slug": "hashicorp",
+            "file": "hashicorp.svg",
+            "hex": "#000000",
+            "source": "https://www.hashicorp.com"
+        },
+        {
+            "name": "Haskell",
+            "slug": "haskell",
+            "file": "haskell.svg",
+            "hex": "#5D4F85",
+            "source": "https://wiki.haskell.org/Thompson-Wheeler_logo"
+        },
+        {
+            "name": "HBO",
+            "slug": "hbo",
+            "file": "hbo.svg",
+            "hex": "#000000",
+            "source": "https://www.hbo.com"
+        },
+        {
+            "name": "Hetzner",
+            "slug": "hetzner",
+            "file": "hetzner.svg",
+            "hex": "#D50C2D",
+            "source": "https://www.hetzner.com"
+        },
+        {
+            "name": "Hilton",
+            "slug": "hilton",
+            "file": "hilton.svg",
+            "hex": "#231F20",
+            "source": "https://www.hilton.com"
+        },
+        {
+            "name": "Home Assistant",
+            "slug": "homeassistant",
+            "file": "homeassistant.svg",
+            "hex": "#18BCF2",
+            "source": "https://github.com/home-assistant/assets/blob/0f69676da79c3881e7dfca6d6c0a5739f88273d8/logo/home-assistant-logo.zip"
+        },
+        {
+            "name": "Homebridge",
+            "slug": "homebridge",
+            "file": "homebridge.svg",
+            "hex": "#491F59",
+            "source": "https://github.com/homebridge/branding/blob/6ef3a1685e79f79a2ecdcc83824e53775ec0475d/logos/homebridge-silhouette-round-black.svg"
+        },
+        {
+            "name": "homify",
+            "slug": "homify",
+            "file": "homify.svg",
+            "hex": "#7DCDA3",
+            "source": "https://www.homify.com"
+        },
+        {
+            "name": "Honda",
+            "slug": "honda",
+            "file": "honda.svg",
+            "hex": "#E40521",
+            "source": "https://www.honda.ie"
+        },
+        {
+            "name": "Hoppscotch",
+            "slug": "hoppscotch",
+            "file": "hoppscotch.svg",
+            "hex": "#09090B",
+            "source": "https://hoppscotch.com"
+        },
+        {
+            "name": "Hotels.com",
+            "slug": "hotelsdotcom",
+            "file": "hotelsdotcom.svg",
+            "hex": "#EF3346",
+            "source": "https://www.hotels.com"
+        },
+        {
+            "name": "HTML5",
+            "slug": "html5",
+            "file": "html5.svg",
+            "hex": "#E34F26",
+            "source": "https://www.w3.org/html/logo/"
+        },
+        {
+            "name": "HTTPie",
+            "slug": "httpie",
+            "file": "httpie.svg",
+            "hex": "#73DC8C",
+            "source": "https://github.com/httpie/httpie/blob/d262181bede5241a6b692c3245a77e2eb02bc262/docs/httpie-logo.svg"
+        },
+        {
+            "name": "Huawei",
+            "slug": "huawei",
+            "file": "huawei.svg",
+            "hex": "#FF0000",
+            "source": "https://e.huawei.com/ph/material/partner/0a72728b864949c48b22106454352483"
+        },
+        {
+            "name": "HubSpot",
+            "slug": "hubspot",
+            "file": "hubspot.svg",
+            "hex": "#FF7A59",
+            "source": "https://www.hubspot.com/style-guide"
+        },
+        {
+            "name": "Hugging Face",
+            "slug": "huggingface",
+            "file": "huggingface.svg",
+            "hex": "#FFD21E",
+            "source": "https://huggingface.co/brand"
+        },
+        {
+            "name": "Hyundai",
+            "slug": "hyundai",
+            "file": "hyundai.svg",
+            "hex": "#002C5E",
+            "source": "https://www.hyundai.com"
+        },
+        {
+            "name": "iCloud",
+            "slug": "icloud",
+            "file": "icloud.svg",
+            "hex": "#3693F3",
+            "source": "https://commons.wikimedia.org/wiki/File:ICloud_logo.svg"
+        },
+        {
+            "name": "iFixit",
+            "slug": "ifixit",
+            "file": "ifixit.svg",
+            "hex": "#0071CE",
+            "source": "https://www.ifixit.com"
+        },
+        {
+            "name": "IKEA",
+            "slug": "ikea",
+            "file": "ikea.svg",
+            "hex": "#0058A3",
+            "source": "https://www.ikea.com"
+        },
+        {
+            "name": "IMDb",
+            "slug": "imdb",
+            "file": "imdb.svg",
+            "hex": "#F5C518",
+            "source": "https://brand.imdb.com/imdb"
+        },
+        {
+            "name": "Indeed",
+            "slug": "indeed",
+            "file": "indeed.svg",
+            "hex": "#003A9B",
+            "source": "https://indeed.design/resources"
+        },
+        {
+            "name": "InfluxDB",
+            "slug": "influxdb",
+            "file": "influxdb.svg",
+            "hex": "#22ADF6",
+            "source": "https://influxdata.github.io/branding/logo/downloads/"
+        },
+        {
+            "name": "Inkscape",
+            "slug": "inkscape",
+            "file": "inkscape.svg",
+            "hex": "#000000",
+            "source": "https://inkscape.org/gallery/=inkscape-branding/inkscape-brand-assets/"
+        },
+        {
+            "name": "Insomnia",
+            "slug": "insomnia",
+            "file": "insomnia.svg",
+            "hex": "#4000BF",
+            "source": "https://insomnia.rest"
+        },
+        {
+            "name": "Instacart",
+            "slug": "instacart",
+            "file": "instacart.svg",
+            "hex": "#43B02A",
+            "source": "https://www.instacart.com/press"
+        },
+        {
+            "name": "Instagram",
+            "slug": "instagram",
+            "file": "instagram.svg",
+            "hex": "#FF0069",
+            "source": "https://about.meta.com/brand/resources/instagram"
+        },
+        {
+            "name": "Intel",
+            "slug": "intel",
+            "file": "intel.svg",
+            "hex": "#0071C5",
+            "source": "https://www.intel.com/content/www/us/en/newsroom/resources/press-kits-intel-overview.html"
+        },
+        {
+            "name": "Internet Archive",
+            "slug": "internetarchive",
+            "file": "internetarchive.svg",
+            "hex": "#666666",
+            "source": "https://archive.org"
+        },
+        {
+            "name": "Intuit",
+            "slug": "intuit",
+            "file": "intuit.svg",
+            "hex": "#236CFF",
+            "source": "https://www.intuit.com"
+        },
+        {
+            "name": "Ionic",
+            "slug": "ionic",
+            "file": "ionic.svg",
+            "hex": "#3880FF",
+            "source": "https://ionicframework.com/press"
+        },
+        {
+            "name": "Jasmine",
+            "slug": "jasmine",
+            "file": "jasmine.svg",
+            "hex": "#8A4182",
+            "source": "https://github.com/jasmine/jasmine/blob/8991b1bba39b5b7e89fc5eeb07ae271a684cb1a4/images/jasmine-horizontal.svg"
+        },
+        {
+            "name": "JavaScript",
+            "slug": "javascript",
+            "file": "javascript.svg",
+            "hex": "#F7DF1E",
+            "source": "https://github.com/voodootikigod/logo.js/blob/1544bdeed6d618a6cfe4f0650d04ab8d9cfa76d9/js.svg"
+        },
+        {
+            "name": "JBL",
+            "slug": "jbl",
+            "file": "jbl.svg",
+            "hex": "#FF3300",
+            "source": "https://www.jbl.com"
+        },
+        {
+            "name": "Jeep",
+            "slug": "jeep",
+            "file": "jeep.svg",
+            "hex": "#000000",
+            "source": "https://commons.wikimedia.org/wiki/File:Jeep_logo.svg"
+        },
+        {
+            "name": "Jekyll",
+            "slug": "jekyll",
+            "file": "jekyll.svg",
+            "hex": "#CC0000",
+            "source": "https://github.com/jekyll/brand/blob/8302ad3ecf045054a095020729a8d2cc7005faf8/jekyll-logo-black.svg"
+        },
+        {
+            "name": "Jellyfin",
+            "slug": "jellyfin",
+            "file": "jellyfin.svg",
+            "hex": "#00A4DC",
+            "source": "https://jellyfin.org/docs/general/contributing/branding.html"
+        },
+        {
+            "name": "Jenkins",
+            "slug": "jenkins",
+            "file": "jenkins.svg",
+            "hex": "#D24939",
+            "source": "https://get.jenkins.io/art/"
+        },
+        {
+            "name": "Jest",
+            "slug": "jest",
+            "file": "jest.svg",
+            "hex": "#C21325",
+            "source": "https://jestjs.io"
+        },
+        {
+            "name": "JetBrains",
+            "slug": "jetbrains",
+            "file": "jetbrains.svg",
+            "hex": "#000000",
+            "source": "https://www.jetbrains.com/company/brand/logos/"
+        },
+        {
+            "name": "Jira",
+            "slug": "jira",
+            "file": "jira.svg",
+            "hex": "#0052CC",
+            "source": "https://atlassian.design/resources/logo-library"
+        },
+        {
+            "name": "Joomla",
+            "slug": "joomla",
+            "file": "joomla.svg",
+            "hex": "#5091CD",
+            "source": "https://docs.joomla.org/Joomla:Brand_Identity_Elements/Official_Logo"
+        },
+        {
+            "name": "jQuery",
+            "slug": "jquery",
+            "file": "jquery.svg",
+            "hex": "#0769AD",
+            "source": "https://brand.jquery.org/logos/"
+        },
+        {
+            "name": "JSON",
+            "slug": "json",
+            "file": "json.svg",
+            "hex": "#000000",
+            "source": "https://commons.wikimedia.org/wiki/File:JSON_vector_logo.svg"
+        },
+        {
+            "name": "Jupyter",
+            "slug": "jupyter",
+            "file": "jupyter.svg",
+            "hex": "#F37626",
+            "source": "https://github.com/jupyter/design/blob/80716ee75dd7b2a6ec6abcd89922d020483589b1/logos/Logo%20Mark/logomark-whitebody-whitemoons/logomark-whitebody-whitemoons.svg"
+        },
+        {
+            "name": "K3s",
+            "slug": "k3s",
+            "file": "k3s.svg",
+            "hex": "#FFC61C",
+            "source": "https://k3s.io"
+        },
+        {
+            "name": "Kaggle",
+            "slug": "kaggle",
+            "file": "kaggle.svg",
+            "hex": "#20BEFF",
+            "source": "https://www.kaggle.com/brand-guidelines"
+        },
+        {
+            "name": "Kaspersky",
+            "slug": "kaspersky",
+            "file": "kaspersky.svg",
+            "hex": "#006D5C",
+            "source": "https://www.kaspersky.com"
+        },
+        {
+            "name": "KDE",
+            "slug": "kde",
+            "file": "kde.svg",
+            "hex": "#1D99F3",
+            "source": "https://kde.org/stuff/clipart"
+        },
+        {
+            "name": "Keras",
+            "slug": "keras",
+            "file": "keras.svg",
+            "hex": "#D00000",
+            "source": "https://keras.io"
+        },
+        {
+            "name": "Kia",
+            "slug": "kia",
+            "file": "kia.svg",
+            "hex": "#05141F",
+            "source": "https://www.kia.com"
+        },
+        {
+            "name": "Kibana",
+            "slug": "kibana",
+            "file": "kibana.svg",
+            "hex": "#005571",
+            "source": "https://www.elastic.co/brand"
+        },
+        {
+            "name": "Kickstarter",
+            "slug": "kickstarter",
+            "file": "kickstarter.svg",
+            "hex": "#05CE78",
+            "source": "https://www.kickstarter.com/help/brand_assets"
+        },
+        {
+            "name": "Klarna",
+            "slug": "klarna",
+            "file": "klarna.svg",
+            "hex": "#FFB3C7",
+            "source": "https://klarna.design"
+        },
+        {
+            "name": "Kotlin",
+            "slug": "kotlin",
+            "file": "kotlin.svg",
+            "hex": "#7F52FF",
+            "source": "https://www.jetbrains.com/company/brand/logos/"
+        },
+        {
+            "name": "Kubernetes",
+            "slug": "kubernetes",
+            "file": "kubernetes.svg",
+            "hex": "#326CE5",
+            "source": "https://github.com/kubernetes/kubernetes/tree/cac53883f4714452f3084a22e4be20d042a9df33/logo"
+        },
+        {
+            "name": "Laravel",
+            "slug": "laravel",
+            "file": "laravel.svg",
+            "hex": "#FF2D20",
+            "source": "https://github.com/laravel/art/tree/5a8325b064634b900f25dbb6f1cafd888b2d2211"
+        },
+        {
+            "name": "LastPass",
+            "slug": "lastpass",
+            "file": "lastpass.svg",
+            "hex": "#D32D27",
+            "source": "https://lastpass.com/press-room/"
+        },
+        {
+            "name": "LeetCode",
+            "slug": "leetcode",
+            "file": "leetcode.svg",
+            "hex": "#FFA116",
+            "source": "https://leetcode.com/store"
+        },
+        {
+            "name": "Lemmy",
+            "slug": "lemmy",
+            "file": "lemmy.svg",
+            "hex": "#000000",
+            "source": "https://join-lemmy.org"
+        },
+        {
+            "name": "Lenovo",
+            "slug": "lenovo",
+            "file": "lenovo.svg",
+            "hex": "#E2231A",
+            "source": "https://news.lenovo.com/press-kits/"
+        },
+        {
+            "name": "LG",
+            "slug": "lg",
+            "file": "lg.svg",
+            "hex": "#A50034",
+            "source": "https://www.lg.com/global/our-brand/brand-expression/elements/logo/index.jsp"
+        },
+        {
+            "name": "LibreOffice",
+            "slug": "libreoffice",
+            "file": "libreoffice.svg",
+            "hex": "#18A303",
+            "source": "https://wiki.documentfoundation.org/Marketing/Branding"
+        },
+        {
+            "name": "LINE",
+            "slug": "line",
+            "file": "line.svg",
+            "hex": "#00C300",
+            "source": "https://line.me/en/logo"
+        },
+        {
+            "name": "Linear",
+            "slug": "linear",
+            "file": "linear.svg",
+            "hex": "#5E6AD2",
+            "source": "https://linear.app"
+        },
+        {
+            "name": "Linktree",
+            "slug": "linktree",
+            "file": "linktree.svg",
+            "hex": "#43E55E",
+            "source": "https://linktr.ee"
+        },
+        {
+            "name": "Linux",
+            "slug": "linux",
+            "file": "linux.svg",
+            "hex": "#FCC624",
+            "source": "https://www.linuxfoundation.org/the-linux-mark/"
+        },
+        {
+            "name": "Linux Foundation",
+            "slug": "linuxfoundation",
+            "file": "linuxfoundation.svg",
+            "hex": "#003778",
+            "source": "https://www.linuxfoundation.org/brand-guidelines"
+        },
+        {
+            "name": "Linux Mint",
+            "slug": "linuxmint",
+            "file": "linuxmint.svg",
+            "hex": "#86BE43",
+            "source": "https://github.com/linuxmint/brand-logo/blob/540ac3b08e987866d77a340f557f994c988ac2ae/ring-mono-green.svg"
+        },
+        {
+            "name": "Lit",
+            "slug": "lit",
+            "file": "lit.svg",
+            "hex": "#324FFF",
+            "source": "https://github.com/lit/lit.dev/blob/5e59bdb00b7a261d6fdcd6a4ae529e17f6146ed3/packages/lit-dev-content/site/images/flame-favicon.svg"
+        },
+        {
+            "name": "Lua",
+            "slug": "lua",
+            "file": "lua.svg",
+            "hex": "#000080",
+            "source": "https://www.lua.org/images/"
+        },
+        {
+            "name": "Lufthansa",
+            "slug": "lufthansa",
+            "file": "lufthansa.svg",
+            "hex": "#05164D",
+            "source": "https://www.lufthansa.com"
+        },
+        {
+            "name": "Lyft",
+            "slug": "lyft",
+            "file": "lyft.svg",
+            "hex": "#FF00BF",
+            "source": "https://www.lyft.com/press"
+        },
+        {
+            "name": "MailChimp",
+            "slug": "mailchimp",
+            "file": "mailchimp.svg",
+            "hex": "#FFE01B",
+            "source": "https://mailchimp.com/about/brand-assets"
+        },
+        {
+            "name": "Manjaro",
+            "slug": "manjaro",
+            "file": "manjaro.svg",
+            "hex": "#35BFA4",
+            "source": "https://manjaro.org"
+        },
+        {
+            "name": "Mapbox",
+            "slug": "mapbox",
+            "file": "mapbox.svg",
+            "hex": "#000000",
+            "source": "https://www.mapbox.com/about/press/brand-guidelines"
+        },
+        {
+            "name": "MariaDB",
+            "slug": "mariadb",
+            "file": "mariadb.svg",
+            "hex": "#003545",
+            "source": "https://mariadb.com/about-us/logos/"
+        },
+        {
+            "name": "Markdown",
+            "slug": "markdown",
+            "file": "markdown.svg",
+            "hex": "#000000",
+            "source": "https://github.com/dcurtis/markdown-mark/tree/360a3657fef7f6ad0b303296a95ad52985caa0d3"
+        },
+        {
+            "name": "Marriott",
+            "slug": "marriott",
+            "file": "marriott.svg",
+            "hex": "#A70023",
+            "source": "https://marriott-hotels.marriott.com"
+        },
+        {
+            "name": "Maserati",
+            "slug": "maserati",
+            "file": "maserati.svg",
+            "hex": "#0C2340",
+            "source": "https://www.stellantis.com/en/brands/maserati"
+        },
+        {
+            "name": "MasterCard",
+            "slug": "mastercard",
+            "file": "mastercard.svg",
+            "hex": "#EB001B",
+            "source": "https://www.mastercard.com/brandcenter/us/en/download-artwork.html"
+        },
+        {
+            "name": "Material Design",
+            "slug": "materialdesign",
+            "file": "materialdesign.svg",
+            "hex": "#6750A4",
+            "source": "https://m3.material.io"
+        },
+        {
+            "name": "Mattermost",
+            "slug": "mattermost",
+            "file": "mattermost.svg",
+            "hex": "#0058CC",
+            "source": "https://www.mattermost.org/brand-guidelines/"
+        },
+        {
+            "name": "McDonald's",
+            "slug": "mcdonalds",
+            "file": "mcdonalds.svg",
+            "hex": "#FBC817",
+            "source": "https://www.mcdonalds.com/gb/en-gb/newsroom.html"
+        },
+        {
+            "name": "MediaMarkt",
+            "slug": "mediamarkt",
+            "file": "mediamarkt.svg",
+            "hex": "#DF0000",
+            "source": "https://www.mediamarkt.de"
+        },
+        {
+            "name": "Medium",
+            "slug": "medium",
+            "file": "medium.svg",
+            "hex": "#000000",
+            "source": "https://medium.design/logos-and-brand-guidelines-f1a01a733592"
+        },
+        {
+            "name": "Meetup",
+            "slug": "meetup",
+            "file": "meetup.svg",
+            "hex": "#ED1C40",
+            "source": "https://www.meetup.com/media/"
+        },
+        {
+            "name": "Messenger",
+            "slug": "messenger",
+            "file": "messenger.svg",
+            "hex": "#0866FF",
+            "source": "https://about.meta.com/brand/resources/facebook/messenger-icon"
+        },
+        {
+            "name": "Meta",
+            "slug": "meta",
+            "file": "meta.svg",
+            "hex": "#0467DF",
+            "source": "https://www.meta.com"
+        },
+        {
+            "name": "micro:bit",
+            "slug": "microbit",
+            "file": "microbit.svg",
+            "hex": "#00ED00",
+            "source": "https://microbit.org"
+        },
+        {
+            "name": "MinIO",
+            "slug": "minio",
+            "file": "minio.svg",
+            "hex": "#C72E49",
+            "source": "https://min.io"
+        },
+        {
+            "name": "Mitsubishi",
+            "slug": "mitsubishi",
+            "file": "mitsubishi.svg",
+            "hex": "#E60012",
+            "source": "https://www.mitsubishi.com"
+        },
+        {
+            "name": "Mixcloud",
+            "slug": "mixcloud",
+            "file": "mixcloud.svg",
+            "hex": "#5000FF",
+            "source": "https://www.mixcloud.com/about"
+        },
+        {
+            "name": "MLflow",
+            "slug": "mlflow",
+            "file": "mlflow.svg",
+            "hex": "#0194E2",
+            "source": "https://github.com/mlflow/mlflow/blob/855881f93703b15ffe643003fb4d7c84f0ec2502/assets/icon.svg"
+        },
+        {
+            "name": "Mocha",
+            "slug": "mocha",
+            "file": "mocha.svg",
+            "hex": "#8D6748",
+            "source": "https://mochajs.org"
+        },
+        {
+            "name": "MongoDB",
+            "slug": "mongodb",
+            "file": "mongodb.svg",
+            "hex": "#47A248",
+            "source": "https://www.mongodb.com/pressroom"
+        },
+        {
+            "name": "Moodle",
+            "slug": "moodle",
+            "file": "moodle.svg",
+            "hex": "#F98012",
+            "source": "https://moodle.com/trademarks"
+        },
+        {
+            "name": "Motorola",
+            "slug": "motorola",
+            "file": "motorola.svg",
+            "hex": "#E1140A",
+            "source": "https://motorola-global-portal-de.custhelp.com"
+        },
+        {
+            "name": "Mozilla",
+            "slug": "mozilla",
+            "file": "mozilla.svg",
+            "hex": "#161616",
+            "source": "https://brand.mozilla.com/document/36"
+        },
+        {
+            "name": "MySQL",
+            "slug": "mysql",
+            "file": "mysql.svg",
+            "hex": "#4479A1",
+            "source": "https://www.mysql.com/about/legal/logos.html"
+        },
+        {
+            "name": "n8n",
+            "slug": "n8n",
+            "file": "n8n.svg",
+            "hex": "#EA4B71",
+            "source": "https://n8n.io/press"
+        },
+        {
+            "name": "Namecheap",
+            "slug": "namecheap",
+            "file": "namecheap.svg",
+            "hex": "#DE3723",
+            "source": "https://www.namecheap.com"
+        },
+        {
+            "name": "NestJS",
+            "slug": "nestjs",
+            "file": "nestjs.svg",
+            "hex": "#E0234E",
+            "source": "https://nestjs.com"
+        },
+        {
+            "name": "Netflix",
+            "slug": "netflix",
+            "file": "netflix.svg",
+            "hex": "#E50914",
+            "source": "https://brand.netflix.com/en/assets/logos"
+        },
+        {
+            "name": "Netlify",
+            "slug": "netlify",
+            "file": "netlify.svg",
+            "hex": "#00C7B7",
+            "source": "https://www.netlify.com/press/"
+        },
+        {
+            "name": "New Balance",
+            "slug": "newbalance",
+            "file": "newbalance.svg",
+            "hex": "#CF0A2C",
+            "source": "https://www.newbalance.com"
+        },
+        {
+            "name": "New York Times",
+            "slug": "newyorktimes",
+            "file": "newyorktimes.svg",
+            "hex": "#000000",
+            "source": "https://www.nytimes.com"
+        },
+        {
+            "name": "Next.js",
+            "slug": "nextdotjs",
+            "file": "nextdotjs.svg",
+            "hex": "#000000",
+            "source": "https://vercel.com/design/brands#next-js"
+        },
+        {
+            "name": "Nextcloud",
+            "slug": "nextcloud",
+            "file": "nextcloud.svg",
+            "hex": "#0082C9",
+            "source": "https://nextcloud.com/press/"
+        },
+        {
+            "name": "NGINX",
+            "slug": "nginx",
+            "file": "nginx.svg",
+            "hex": "#009639",
+            "source": "https://www.nginx.com/press/"
+        },
+        {
+            "name": "ngrok",
+            "slug": "ngrok",
+            "file": "ngrok.svg",
+            "hex": "#1F1E37",
+            "source": "https://ngrok.com"
+        },
+        {
+            "name": "Nike",
+            "slug": "nike",
+            "file": "nike.svg",
+            "hex": "#111111",
+            "source": "https://www.nike.com"
+        },
+        {
+            "name": "Nissan",
+            "slug": "nissan",
+            "file": "nissan.svg",
+            "hex": "#C3002F",
+            "source": "https://www.nissan.ie"
+        },
+        {
+            "name": "Node.js",
+            "slug": "nodedotjs",
+            "file": "nodedotjs.svg",
+            "hex": "#5FA04E",
+            "source": "https://nodejs.org/en/about/branding"
+        },
+        {
+            "name": "Nodemon",
+            "slug": "nodemon",
+            "file": "nodemon.svg",
+            "hex": "#76D04B",
+            "source": "https://nodemon.io"
+        },
+        {
+            "name": "Notion",
+            "slug": "notion",
+            "file": "notion.svg",
+            "hex": "#000000",
+            "source": "https://www.notion.so"
+        },
+        {
+            "name": "npm",
+            "slug": "npm",
+            "file": "npm.svg",
+            "hex": "#CB3837",
+            "source": "https://www.npmjs.com"
+        },
+        {
+            "name": "NuGet",
+            "slug": "nuget",
+            "file": "nuget.svg",
+            "hex": "#004880",
+            "source": "https://github.com/NuGet/Media/blob/89f7c87245e52e8ce91d94c0a47f44c6576e3a0d/Images/MainLogo/Vector/nuget.svg"
+        },
+        {
+            "name": "NumPy",
+            "slug": "numpy",
+            "file": "numpy.svg",
+            "hex": "#013243",
+            "source": "https://numpy.org/press-kit/"
+        },
+        {
+            "name": "Nuxt",
+            "slug": "nuxt",
+            "file": "nuxt.svg",
+            "hex": "#00DC82",
+            "source": "https://nuxt.com/design-kit"
+        },
+        {
+            "name": "NVIDIA",
+            "slug": "nvidia",
+            "file": "nvidia.svg",
+            "hex": "#76B900",
+            "source": "https://www.nvidia.com/en-us"
+        },
+        {
+            "name": "Obsidian",
+            "slug": "obsidian",
+            "file": "obsidian.svg",
+            "hex": "#7C3AED",
+            "source": "https://obsidian.md"
+        },
+        {
+            "name": "OCaml",
+            "slug": "ocaml",
+            "file": "ocaml.svg",
+            "hex": "#EC6813",
+            "source": "https://ocaml.org/logo"
+        },
+        {
+            "name": "Odoo",
+            "slug": "odoo",
+            "file": "odoo.svg",
+            "hex": "#714B67",
+            "source": "https://www.odoo.com/page/brand-assets"
+        },
+        {
+            "name": "Okta",
+            "slug": "okta",
+            "file": "okta.svg",
+            "hex": "#007DC1",
+            "source": "https://www.okta.com/press-room/media-assets/"
+        },
+        {
+            "name": "Ollama",
+            "slug": "ollama",
+            "file": "ollama.svg",
+            "hex": "#000000",
+            "source": "https://github.com/ollama/ollama/issues/2152#issuecomment-1905286922"
+        },
+        {
+            "name": "Opel",
+            "slug": "opel",
+            "file": "opel.svg",
+            "hex": "#F7FF14",
+            "source": "https://www.stellantis.com/en/brands/opel"
+        },
+        {
+            "name": "Open Source Initiative",
+            "slug": "opensourceinitiative",
+            "file": "opensourceinitiative.svg",
+            "hex": "#3DA639",
+            "source": "https://opensource.org/logo-usage-guidelines"
+        },
+        {
+            "name": "OpenCV",
+            "slug": "opencv",
+            "file": "opencv.svg",
+            "hex": "#5C3EE8",
+            "source": "https://opencv.org/resources/media-kit/"
+        },
+        {
+            "name": "OpenGL",
+            "slug": "opengl",
+            "file": "opengl.svg",
+            "hex": "#5586A4",
+            "source": "https://www.khronos.org/legal/trademarks"
+        },
+        {
+            "name": "OpenStreetMap",
+            "slug": "openstreetmap",
+            "file": "openstreetmap.svg",
+            "hex": "#7EBC6F",
+            "source": "https://www.openstreetmap.org"
+        },
+        {
+            "name": "Opera",
+            "slug": "opera",
+            "file": "opera.svg",
+            "hex": "#FF1B2D",
+            "source": "https://brand.opera.com/1472-2/opera-logos/"
+        },
+        {
+            "name": "OVH",
+            "slug": "ovh",
+            "file": "ovh.svg",
+            "hex": "#123F6D",
+            "source": "https://www.ovh.com/ca/en/newsroom/"
+        },
+        {
+            "name": "Palo Alto Networks",
+            "slug": "paloaltonetworks",
+            "file": "paloaltonetworks.svg",
+            "hex": "#F04E23",
+            "source": "https://www.paloaltonetworks.com"
+        },
+        {
+            "name": "pandas",
+            "slug": "pandas",
+            "file": "pandas.svg",
+            "hex": "#150458",
+            "source": "https://pandas.pydata.org/about/citing.html"
+        },
+        {
+            "name": "Patreon",
+            "slug": "patreon",
+            "file": "patreon.svg",
+            "hex": "#000000",
+            "source": "https://www.patreon.com/brand"
+        },
+        {
+            "name": "PayPal",
+            "slug": "paypal",
+            "file": "paypal.svg",
+            "hex": "#002991",
+            "source": "https://www.paypal.com/us"
+        },
+        {
+            "name": "Perplexity",
+            "slug": "perplexity",
+            "file": "perplexity.svg",
+            "hex": "#1FB8CD",
+            "source": "https://www.perplexity.ai"
+        },
+        {
+            "name": "PHP",
+            "slug": "php",
+            "file": "php.svg",
+            "hex": "#777BB4",
+            "source": "https://php.net/download-logos.php"
+        },
+        {
+            "name": "PhpStorm",
+            "slug": "phpstorm",
+            "file": "phpstorm.svg",
+            "hex": "#000000",
+            "source": "https://www.jetbrains.com/company/brand/logos/"
+        },
+        {
+            "name": "Pi-hole",
+            "slug": "pihole",
+            "file": "pihole.svg",
+            "hex": "#96060C",
+            "source": "https://docs.pi-hole.net"
+        },
+        {
+            "name": "Pinterest",
+            "slug": "pinterest",
+            "file": "pinterest.svg",
+            "hex": "#BD081C",
+            "source": "https://business.pinterest.com/en/brand-guidelines"
+        },
+        {
+            "name": "Pixabay",
+            "slug": "pixabay",
+            "file": "pixabay.svg",
+            "hex": "#191B26",
+            "source": "https://pixabay.com"
+        },
+        {
+            "name": "Plex",
+            "slug": "plex",
+            "file": "plex.svg",
+            "hex": "#EBAF00",
+            "source": "https://brand.plex.tv"
+        },
+        {
+            "name": "Plotly",
+            "slug": "plotly",
+            "file": "plotly.svg",
+            "hex": "#7A76FF",
+            "source": "https://plotly.com/brand-guidelines"
+        },
+        {
+            "name": "PM2",
+            "slug": "pm2",
+            "file": "pm2.svg",
+            "hex": "#2B037A",
+            "source": "https://pm2.keymetrics.io"
+        },
+        {
+            "name": "Podman",
+            "slug": "podman",
+            "file": "podman.svg",
+            "hex": "#892CA0",
+            "source": "https://podman.io"
+        },
+        {
+            "name": "Porsche",
+            "slug": "porsche",
+            "file": "porsche.svg",
+            "hex": "#B12B28",
+            "source": "https://www.porsche.com"
+        },
+        {
+            "name": "PostCSS",
+            "slug": "postcss",
+            "file": "postcss.svg",
+            "hex": "#DD3A0A",
+            "source": "https://postcss.org"
+        },
+        {
+            "name": "PostgreSQL",
+            "slug": "postgresql",
+            "file": "postgresql.svg",
+            "hex": "#4169E1",
+            "source": "https://wiki.postgresql.org/wiki/Logo"
+        },
+        {
+            "name": "Postman",
+            "slug": "postman",
+            "file": "postman.svg",
+            "hex": "#FF6C37",
+            "source": "https://www.getpostman.com/resources/media-assets/"
+        },
+        {
+            "name": "Preact",
+            "slug": "preact",
+            "file": "preact.svg",
+            "hex": "#673AB8",
+            "source": "https://preactjs.com"
+        },
+        {
+            "name": "Prettier",
+            "slug": "prettier",
+            "file": "prettier.svg",
+            "hex": "#F7B93E",
+            "source": "https://github.com/prettier/prettier-logo/blob/06997b307e0608ebee2044dafa0b9429d6b5a103/images/prettier-icon-clean-centred.svg"
+        },
+        {
+            "name": "Prometheus",
+            "slug": "prometheus",
+            "file": "prometheus.svg",
+            "hex": "#E6522C",
+            "source": "https://prometheus.io"
+        },
+        {
+            "name": "Proton",
+            "slug": "proton",
+            "file": "proton.svg",
+            "hex": "#6D4AFF",
+            "source": "https://proton.me/media/kit"
+        },
+        {
+            "name": "Proton Mail",
+            "slug": "protonmail",
+            "file": "protonmail.svg",
+            "hex": "#6D4AFF",
+            "source": "https://proton.me/media/kit"
+        },
+        {
+            "name": "Proton VPN",
+            "slug": "protonvpn",
+            "file": "protonvpn.svg",
+            "hex": "#66DEB1",
+            "source": "https://proton.me/media/kit"
+        },
+        {
+            "name": "PUBG",
+            "slug": "pubg",
+            "file": "pubg.svg",
+            "hex": "#F4B942",
+            "source": "https://krafton.com/en/about/brandcenter"
+        },
+        {
+            "name": "Puma",
+            "slug": "puma",
+            "file": "puma.svg",
+            "hex": "#242B2F",
+            "source": "https://us.puma.com"
+        },
+        {
+            "name": "Puppeteer",
+            "slug": "puppeteer",
+            "file": "puppeteer.svg",
+            "hex": "#40B5A4",
+            "source": "https://pptr.dev"
+        },
+        {
+            "name": "PWA",
+            "slug": "pwa",
+            "file": "pwa.svg",
+            "hex": "#5A0FC8",
+            "source": "https://github.com/webmaxru/progressive-web-apps-logo/blob/77744cd5c0a4d484bb3d082c6ac458c44202da03/pwalogo-white.svg"
+        },
+        {
+            "name": "PyCharm",
+            "slug": "pycharm",
+            "file": "pycharm.svg",
+            "hex": "#000000",
+            "source": "https://www.jetbrains.com/company/brand/logos/"
+        },
+        {
+            "name": "PyPI",
+            "slug": "pypi",
+            "file": "pypi.svg",
+            "hex": "#3775A9",
+            "source": "https://pypi.org"
+        },
+        {
+            "name": "Python",
+            "slug": "python",
+            "file": "python.svg",
+            "hex": "#3776AB",
+            "source": "https://www.python.org/community/logos/"
+        },
+        {
+            "name": "PyTorch",
+            "slug": "pytorch",
+            "file": "pytorch.svg",
+            "hex": "#EE4C2C",
+            "source": "https://github.com/pytorch/pytorch.github.io/blob/8f083bd12192ca12d5e1c1f3d236f4831d823d8f/assets/images/logo.svg"
+        },
+        {
+            "name": "Qantas",
+            "slug": "qantas",
+            "file": "qantas.svg",
+            "hex": "#E40000",
+            "source": "https://www.qantas.com"
+        },
+        {
+            "name": "QEMU",
+            "slug": "qemu",
+            "file": "qemu.svg",
+            "hex": "#FF6600",
+            "source": "https://wiki.qemu.org/Logo"
+        },
+        {
+            "name": "Qt",
+            "slug": "qt",
+            "file": "qt.svg",
+            "hex": "#41CD52",
+            "source": "https://www.qt.io"
+        },
+        {
+            "name": "Qualcomm",
+            "slug": "qualcomm",
+            "file": "qualcomm.svg",
+            "hex": "#3253DC",
+            "source": "https://www.qualcomm.com"
+        },
+        {
+            "name": "Quarkus",
+            "slug": "quarkus",
+            "file": "quarkus.svg",
+            "hex": "#4695EB",
+            "source": "https://design.jboss.org/quarkus"
+        },
+        {
+            "name": "Raspberry Pi",
+            "slug": "raspberrypi",
+            "file": "raspberrypi.svg",
+            "hex": "#A22846",
+            "source": "https://www.raspberrypi.org/trademark-rules"
+        },
+        {
+            "name": "React",
+            "slug": "react",
+            "file": "react.svg",
+            "hex": "#61DAFB",
+            "source": "https://github.com/facebook/create-react-app/blob/282c03f9525fdf8061ffa1ec50dce89296d916bd/test/fixtures/relative-paths/src/logo.svg"
+        },
+        {
+            "name": "React Bootstrap",
+            "slug": "reactbootstrap",
+            "file": "reactbootstrap.svg",
+            "hex": "#41E0FD",
+            "source": "https://github.com/react-bootstrap/react-bootstrap/blob/be23c304fa40ddb209919b0faac1e5dd8cef53ad/www/static/img/logo.svg"
+        },
+        {
+            "name": "React Query",
+            "slug": "reactquery",
+            "file": "reactquery.svg",
+            "hex": "#FF4154",
+            "source": "https://github.com/tannerlinsley/react-query/blob/9b5d18cd47a4c1454d6c8dd0f38280641c1dd5dd/docs/src/images/emblem-light.svg"
+        },
+        {
+            "name": "React Router",
+            "slug": "reactrouter",
+            "file": "reactrouter.svg",
+            "hex": "#CA4245",
+            "source": "https://github.com/ReactTraining/react-router/blob/c94bcd8cef0c811f80b02777ec26fee3618f8e86/website/static/safari-pinned-tab.svg"
+        },
+        {
+            "name": "Reddit",
+            "slug": "reddit",
+            "file": "reddit.svg",
+            "hex": "#FF4500",
+            "source": "https://www.redditinc.com/brand"
+        },
+        {
+            "name": "Renault",
+            "slug": "renault",
+            "file": "renault.svg",
+            "hex": "#FFCC33",
+            "source": "https://media.renaultgroup.com"
+        },
+        {
+            "name": "Render",
+            "slug": "render",
+            "file": "render.svg",
+            "hex": "#000000",
+            "source": "https://render.com"
+        },
+        {
+            "name": "Replit",
+            "slug": "replit",
+            "file": "replit.svg",
+            "hex": "#F26207",
+            "source": "https://repl.it"
+        },
+        {
+            "name": "Reqable",
+            "slug": "reqable",
+            "file": "reqable.svg",
+            "hex": "#FFB638",
+            "source": "https://github.com/reqable"
+        },
+        {
+            "name": "Revolut",
+            "slug": "revolut",
+            "file": "revolut.svg",
+            "hex": "#191C1F",
+            "source": "https://developer.revolut.com/docs/resources/marketing-assets-guidelines/marketing-guidelines"
+        },
+        {
+            "name": "Riot Games",
+            "slug": "riotgames",
+            "file": "riotgames.svg",
+            "hex": "#EB0029",
+            "source": "https://www.riotgames.com/en/press"
+        },
+        {
+            "name": "Rockstar Games",
+            "slug": "rockstargames",
+            "file": "rockstargames.svg",
+            "hex": "#FCAF17",
+            "source": "https://www.rockstargames.com"
+        },
+        {
+            "name": "Rolls-Royce",
+            "slug": "rollsroyce",
+            "file": "rollsroyce.svg",
+            "hex": "#281432",
+            "source": "https://www.rolls-roycemotorcars.com"
+        },
+        {
+            "name": "rollup.js",
+            "slug": "rollupdotjs",
+            "file": "rollupdotjs.svg",
+            "hex": "#EC4A3F",
+            "source": "https://rollupjs.org"
+        },
+        {
+            "name": "RuboCop",
+            "slug": "rubocop",
+            "file": "rubocop.svg",
+            "hex": "#000000",
+            "source": "https://github.com/rubocop-semver/rubocop-ruby2_0/blob/5302f93058f7b739a73a7a6c11c566a2b196b96e/docs/images/logo/rubocop-light.svg"
+        },
+        {
+            "name": "Ruby",
+            "slug": "ruby",
+            "file": "ruby.svg",
+            "hex": "#CC342D",
+            "source": "https://www.ruby-lang.org/en/about/logo/"
+        },
+        {
+            "name": "Ruby on Rails",
+            "slug": "rubyonrails",
+            "file": "rubyonrails.svg",
+            "hex": "#D30001",
+            "source": "https://github.com/simple-icons/simple-icons/issues/9619#issuecomment-1735150580"
+        },
+        {
+            "name": "Rust",
+            "slug": "rust",
+            "file": "rust.svg",
+            "hex": "#000000",
+            "source": "https://www.rust-lang.org"
+        },
+        {
+            "name": "Ryanair",
+            "slug": "ryanair",
+            "file": "ryanair.svg",
+            "hex": "#073590",
+            "source": "https://corporate.ryanair.com/media-centre/stock-images-gallery/#album-container-3"
+        },
+        {
+            "name": "Safari",
+            "slug": "safari",
+            "file": "safari.svg",
+            "hex": "#006CFF",
+            "source": "https://apps.apple.com/us/app/safari/id1146562112"
+        },
+        {
+            "name": "Samsung",
+            "slug": "samsung",
+            "file": "samsung.svg",
+            "hex": "#1428A0",
+            "source": "https://www.samsung.com/us/about-us/brand-identity/logo/"
+        },
+        {
+            "name": "Sanity",
+            "slug": "sanity",
+            "file": "sanity.svg",
+            "hex": "#0D0E12",
+            "source": "https://github.com/sanity-io/logos/blob/e298a1ac2757c83910fe08b496a115bc9aef06bd/src/sanityMonogram.tsx"
+        },
+        {
+            "name": "SAP",
+            "slug": "sap",
+            "file": "sap.svg",
+            "hex": "#0FAAFF",
+            "source": "https://www.sap.com"
+        },
+        {
+            "name": "Sass",
+            "slug": "sass",
+            "file": "sass.svg",
+            "hex": "#CC6699",
+            "source": "https://sass-lang.com/styleguide/brand"
+        },
+        {
+            "name": "Scaleway",
+            "slug": "scaleway",
+            "file": "scaleway.svg",
+            "hex": "#4F0599",
+            "source": "https://ultraviolet.scaleway.com"
+        },
+        {
+            "name": "Seagate",
+            "slug": "seagate",
+            "file": "seagate.svg",
+            "hex": "#6EBE49",
+            "source": "https://branding.seagate.com/productpage/3fc51aba-c35a-4eff-a833-a258b0440bd2"
+        },
+        {
+            "name": "Sega",
+            "slug": "sega",
+            "file": "sega.svg",
+            "hex": "#0089CF",
+            "source": "https://commons.wikimedia.org/wiki/File:SEGA_logo.svg"
+        },
+        {
+            "name": "Selenium",
+            "slug": "selenium",
+            "file": "selenium.svg",
+            "hex": "#43B02A",
+            "source": "https://github.com/SeleniumHQ/heroku-selenium/blob/2f66891ba030d3aa1f36ab1748c52ba4fb4e057d/selenium-green.svg"
+        },
+        {
+            "name": "SemVer",
+            "slug": "semver",
+            "file": "semver.svg",
+            "hex": "#3F4551",
+            "source": "https://github.com/semver/semver.org/blob/b6983849e38911195a24357809187c2f50af0d40/assets/500x500(light).jpg"
+        },
+        {
+            "name": "Sentry",
+            "slug": "sentry",
+            "file": "sentry.svg",
+            "hex": "#362D59",
+            "source": "https://sentry.io/branding/"
+        },
+        {
+            "name": "Sequelize",
+            "slug": "sequelize",
+            "file": "sequelize.svg",
+            "hex": "#52B0E7",
+            "source": "https://github.com/sequelize/website/blob/e6a482fa58a839b15ace80e3c8901ed2887be45e/static/img/logo-simple.svg"
+        },
+        {
+            "name": "Server Fault",
+            "slug": "serverfault",
+            "file": "serverfault.svg",
+            "hex": "#E7282D",
+            "source": "https://stackoverflow.com/company/logos"
+        },
+        {
+            "name": "Shell",
+            "slug": "shell",
+            "file": "shell.svg",
+            "hex": "#FFD500",
+            "source": "https://en.wikipedia.org/wiki/File:Shell_logo.svg"
+        },
+        {
+            "name": "Shopify",
+            "slug": "shopify",
+            "file": "shopify.svg",
+            "hex": "#7AB55C",
+            "source": "https://www.shopify.com/brand-assets"
+        },
+        {
+            "name": "Siemens",
+            "slug": "siemens",
+            "file": "siemens.svg",
+            "hex": "#009999",
+            "source": "https://siemens.com"
+        },
+        {
+            "name": "Signal",
+            "slug": "signal",
+            "file": "signal.svg",
+            "hex": "#3B45FD",
+            "source": "https://signal.org/brand"
+        },
+        {
+            "name": "SmartThings",
+            "slug": "smartthings",
+            "file": "smartthings.svg",
+            "hex": "#15BFFF",
+            "source": "https://www.smartthings.com/press-kit"
+        },
+        {
+            "name": "Snapchat",
+            "slug": "snapchat",
+            "file": "snapchat.svg",
+            "hex": "#FFFC00",
+            "source": "https://www.snapchat.com/brand-guidelines"
+        },
+        {
+            "name": "Snowflake",
+            "slug": "snowflake",
+            "file": "snowflake.svg",
+            "hex": "#29B5E8",
+            "source": "https://www.snowflake.com/brand-guidelines/"
+        },
+        {
+            "name": "Socket.io",
+            "slug": "socketdotio",
+            "file": "socketdotio.svg",
+            "hex": "#010101",
+            "source": "https://socket.io"
+        },
+        {
+            "name": "Solana",
+            "slug": "solana",
+            "file": "solana.svg",
+            "hex": "#9945FF",
+            "source": "https://solana.com/branding"
+        },
+        {
+            "name": "Solidity",
+            "slug": "solidity",
+            "file": "solidity.svg",
+            "hex": "#363636",
+            "source": "https://docs.soliditylang.org/en/v0.8.6/brand-guide.html"
+        },
+        {
+            "name": "Sony",
+            "slug": "sony",
+            "file": "sony.svg",
+            "hex": "#FFFFFF",
+            "source": "https://www.sony.com"
+        },
+        {
+            "name": "SoundCloud",
+            "slug": "soundcloud",
+            "file": "soundcloud.svg",
+            "hex": "#FF5500",
+            "source": "https://press.soundcloud.com"
+        },
+        {
+            "name": "SourceForge",
+            "slug": "sourceforge",
+            "file": "sourceforge.svg",
+            "hex": "#FF6600",
+            "source": "https://sourceforge.net"
+        },
+        {
+            "name": "Southwest Airlines",
+            "slug": "southwestairlines",
+            "file": "southwestairlines.svg",
+            "hex": "#304CB2",
+            "source": "https://www.southwest.com"
+        },
+        {
+            "name": "SpaceX",
+            "slug": "spacex",
+            "file": "spacex.svg",
+            "hex": "#000000",
+            "source": "https://www.spacex.com"
+        },
+        {
+            "name": "spaCy",
+            "slug": "spacy",
+            "file": "spacy.svg",
+            "hex": "#09A3D5",
+            "source": "https://github.com/explosion/spaCy/blob/c17980e535a8009b14ee4d1f818db207d9c07e55/website/src/images/logo.svg"
+        },
+        {
+            "name": "SparkFun",
+            "slug": "sparkfun",
+            "file": "sparkfun.svg",
+            "hex": "#E53525",
+            "source": "https://www.sparkfun.com/brand_assets"
+        },
+        {
+            "name": "Speedtest",
+            "slug": "speedtest",
+            "file": "speedtest.svg",
+            "hex": "#141526",
+            "source": "https://www.speedtest.net"
+        },
+        {
+            "name": "Spotify",
+            "slug": "spotify",
+            "file": "spotify.svg",
+            "hex": "#1ED760",
+            "source": "https://developer.spotify.com/documentation/general/design-and-branding/#using-our-logo"
+        },
+        {
+            "name": "Spring",
+            "slug": "spring",
+            "file": "spring.svg",
+            "hex": "#6DB33F",
+            "source": "https://spring.io/trademarks"
+        },
+        {
+            "name": "SQLite",
+            "slug": "sqlite",
+            "file": "sqlite.svg",
+            "hex": "#003B57",
+            "source": "https://github.com/sqlite/sqlite/blob/43e862723ec680542ca6f608f9963c0993dd7324/art/sqlite370.eps"
+        },
+        {
+            "name": "Square",
+            "slug": "square",
+            "file": "square.svg",
+            "hex": "#3E4348",
+            "source": "https://squareup.com"
+        },
+        {
+            "name": "Stack Exchange",
+            "slug": "stackexchange",
+            "file": "stackexchange.svg",
+            "hex": "#1E5397",
+            "source": "https://stackoverflow.com/company/logos"
+        },
+        {
+            "name": "Stack Overflow",
+            "slug": "stackoverflow",
+            "file": "stackoverflow.svg",
+            "hex": "#F58025",
+            "source": "https://stackoverflow.design/brand/logo/"
+        },
+        {
+            "name": "StackBlitz",
+            "slug": "stackblitz",
+            "file": "stackblitz.svg",
+            "hex": "#1269D3",
+            "source": "https://stackblitz.com"
+        },
+        {
+            "name": "Steam",
+            "slug": "steam",
+            "file": "steam.svg",
+            "hex": "#000000",
+            "source": "https://partner.steamgames.com/doc/marketing/branding"
+        },
+        {
+            "name": "Steam Deck",
+            "slug": "steamdeck",
+            "file": "steamdeck.svg",
+            "hex": "#1A9FFF",
+            "source": "https://partner.steamgames.com/doc/marketing/branding"
+        },
+        {
+            "name": "Storyblok",
+            "slug": "storyblok",
+            "file": "storyblok.svg",
+            "hex": "#09B3AF",
+            "source": "https://www.storyblok.com/press"
+        },
+        {
+            "name": "Strapi",
+            "slug": "strapi",
+            "file": "strapi.svg",
+            "hex": "#4945FF",
+            "source": "https://handbook.strapi.io/strapi-brand-book-2022/strapi-logo"
+        },
+        {
+            "name": "Stripe",
+            "slug": "stripe",
+            "file": "stripe.svg",
+            "hex": "#635BFF",
+            "source": "https://stripe.com/newsroom/information"
+        },
+        {
+            "name": "Subaru",
+            "slug": "subaru",
+            "file": "subaru.svg",
+            "hex": "#013C74",
+            "source": "https://commons.wikimedia.org/wiki/File:Subaru_logo.svg"
+        },
+        {
+            "name": "Telegram",
+            "slug": "telegram",
+            "file": "telegram.svg",
+            "hex": "#26A5E4",
+            "source": "https://telegram.org/tour/screenshots"
+        },
+        {
+            "name": "Tesla",
+            "slug": "tesla",
+            "file": "tesla.svg",
+            "hex": "#CC0000",
+            "source": "https://www.tesla.com/tesla-gallery"
+        },
+        {
+            "name": "TikTok",
+            "slug": "tiktok",
+            "file": "tiktok.svg",
+            "hex": "#000000",
+            "source": "https://tiktok.com"
+        },
+        {
+            "name": "Toyota",
+            "slug": "toyota",
+            "file": "toyota.svg",
+            "hex": "#EB0A1E",
+            "source": "https://www.toyota.com/brandguidelines/logo/"
+        },
+        {
+            "name": "Twitch",
+            "slug": "twitch",
+            "file": "twitch.svg",
+            "hex": "#9146FF",
+            "source": "https://brand.twitch.tv"
+        },
+        {
+            "name": "Uber",
+            "slug": "uber",
+            "file": "uber.svg",
+            "hex": "#000000",
+            "source": "https://assets.uber.com/d/k4nuxdZ8MC7E/logos/collection/151"
+        },
+        {
+            "name": "Ubisoft",
+            "slug": "ubisoft",
+            "file": "ubisoft.svg",
+            "hex": "#000000",
+            "source": "https://www.ubisoft.com/en-US/company/overview.aspx"
+        },
+        {
+            "name": "Unilever",
+            "slug": "unilever",
+            "file": "unilever.svg",
+            "hex": "#1F36C7",
+            "source": "https://www.unilever.com/our-company/the-logo"
+        },
+        {
+            "name": "Unity",
+            "slug": "unity",
+            "file": "unity.svg",
+            "hex": "#FFFFFF",
+            "source": "https://brand.unity.com"
+        },
+        {
+            "name": "Visa",
+            "slug": "visa",
+            "file": "visa.svg",
+            "hex": "#1A1F71",
+            "source": "https://merchantsignageeu.visa.com/product.asp?dptID=696"
+        },
+        {
+            "name": "Volkswagen",
+            "slug": "volkswagen",
+            "file": "volkswagen.svg",
+            "hex": "#151F5D",
+            "source": "https://www.vw.com"
+        },
+        {
+            "name": "WhatsApp",
+            "slug": "whatsapp",
+            "file": "whatsapp.svg",
+            "hex": "#25D366",
+            "source": "https://about.meta.com/brand/resources/whatsapp/whatsapp-brand"
+        },
+        {
+            "name": "Wikipedia",
+            "slug": "wikipedia",
+            "file": "wikipedia.svg",
+            "hex": "#000000",
+            "source": "https://commons.wikimedia.org/wiki/File:Wikipedia-logo-v2.svg"
+        },
+        {
+            "name": "X",
+            "slug": "x",
+            "file": "x.svg",
+            "hex": "#000000",
+            "source": "https://x.com"
+        },
+        {
+            "name": "Xiaomi",
+            "slug": "xiaomi",
+            "file": "xiaomi.svg",
+            "hex": "#FF6900",
+            "source": "https://www.mi.com/global"
+        },
+        {
+            "name": "YouTube",
+            "slug": "youtube",
+            "file": "youtube.svg",
+            "hex": "#FF0000",
+            "source": "https://www.youtube.com/howyoutubeworks/resources/brand-resources/#logos-icons-and-colors"
+        },
+        {
+            "name": "Zoom",
+            "slug": "zoom",
+            "file": "zoom.svg",
+            "hex": "#0B5CFF",
+            "source": "https://brand.zoom.us/media-library/"
+        },
+        {
+            "name": "\u0160KODA",
+            "slug": "skoda",
+            "file": "skoda.svg",
+            "hex": "#0E3A2F",
+            "source": "https://www.skoda-connect.com"
+        }
+    ]
+}

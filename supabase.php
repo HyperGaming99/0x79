@@ -412,6 +412,161 @@ function fetchRecentClicks($code, $limit = 5000) {
     }
 }
 
+// Record one privacy-friendly landing-page visitor per month. Raw IP and
+// User-Agent values never leave this process; only a keyed monthly hash is
+// stored. Bots are excluded and database failures never block the page.
+function logMonthlyLandingVisit() {
+    global $supabase_url, $supabase_key, $supabase_db_key, $admin_api_key, $admin_password, $db_driver;
+
+    $month = gmdate('Y-m-01');
+    $sessionKey = 'analytics_landing_month_v2';
+    if (($_SESSION[$sessionKey] ?? '') === $month) return;
+
+    $ua = trim((string)($_SERVER['HTTP_USER_AGENT'] ?? ''));
+    if ($ua === '' || detectDeviceType($ua) === 'bot') return;
+
+    $salt = trim((string)(getenv('ANALYTICS_SALT') ?: ''));
+    if ($salt === '') {
+        // Backwards-compatible secret fallback for existing installations.
+        // .env.sample recommends a dedicated random ANALYTICS_SALT.
+        $salt = hash('sha256', (string)$admin_api_key . '|' . (string)$admin_password);
+    }
+    $fingerprint = hash_hmac('sha256', $month . '|' . clientIp() . '|' . substr($ua, 0, 512), $salt);
+
+    try {
+        if (($db_driver ?? 'supabase') === 'postgres') {
+            $statement = pgConnect()->prepare(
+                'INSERT INTO site_visits (visitor_hash, visit_month) VALUES (:hash, :month) '
+                . 'ON CONFLICT (visitor_hash, visit_month) DO NOTHING'
+            );
+            $statement->execute([':hash' => $fingerprint, ':month' => $month]);
+            $_SESSION[$sessionKey] = $month;
+            @unlink(sys_get_temp_dir() . '/0x79_public_monthly_analytics.json');
+            return;
+        }
+
+        // PostgREST upsert avoids a read-before-write race and needs only one
+        // short, timeout-bounded request on the public landing page.
+        $key = $supabase_db_key ?: $supabase_key;
+        $url = rtrim((string)$supabase_url, '/')
+            . '/rest/v1/site_visits?on_conflict=visitor_hash%2Cvisit_month';
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
+                'apikey: ' . $key,
+                'Authorization: Bearer ' . $key,
+                'Content-Type: application/json',
+                'Prefer: resolution=ignore-duplicates,return=minimal',
+            ],
+            CURLOPT_POSTFIELDS => json_encode([
+                'visitor_hash' => $fingerprint,
+                'visit_month' => $month,
+            ], JSON_UNESCAPED_SLASHES),
+            CURLOPT_CONNECTTIMEOUT => 2,
+            CURLOPT_TIMEOUT => 4,
+        ]);
+        curl_exec($ch);
+        $error = curl_error($ch);
+        $http = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($error === '' && $http >= 200 && $http < 300) {
+            $_SESSION[$sessionKey] = $month;
+            @unlink(sys_get_temp_dir() . '/0x79_public_monthly_analytics.json');
+        }
+    } catch (Throwable $e) {
+        // Analytics is non-critical.
+    }
+}
+
+// Exact PostgREST count without downloading all matching records.
+function supabaseExactMonthlyCount($table, $column, $start, $end) {
+    global $supabase_url, $supabase_key, $supabase_db_key;
+    if (!preg_match('/^[a-z_][a-z0-9_]*$/', (string)$table)
+        || !preg_match('/^[a-z_][a-z0-9_]*$/', (string)$column)) return null;
+
+    $key = $supabase_db_key ?: $supabase_key;
+    $url = rtrim((string)$supabase_url, '/') . '/rest/v1/' . $table
+        . '?select=id&' . $column . '=gte.' . rawurlencode((string)$start)
+        . '&' . $column . '=lt.' . rawurlencode((string)$end);
+    $contentRange = '';
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CUSTOMREQUEST => 'HEAD',
+        CURLOPT_NOBODY => true,
+        CURLOPT_HTTPHEADER => [
+            'apikey: ' . $key,
+            'Authorization: Bearer ' . $key,
+            'Prefer: count=exact',
+            'Range: 0-0',
+        ],
+        CURLOPT_HEADERFUNCTION => static function ($ch, $line) use (&$contentRange) {
+            if (stripos($line, 'Content-Range:') === 0) $contentRange = trim(substr($line, 14));
+            return strlen($line);
+        },
+        CURLOPT_CONNECTTIMEOUT => 3,
+        CURLOPT_TIMEOUT => 6,
+    ]);
+    curl_exec($ch);
+    $error = curl_error($ch);
+    $http = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($error !== '' || $http < 200 || $http >= 300) return null;
+    return preg_match('#/(\d+)$#', $contentRange, $m) ? (int)$m[1] : null;
+}
+
+// Public aggregate metrics for the current UTC month. Cached briefly to keep
+// the landing page cheap under traffic and to avoid exposing individual rows.
+function fetchPublicMonthlyAnalytics() {
+    global $db_driver;
+    $cacheFile = sys_get_temp_dir() . '/0x79_public_monthly_analytics.json';
+    if (is_file($cacheFile) && (int)@filemtime($cacheFile) >= time() - 60) {
+        $cached = json_decode((string)@file_get_contents($cacheFile), true);
+        if (is_array($cached) && isset($cached['month'])) return $cached;
+    }
+
+    $start = gmdate('Y-m-01\T00:00:00\Z');
+    $end = gmdate('Y-m-01\T00:00:00\Z', strtotime('first day of next month 00:00:00 UTC'));
+    $stats = [
+        'month' => substr($start, 0, 7),
+        'visitors' => null,
+        'clicks' => null,
+        'links' => null,
+    ];
+
+    try {
+        if (($db_driver ?? 'supabase') === 'postgres') {
+            $pdo = pgConnect();
+            $queries = [
+                'visitors' => 'SELECT COUNT(*) FROM site_visits WHERE first_visited_at >= :start AND first_visited_at < :end',
+                'clicks' => 'SELECT COUNT(*) FROM link_clicks WHERE clicked_at >= :start AND clicked_at < :end',
+                'links' => 'SELECT COUNT(*) FROM urls WHERE created_at >= :start AND created_at < :end',
+            ];
+            foreach ($queries as $key => $sql) {
+                try {
+                    $statement = $pdo->prepare($sql);
+                    $statement->execute([':start' => $start, ':end' => $end]);
+                    $stats[$key] = (int)$statement->fetchColumn();
+                } catch (Throwable $e) {
+                    $stats[$key] = null;
+                }
+            }
+        } else {
+            $stats['visitors'] = supabaseExactMonthlyCount('site_visits', 'first_visited_at', $start, $end);
+            $stats['clicks'] = supabaseExactMonthlyCount('link_clicks', 'clicked_at', $start, $end);
+            $stats['links'] = supabaseExactMonthlyCount('urls', 'created_at', $start, $end);
+        }
+    } catch (Throwable $e) {
+        // Keep null values; the UI renders an em dash instead of a false zero.
+    }
+
+    @file_put_contents($cacheFile, json_encode($stats, JSON_UNESCAPED_SLASHES), LOCK_EX);
+    return $stats;
+}
+
 // True if the short_code belongs to the given user.
 function linkOwnedByUser($code, $userId) {
     global $supabase_url;

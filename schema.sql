@@ -80,6 +80,27 @@ CREATE TABLE IF NOT EXISTS link_clicks (
 );
 CREATE INDEX IF NOT EXISTS link_clicks_code_idx ON link_clicks(short_code, clicked_at DESC);
 
+-- Privacy-friendly monthly unique visitors for the public landing page.
+-- No raw IP or User-Agent is stored. The application writes only a salted,
+-- month-specific hash and keeps one row per browser/network fingerprint.
+CREATE TABLE IF NOT EXISTS site_visits (
+    id               bigserial PRIMARY KEY,
+    visitor_hash     char(64) NOT NULL,
+    visit_month      date NOT NULL,
+    first_visited_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (visitor_hash, visit_month)
+);
+CREATE INDEX IF NOT EXISTS site_visits_month_idx ON site_visits(visit_month, first_visited_at DESC);
+-- On Supabase, keep hashes inaccessible to browser/anon clients. Plain
+-- PostgreSQL installations retain their normal application-role behaviour.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
+        ALTER TABLE site_visits ENABLE ROW LEVEL SECURITY;
+    END IF;
+END
+$$;
+
 -- RSS / blog posts.
 CREATE TABLE IF NOT EXISTS posts (
     id          bigserial PRIMARY KEY,
