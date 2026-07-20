@@ -512,7 +512,12 @@ function fetchMinecraftStatus(string $address): array {
 // ---------------------------------------------------------
 function detectLang($supported = ['de', 'en']) {
     if (isset($_GET['lang']) && in_array($_GET['lang'], $supported, true)) {
-        setcookie('lang', $_GET['lang'], time() + 60 * 60 * 24 * 365, '/');
+        setcookie('lang', $_GET['lang'], [
+            'expires'  => time() + 86400 * 365,
+            'path'     => '/',
+            'secure'   => true,
+            'samesite' => 'Lax',
+        ]);
         return $_GET['lang'];
     }
 
@@ -566,6 +571,93 @@ function jsonResponse($payload, $status = 200) {
     exit;
 }
 
+function projectNonEmptyCodeLines() {
+    $extensions = ['php', 'js', 'css', 'sql', 'sh', 'yml', 'yaml'];
+    $files = [];
+    foreach (new DirectoryIterator(__DIR__) as $entry) {
+        if ($entry->isFile() && in_array(strtolower($entry->getExtension()), $extensions, true)) {
+            $files[] = $entry->getPathname();
+        }
+    }
+    $scriptsDir = __DIR__ . '/scripts';
+    if (is_dir($scriptsDir)) {
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($scriptsDir, FilesystemIterator::SKIP_DOTS)) as $entry) {
+            if ($entry->isFile() && in_array(strtolower($entry->getExtension()), $extensions, true)) {
+                $files[] = $entry->getPathname();
+            }
+        }
+    }
+    sort($files);
+
+    $signatureParts = [];
+    foreach ($files as $file) $signatureParts[] = $file . '|' . filesize($file) . '|' . filemtime($file);
+    $signature = hash('sha256', implode("\n", $signatureParts));
+    $cacheFile = sys_get_temp_dir() . '/0x79_code_line_count.json';
+    $cached = is_file($cacheFile) ? json_decode((string)@file_get_contents($cacheFile), true) : null;
+    if (is_array($cached) && ($cached['signature'] ?? '') === $signature && isset($cached['count'])) {
+        return max(0, (int)$cached['count']);
+    }
+
+    $count = 0;
+    foreach ($files as $file) {
+        $handle = @fopen($file, 'rb');
+        if (!$handle) continue;
+        while (($line = fgets($handle)) !== false) if (trim($line) !== '') $count++;
+        fclose($handle);
+    }
+    @file_put_contents($cacheFile, json_encode(['signature' => $signature, 'count' => $count]), LOCK_EX);
+    return $count;
+}
+
+// Small, failure-tolerant GitHub repository snapshot for the public landing
+// page. A long cache keeps the unauthenticated GitHub API well below its limit.
+function fetchGithubRepositoryStats() {
+    $empty = ['code_lines' => projectNonEmptyCodeLines(), 'stars' => null, 'forks' => null, 'open_issues' => null];
+    $repository = trim((string)(getenv('GITHUB_REPOSITORY') ?: 'HyperGaming99/0x79'));
+    if (!preg_match('#^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$#', $repository)) return $empty;
+
+    $cacheFile = sys_get_temp_dir() . '/0x79_github_repo_stats_' . hash('sha256', strtolower($repository)) . '.json';
+    if (is_file($cacheFile) && (int)@filemtime($cacheFile) >= time() - 1800) {
+        $cached = json_decode((string)@file_get_contents($cacheFile), true);
+        if (is_array($cached) && array_key_exists('stars', $cached)) {
+            $cached = array_replace($empty, $cached);
+            $cached['code_lines'] = $empty['code_lines'];
+            return $cached;
+        }
+    }
+
+    try {
+        $ch = curl_init('https://api.github.com/repos/' . $repository);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_CONNECTTIMEOUT => 2,
+            CURLOPT_TIMEOUT => 4,
+            CURLOPT_HTTPHEADER => [
+                'Accept: application/vnd.github+json',
+                'X-GitHub-Api-Version: 2022-11-28',
+                'User-Agent: 0x79-landing-stats/1.0',
+            ],
+        ]);
+        $response = curl_exec($ch);
+        $http = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $data = is_string($response) && $http === 200 ? json_decode($response, true) : null;
+        if (!is_array($data)) return $empty;
+
+        $stats = [
+            'code_lines' => $empty['code_lines'],
+            'stars' => max(0, (int)($data['stargazers_count'] ?? 0)),
+            'forks' => max(0, (int)($data['forks_count'] ?? 0)),
+            'open_issues' => max(0, (int)($data['open_issues_count'] ?? 0)),
+        ];
+        @file_put_contents($cacheFile, json_encode($stats, JSON_UNESCAPED_SLASHES), LOCK_EX);
+        return $stats;
+    } catch (Throwable $e) {
+        return $empty;
+    }
+}
+
 function apiReadInput() {
     $contentType = strtolower($_SERVER['CONTENT_TYPE'] ?? '');
 
@@ -595,15 +687,12 @@ function boolParam($value, $default = false) {
 function builtInLinkSchemes() {
     return [
         'http', 'https',
-        'ftp', 'sftp', 'ftps', 'file',
+        'ftp', 'sftp', 'ftps',
         'mailto', 'tel', 'sms',
-        'ssh', 'git', 'magnet',
-        'data', 'blob',
+        'magnet',
         'ws', 'wss',
         'irc', 'xmpp',
-        'ipfs', 'ipns',
-        'bitcoin', 'ethereum', 'geo',
-        'intent', 'market', 'itms-apps',
+        'geo',
         'steam', 'discord', 'tg', 'whatsapp',
     ];
 }
@@ -739,7 +828,7 @@ function saveProtocolConfig($allowedSchemes, $customSchemes) {
     $dir = dirname($path);
 
     if (!is_dir($dir) || !is_writable($dir)) {
-        return [false, 'config directory is not writable: ' . $dir];
+        return [false, 'config directory is not writable'];
     }
 
     $payload = json_encode([
@@ -767,8 +856,8 @@ function isAllowedShortenerTarget($target) {
         return false;
     }
 
-    // Prevent response splitting / header injection.
-    if (preg_match('/[\r\n\0]/', $target)) {
+    // Prevent response splitting / header injection (literal and percent-encoded).
+    if (preg_match('/[\r\n\0]/', $target) || preg_match('/%0[da]|%00/i', $target)) {
         return false;
     }
 
@@ -1055,9 +1144,14 @@ function isValidCustomCode($code) {
     return isValidCode($code) && !isReservedCode($code);
 }
 
-function clientIp() {
-    $ip = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-    return trim(explode(',', (string)$ip)[0]);
+function clientIp(): string {
+    if (getenv('CLOUDFLARE_PROXY') === 'true' && !empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+        return trim((string)$_SERVER['HTTP_CF_CONNECTING_IP']);
+    }
+    if (getenv('TRUSTED_PROXY') === 'true' && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        return trim(explode(',', (string)$_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+    }
+    return trim((string)($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
 }
 
 function clientRateLimitKey() {
@@ -1080,21 +1174,31 @@ function rateLimit($scope, $max, $windowSeconds) {
     $now = time();
     $timestamps = [];
 
-    if (file_exists($file)) {
-        $data = json_decode(@file_get_contents($file) ?: '[]', true);
-        if (is_array($data)) {
-            $timestamps = array_values(array_filter($data, function ($ts) use ($now, $windowSeconds) {
-                return is_numeric($ts) && ((int)$ts) > ($now - $windowSeconds);
-            }));
-        }
+    $fp = @fopen($file, 'c+');
+    if (!$fp) return true;
+    if (!flock($fp, LOCK_EX)) { fclose($fp); return true; }
+
+    $raw = '';
+    while (!feof($fp)) $raw .= fread($fp, 8192);
+    $data = json_decode($raw ?: '[]', true);
+    if (is_array($data)) {
+        $timestamps = array_values(array_filter($data, function ($ts) use ($now, $windowSeconds) {
+            return is_numeric($ts) && ((int)$ts) > ($now - $windowSeconds);
+        }));
     }
 
     if (count($timestamps) >= $max) {
+        flock($fp, LOCK_UN);
+        fclose($fp);
         return false;
     }
 
     $timestamps[] = $now;
-    @file_put_contents($file, json_encode($timestamps), LOCK_EX);
+    ftruncate($fp, 0);
+    rewind($fp);
+    fwrite($fp, json_encode($timestamps));
+    flock($fp, LOCK_UN);
+    fclose($fp);
     return true;
 }
 
@@ -1166,6 +1270,21 @@ function userCsrfToken() {
 function requireUserCsrf() {
     $token = (string)($_POST['csrf'] ?? '');
     if (empty($_SESSION['user_csrf']) || !hash_equals($_SESSION['user_csrf'], $token)) {
+        http_response_code(403);
+        exit('invalid csrf token');
+    }
+}
+
+function formCsrfToken() {
+    if (empty($_SESSION['form_csrf'])) {
+        $_SESSION['form_csrf'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['form_csrf'];
+}
+
+function requireFormCsrf() {
+    $token = (string)($_POST['csrf'] ?? '');
+    if (empty($_SESSION['form_csrf']) || !hash_equals($_SESSION['form_csrf'], $token)) {
         http_response_code(403);
         exit('invalid csrf token');
     }
@@ -1902,7 +2021,7 @@ function sanitizePreviewHtml($html, $baseUrl) {
         foreach ($attrs as $name) {
             $value = $el->getAttribute($name);
             $lname = strtolower($name);
-            if (strpos($lname, 'on') === 0 || in_array($lname, ['srcdoc', 'integrity', 'nonce'], true)) {
+            if (strpos($lname, 'on') === 0 || in_array($lname, ['srcdoc', 'integrity', 'nonce', 'style'], true)) {
                 $el->removeAttribute($name);
                 continue;
             }

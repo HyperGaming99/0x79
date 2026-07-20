@@ -221,10 +221,18 @@ if ($request_path === 'login') {
 }
 
 if ($request_path === 'logout') {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        requireUserCsrf();
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        header('Allow: POST');
+        exit;
     }
-    unset($_SESSION['user_id'], $_SESSION['last_api_key'], $_SESSION['user_csrf']);
+    requireUserCsrf();
+    unset($_SESSION['user_id'], $_SESSION['last_api_key'], $_SESSION['user_csrf'], $_SESSION['form_csrf']);
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+    }
+    session_destroy();
     header('Location: /');
     exit;
 }
@@ -291,6 +299,7 @@ if ($request_path === 'paste') {
     $rawUrl = '';
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        requireFormCsrf();
         if (!checkCreateRateLimit(10, 3600)) {
             $pasteError = pasteErrorText('rate_limited', $t);
         } else {
@@ -345,6 +354,7 @@ if ($request_path === 'secure-share') {
     $pasteUrl = '';
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        requireFormCsrf();
         if (!checkCreateRateLimit(10, 3600)) {
             $error = $t['err_rate_limit'] ?? 'Rate limit reached.';
         } else {
@@ -401,6 +411,7 @@ if ($request_path === 'music') {
     $musicLandingUrl = '';
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        requireFormCsrf();
         if (isset($_POST['domain']) && in_array($_POST['domain'], $available_domains, true)) {
             $selected_domain = $_POST['domain'];
         }
@@ -522,6 +533,7 @@ if ($request_path === 'upload') {
     $uploadShortUrl = '';
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        requireFormCsrf();
         $isXhr = !empty($_SERVER['HTTP_X_REQUESTED_WITH']);
 
         if (isset($_POST['domain']) && in_array($_POST['domain'], $available_domains, true)) {
@@ -693,14 +705,18 @@ if ($request_path === 'admin/action') {
 }
 
 if ($request_path === 'admin/logout') {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET') {
-        $_SESSION = [];
-        if (ini_get('session.use_cookies')) {
-            $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
-        }
-        session_destroy();
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        header('Allow: POST');
+        exit;
     }
+    requireAdminCsrf();
+    $_SESSION = [];
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+    }
+    session_destroy();
     header('Location: /admin');
     exit;
 }
@@ -929,6 +945,7 @@ if ($request_path === 'abuse') {
     $saveError = '';
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        requireFormCsrf();
         if (!checkCreateRateLimit(5, 3600)) {
             $saveError = 'zu viele meldungen. bitte später erneut versuchen.';
         } else {
@@ -937,7 +954,7 @@ if ($request_path === 'abuse') {
     }
 
     $subject = 'Abuse report for ' . $host;
-    $body = "Reported link/code:\n" . $reported_link . "\n\nReason:\n" . $reason . "\n";
+    $body = "Reported link/code:\n" . mb_substr($reported_link, 0, 2000) . "\n\nReason:\n" . mb_substr($reason, 0, 2000) . "\n";
     $mailto = 'mailto:' . rawurlencode($to) . '?subject=' . rawurlencode($subject) . '&body=' . rawurlencode($body);
 
     header('Content-Type: text/html; charset=utf-8');
@@ -975,6 +992,7 @@ if ($request_path === 'abuse') {
             <p class="err">meldung konnte nicht gespeichert werden.</p>
         <?php endif; ?>
         <form method="POST" action="/abuse">
+            <input type="hidden" name="csrf" value="<?= h(formCsrfToken()) ?>">
             <label><?= h($t['abuse_link_label']) ?>
                 <input name="reported_link" value="<?= h($reported_link) ?>" placeholder="https://<?= h($host) ?>/Ab12Cd" required>
             </label>
@@ -1083,20 +1101,15 @@ if ($path_code !== '' || isset($_GET['c'])) {
 
             if (!empty($row['password_hash'])) {
                 $post_password = (string)($_POST['link_password'] ?? '');
-                $query_password = (string)($_GET['pw'] ?? $_GET['password'] ?? '');
 
                 $password_ok = false;
 
-                if ($query_password !== '') {
-                    $password_ok = password_verify($query_password, (string)$row['password_hash']);
-                }
-
-                if (!$password_ok && $_SERVER['REQUEST_METHOD'] === 'POST' && hash_equals((string)($_POST['code'] ?? ''), $code)) {
+                if ($_SERVER['REQUEST_METHOD'] === 'POST' && hash_equals((string)($_POST['code'] ?? ''), $code)) {
                     $password_ok = password_verify($post_password, (string)$row['password_hash']);
                 }
 
                 if (!$password_ok) {
-                    $password_error = ($_SERVER['REQUEST_METHOD'] === 'POST' || $query_password !== '') ? $t['err_password'] : '';
+                    $password_error = $_SERVER['REQUEST_METHOD'] === 'POST' ? $t['err_password'] : '';
 
                     header('Content-Type: text/html; charset=utf-8');
                     ?>
@@ -1139,7 +1152,7 @@ if ($path_code !== '' || isset($_GET['c'])) {
                 $code,
                 $refHost,
                 detectDeviceType($_SERVER['HTTP_USER_AGENT'] ?? ''),
-                strtoupper(substr((string)($_SERVER['HTTP_CF_IPCOUNTRY'] ?? ''), 0, 2))
+                getenv('CLOUDFLARE_PROXY') === 'true' ? strtoupper(substr((string)($_SERVER['HTTP_CF_IPCOUNTRY'] ?? ''), 0, 2)) : ''
             );
 
             if ($is_hosted_file) {
@@ -1162,6 +1175,7 @@ if ($path_code !== '' || isset($_GET['c'])) {
 // 2. CREATE LINK
 // ---------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_path === 'shorten' && isset($_POST['long_url'])) {
+    requireFormCsrf();
     if (isset($_POST['domain']) && in_array($_POST['domain'], $available_domains, true)) {
         $selected_domain = $_POST['domain'];
     }
@@ -1205,9 +1219,11 @@ $public_monthly_analytics = [
     'clicks' => null,
     'links' => null,
 ];
+$github_repository_stats = ['code_lines' => null, 'stars' => null, 'forks' => null, 'open_issues' => null];
 if ($request_path === '') {
     logMonthlyLandingVisit();
     $public_monthly_analytics = fetchPublicMonthlyAnalytics();
+    $github_repository_stats = fetchGithubRepositoryStats();
 }
 $format_public_stat = static function ($value) use ($lang): string {
     if ($value === null || !is_numeric($value)) return '—';
@@ -1307,6 +1323,7 @@ $format_public_stat = static function ($value) use ($lang): string {
                 </div>
 
                 <form method="POST" action="/shorten" class="grid gap-4 p-5 sm:p-6">
+                    <input type="hidden" name="csrf" value="<?= h(formCsrfToken()) ?>">
                     <label class="grid gap-2">
                         <span class="font-mono text-xs text-white/45"><?= h($t['url_label']) ?></span>
                         <input class="h-12 w-full rounded-lg border border-white/10 bg-[#0b0b0c] px-3.5 font-mono text-sm text-white outline-none transition placeholder:text-white/20 focus:border-white/35" type="text" name="long_url" placeholder="https://example.com / mailto:name@example.com / tg://…" required autofocus>
@@ -1457,7 +1474,15 @@ $format_public_stat = static function ($value) use ($lang): string {
         .utility-arrow{transition:transform .16s}
         .ticker{animation:ticker 26s linear infinite}
         @keyframes ticker{to{transform:translateX(-50%)}}
-        @media(prefers-reduced-motion:reduce){.ticker{animation:none}}
+        .stats-card{isolation:isolate;overflow:hidden}
+        .stats-card::after{position:absolute;inset:auto 0 0;height:4px;content:"";background:var(--stat-color);transform:scaleX(0);transform-origin:left}
+        .stats-card.is-counting::after{animation:stat-sweep 1.45s cubic-bezier(.16,1,.3,1) both}
+        .stats-card.is-counting .stat-value{animation:stat-pop 1.45s cubic-bezier(.16,1,.3,1) both}
+        .stats-card.is-counting .stat-dot{animation:stat-pulse .72s ease-in-out 2}
+        @keyframes stat-sweep{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+        @keyframes stat-pop{0%{opacity:.18;transform:translateY(12px);filter:blur(3px)}25%{opacity:1;filter:blur(0)}100%{transform:translateY(0)}}
+        @keyframes stat-pulse{50%{transform:scale(1.8);box-shadow:0 0 0 8px color-mix(in srgb,var(--stat-color) 22%,transparent)}}
+        @media(prefers-reduced-motion:reduce){.ticker,.stats-card.is-counting::after,.stats-card.is-counting .stat-value,.stats-card.is-counting .stat-dot{animation:none}}
         ::selection{background:var(--ink);color:var(--acid)}
     </style>
 </head>
@@ -1543,12 +1568,36 @@ $format_public_stat = static function ($value) use ($lang): string {
                 ['clicks', 'home_stats_clicks', '#60a5fa'],
                 ['links', 'home_stats_links', '#a78bfa'],
             ] as $stat): ?>
-            <div class="relative flex min-h-[150px] flex-col justify-between border-b border-black/25 p-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
-                <i class="absolute right-5 top-5 h-2.5 w-2.5" style="background:<?= h($stat[2]) ?>"></i>
+            <?php $statValue = $public_monthly_analytics[$stat[0]] ?? null; ?>
+            <div class="stats-card relative flex min-h-[150px] flex-col justify-between border-b border-black/25 p-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0" style="--stat-color:<?= h($stat[2]) ?>">
+                <i class="stat-dot absolute right-5 top-5 h-2.5 w-2.5" style="background:<?= h($stat[2]) ?>"></i>
                 <p class="font-mono text-[9px] uppercase tracking-[.16em] text-black/45"><?= h($t[$stat[1]]) ?></p>
-                <p class="font-mono text-4xl font-black tracking-[-.07em] tabular-nums" title="<?= h($t[$stat[1]]) ?>"><?= h($format_public_stat($public_monthly_analytics[$stat[0]] ?? null)) ?></p>
+                <p class="stat-value font-mono text-4xl font-black tracking-[-.07em] tabular-nums" title="<?= h($t[$stat[1]]) ?>"<?= is_numeric($statValue) ? ' data-stat-value="' . h((int)$statValue) . '"' : '' ?>><?= h($format_public_stat($statValue)) ?></p>
             </div>
             <?php endforeach; ?>
+        </section>
+
+        <!-- Repository pulse -->
+        <section class="border-b border-black/25" aria-label="<?= h($t['home_github_stats_label']) ?>">
+            <div class="flex items-center justify-between gap-4 border-b border-black/25 bg-black px-5 py-3 font-mono text-[9px] uppercase tracking-[.2em] text-white">
+                <span><?= h($t['home_github_stats_label']) ?></span>
+                <a href="https://github.com/HyperGaming99/0x79" target="_blank" rel="noopener" class="text-white/45 transition hover:text-[#b8ff31]">github.com/HyperGaming99/0x79 ↗</a>
+            </div>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4">
+                <?php foreach ([
+                    [$github_repository_stats['code_lines'], 'home_github_code_lines', '#b8ff31', ''],
+                    [$github_repository_stats['stars'], 'home_github_stars', '#fbbf24', ''],
+                    [$github_repository_stats['forks'], 'home_github_forks', '#60a5fa', ''],
+                    [$github_repository_stats['open_issues'], 'home_github_open', '#a78bfa', ''],
+                ] as $githubStat): ?>
+                <?php $githubStatNumeric = is_numeric($githubStat[0]); ?>
+                <div class="stats-card relative flex min-h-[112px] flex-col justify-between border-b border-black/25 p-5 sm:odd:border-r lg:border-b-0 lg:border-r lg:last:border-r-0" style="--stat-color:<?= h($githubStat[2]) ?>">
+                    <i class="stat-dot absolute right-5 top-5 h-2 w-2" style="background:<?= h($githubStat[2]) ?>"></i>
+                    <p class="font-mono text-[9px] uppercase tracking-[.16em] text-black/45"><?= h($t[$githubStat[1]]) ?></p>
+                    <p class="stat-value font-mono text-3xl font-black tracking-[-.07em] tabular-nums"<?= $githubStatNumeric ? ' data-stat-value="' . h((int)$githubStat[0]) . '"' : '' ?><?= $githubStatNumeric && $githubStat[3] !== '' ? ' data-stat-suffix="' . h($githubStat[3]) . '"' : '' ?>><?= h($format_public_stat($githubStat[0])) ?><?= $githubStatNumeric ? h($githubStat[3]) : '' ?></p>
+                </div>
+                <?php endforeach; ?>
+            </div>
         </section>
 
         <section class="grid border-b border-black/25 py-10 lg:grid-cols-[220px_1fr] lg:gap-10 lg:py-12">
@@ -1877,6 +1926,53 @@ $format_public_stat = static function ($value) use ($lang): string {
             <span class="text-black/35">fftrclo.store · takeitdown.space · mydiscordiscool.store · fckdupfuture.com</span>
         </footer>
     </main>
+    <script nonce="<?= $csp_nonce ?>">
+        (() => {
+            const values = [...document.querySelectorAll('[data-stat-value]')];
+            if (!values.length) return;
+            const formatter = new Intl.NumberFormat(document.documentElement.lang || 'en');
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            const countUp = (node) => {
+                if (node.dataset.animated === '1') return;
+                node.dataset.animated = '1';
+                const target = Number(node.dataset.statValue);
+                const suffix = node.dataset.statSuffix || '';
+                const render = (value) => formatter.format(value) + suffix;
+                const card = node.closest('.stats-card');
+                if (!Number.isFinite(target) || target < 0 || reduceMotion) {
+                    node.textContent = render(target);
+                    return;
+                }
+
+                card?.classList.add('is-counting');
+                const duration = 1450;
+                const started = performance.now();
+                const frame = (now) => {
+                    const progress = Math.min(1, (now - started) / duration);
+                    const eased = 1 - Math.pow(1 - progress, 4);
+                    node.textContent = render(Math.round(target * eased));
+                    if (progress < 1) requestAnimationFrame(frame);
+                    else node.textContent = render(target);
+                };
+                node.textContent = '0' + suffix;
+                requestAnimationFrame(frame);
+            };
+
+            if (!('IntersectionObserver' in window)) {
+                values.forEach(countUp);
+                return;
+            }
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    countUp(entry.target);
+                    observer.unobserve(entry.target);
+                });
+            }, { threshold: .45 });
+            values.forEach((node) => observer.observe(node));
+        })();
+    </script>
 </body>
 </html>
 <?php endif; ?>

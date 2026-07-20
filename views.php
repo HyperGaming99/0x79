@@ -911,6 +911,7 @@ function renderMusicPromoterPage($error = '', $short_url = '', $music_url = '') 
             <div class="mt-9 grid items-start gap-8 lg:grid-cols-[1.35fr_.95fr]">
                 <!-- Form -->
                 <form method="POST" action="/music" enctype="multipart/form-data" class="grid gap-6 border border-white/10 bg-[#101011] p-5 sm:p-6">
+                    <input type="hidden" name="csrf" value="<?= h(formCsrfToken()) ?>">
                     <div>
                         <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">1 · track</p>
                         <div class="mt-3 grid gap-4 sm:grid-cols-2">
@@ -1116,6 +1117,7 @@ function renderMusicLandingPage($row) {
                     <?php
                         $url = (string)($link['url'] ?? '');
                         if ($url === '') continue;
+                        if (!in_array(strtolower((string)parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true)) continue;
                         $label = (string)($link['label'] ?? 'Music');
                         $badge = (string)($link['badge'] ?? '♪');
                         $key   = (string)($link['key'] ?? '');
@@ -1464,7 +1466,7 @@ function renderAdminDashboard() {
             <a class="btn" href="/api/admin/links.csv"><?= h($t['admin_csv']) ?> ↓</a>
             <a class="btn" href="/abuse">abuse form</a>
             <a class="btn" href="/">startseite</a>
-            <form method="POST" action="/admin/logout"><button type="submit"><?= h($t['admin_logout']) ?></button></form>
+            <form method="POST" action="/admin/logout"><input type="hidden" name="csrf" value="<?= h(adminCsrfToken()) ?>"><button type="submit"><?= h($t['admin_logout']) ?></button></form>
         </div>
     </header>
 
@@ -2658,6 +2660,7 @@ function renderPastePage($error = '', $paste_url = '', $raw_url = '') {
                     <h2 class="mt-1 text-lg font-medium tracking-tight text-white"><?= h($t['paste_submit']) ?></h2>
                 </div>
                 <form method="POST" action="/paste" class="grid gap-4 p-5 sm:p-6">
+                    <input type="hidden" name="csrf" value="<?= h(formCsrfToken()) ?>">
                     <label class="grid gap-2">
                         <span class="font-mono text-xs text-white/45"><?= h($t['paste_text_label']) ?></span>
                         <textarea name="paste_content" rows="12" maxlength="204800" required autofocus class="w-full resize-y border border-white/10 bg-[#0b0b0c] px-3.5 py-3 font-mono text-sm leading-6 text-white outline-none transition placeholder:text-white/25 focus:border-white/35" placeholder="<?= h($t['paste_placeholder']) ?>"></textarea>
@@ -3692,6 +3695,7 @@ function renderMetadataStripperPage() {
 
                 <!-- Hidden Form for uploading cleaned image -->
                 <form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data" class="hidden">
+                    <input type="hidden" name="csrf" value="<?= h(formCsrfToken()) ?>">
                     <input type="file" name="file" id="hiddenFileInput">
                 </form>
             </div>
@@ -3862,6 +3866,7 @@ function renderSecureSharePage($error = '', $pasteUrl = '') {
                     <h2 class="mt-1 text-lg font-medium tracking-tight text-white">Verschlüsselten Paste erstellen</h2>
                 </div>
                 <form id="securePasteForm" class="grid gap-4 p-5 sm:p-6">
+                    <input type="hidden" id="form_csrf" name="csrf" value="<?= h(formCsrfToken()) ?>">
                     <label class="grid gap-2">
                         <span class="font-mono text-xs text-white/45">Inhalt</span>
                         <textarea id="paste_content" rows="10" required autofocus class="w-full resize-y border border-white/10 bg-[#0b0b0c] px-3.5 py-3 font-mono text-sm leading-6 text-white outline-none transition placeholder:text-white/25 focus:border-white/35" placeholder="Vertraulichen Text hier einfügen..."></textarea>
@@ -4024,6 +4029,7 @@ function renderSecureSharePage($error = '', $pasteUrl = '') {
                 // Prepare AJAX form data
                 const formData = new FormData();
                 formData.append('paste_content', payload);
+                formData.append('csrf', document.getElementById('form_csrf').value);
                 formData.append('domain', document.getElementById('domain').value);
                 formData.append('custom_code', document.getElementById('custom_code').value);
                 formData.append('expires_at', document.getElementById('expires_at').value);

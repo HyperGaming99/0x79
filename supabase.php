@@ -203,7 +203,7 @@ function pgRestRequest($method, $url, $body = null) {
 
         return [405, json_encode(['message' => 'method_not_allowed']), 'method_not_allowed'];
     } catch (Throwable $e) {
-        return [pgErrorHttp($e), json_encode(['message' => $e->getMessage()]), $e->getMessage()];
+        return [pgErrorHttp($e), json_encode(['message' => 'query error']), 'query_error'];
     }
 }
 
@@ -518,6 +518,43 @@ function supabaseExactMonthlyCount($table, $column, $start, $end) {
     return preg_match('#/(\d+)$#', $contentRange, $m) ? (int)$m[1] : null;
 }
 
+// Historical aggregate values imported from a previous analytics provider.
+// Missing tables/rows deliberately resolve to zero for backwards compatibility.
+function fetchMonthlyAnalyticsImport($month) {
+    global $db_driver, $supabase_url;
+    $month = trim((string)$month);
+    if (!preg_match('/^\d{4}-\d{2}-01$/', $month)) {
+        return ['visitors' => 0, 'clicks' => 0, 'links' => 0];
+    }
+
+    try {
+        if (($db_driver ?? 'supabase') === 'postgres') {
+            $statement = pgConnect()->prepare(
+                'SELECT visitors, clicks, links FROM analytics_monthly_imports WHERE month = :month LIMIT 1'
+            );
+            $statement->execute([':month' => $month]);
+            $row = $statement->fetch(PDO::FETCH_ASSOC);
+        } else {
+            $url = rtrim((string)$supabase_url, '/') . '/rest/v1/analytics_monthly_imports'
+                . '?month=eq.' . rawurlencode($month) . '&select=visitors,clicks,links&limit=1';
+            [$http, $response, $error] = supabaseRequest('GET', $url);
+            if ($error || $http < 200 || $http >= 300) {
+                return ['visitors' => 0, 'clicks' => 0, 'links' => 0];
+            }
+            $rows = json_decode((string)$response, true);
+            $row = is_array($rows) && is_array($rows[0] ?? null) ? $rows[0] : null;
+        }
+    } catch (Throwable $e) {
+        $row = null;
+    }
+
+    return [
+        'visitors' => max(0, (int)($row['visitors'] ?? 0)),
+        'clicks' => max(0, (int)($row['clicks'] ?? 0)),
+        'links' => max(0, (int)($row['links'] ?? 0)),
+    ];
+}
+
 // Public aggregate metrics for the current UTC month. Cached briefly to keep
 // the landing page cheap under traffic and to avoid exposing individual rows.
 function fetchPublicMonthlyAnalytics() {
@@ -561,6 +598,11 @@ function fetchPublicMonthlyAnalytics() {
         }
     } catch (Throwable $e) {
         // Keep null values; the UI renders an em dash instead of a false zero.
+    }
+
+    $imported = fetchMonthlyAnalyticsImport(substr($start, 0, 7) . '-01');
+    foreach (['visitors', 'clicks', 'links'] as $key) {
+        if ($stats[$key] !== null) $stats[$key] += $imported[$key];
     }
 
     @file_put_contents($cacheFile, json_encode($stats, JSON_UNESCAPED_SLASHES), LOCK_EX);
@@ -1555,6 +1597,3 @@ function fetchPostById($id) {
     $data = json_decode($response, true);
     return (!empty($data) && isset($data[0]['id'])) ? $data[0] : null;
 }
-
-
-

@@ -40,7 +40,7 @@ header("Content-Security-Policy: default-src 'self'; "
     . "img-src 'self' data: blob:; "
     . "media-src 'self' data: blob:; "
     . "connect-src 'self'; "
-    . "frame-src http: https:; "
+    . "frame-src https:; "
     . "form-action 'self'; "
     . "frame-ancestors " . $frame_ancestors . "; "
     . "base-uri 'self'; "
@@ -84,7 +84,7 @@ $s3_public_base    = rtrim((string)(getenv('S3_PUBLIC_BASE_URL') ?: ''), '/'); /
 $supabase_url = getenv('SUPABASE_URL');
 $supabase_key = getenv('SUPABASE_KEY');
 $admin_api_key = getenv('ADMIN_API_KEY');
-$admin_password = getenv('ADMIN_PASSWORD') ?: $admin_api_key;
+$admin_password = getenv('ADMIN_PASSWORD') ?: '';
 $abuse_email = getenv('ABUSE_EMAIL');
 // For server-side Storage uploads prefer a Supabase service role key.
 // Fallback keeps old setups working, but anon keys often fail without Storage insert policies.
@@ -99,7 +99,8 @@ $preview_edge_auth_key = getenv('PREVIEW_EDGE_AUTH_KEY') ?: (getenv('SUPABASE_SE
 
 // Supabase credentials are only required when a Supabase driver is selected.
 $needs_supabase = ($db_driver === 'supabase' || $storage_driver === 'supabase');
-if (!$admin_api_key || ($needs_supabase && (!$supabase_url || !$supabase_key))) {
+if (!$admin_api_key || !$admin_password || ($needs_supabase && (!$supabase_url || !$supabase_key))) {
+    http_response_code(500);
     die("Configuration error.");
 }
 

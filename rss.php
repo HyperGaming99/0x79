@@ -45,11 +45,11 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
 <?php foreach ($rows as $row):
     $url     = postUrl((int) $row['id']);
     $img     = imageUrl($row['image'] ?? null);
-    $imgPath = ($row['image'] ?? '') ? IMAGE_DIR . '/' . $row['image'] : '';
+    $imgPath = ($row['image'] ?? '') ? IMAGE_DIR . '/' . basename($row['image']) : '';
     $imgLen  = ($imgPath !== '' && is_file($imgPath)) ? filesize($imgPath) : 0;
     // Bild oben in die Beschreibung einbetten (für Reader, die kein enclosure zeigen)
     $body = ($img ? '<p><img src="' . xml($img) . '" alt="' . xml($row['title']) . '"></p>' : '')
-          . ($row['description'] ?? '');
+          . xml($row['description'] ?? '');
 ?>
     <item>
         <title><?= xml($row['title'] ?? '') ?></title>
