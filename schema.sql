@@ -4,18 +4,6 @@
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;   -- for gen_random_uuid()
 
--- Registered user accounts (optional; guests can use the app without one).
--- The `email` column stores the account's username (no separate username
--- column, so existing email-based deployments need no migration).
-CREATE TABLE IF NOT EXISTS app_users (
-    id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    email          text UNIQUE NOT NULL,   -- holds the username
-    password_hash  text NOT NULL,
-    api_key_hash   text,
-    api_key_prefix text,
-    created_at     timestamptz NOT NULL DEFAULT now()
-);
-
 -- Short links + hosted files (files are stored as a long_url pointing at storage).
 CREATE TABLE IF NOT EXISTS urls (
     id              bigserial PRIMARY KEY,
@@ -26,47 +14,7 @@ CREATE TABLE IF NOT EXISTS urls (
     click_count     integer NOT NULL DEFAULT 0,
     max_clicks      integer,
     password_hash   text,
-    owner_user_id   uuid REFERENCES app_users(id) ON DELETE SET NULL,
     preview_enabled boolean NOT NULL DEFAULT false
-);
-CREATE INDEX IF NOT EXISTS urls_owner_idx ON urls(owner_user_id);
-
--- Text/code pastes.
-CREATE TABLE IF NOT EXISTS pastes (
-    id            bigserial PRIMARY KEY,
-    paste_code    text UNIQUE NOT NULL,
-    content       text NOT NULL,
-    created_at    timestamptz NOT NULL DEFAULT now(),
-    expires_at    timestamptz,
-    view_count    integer NOT NULL DEFAULT 0,
-    max_views     integer,
-    password_hash text,
-    owner_user_id uuid REFERENCES app_users(id) ON DELETE SET NULL
-);
-CREATE INDEX IF NOT EXISTS pastes_owner_idx ON pastes(owner_user_id);
-
--- Music Promoter landing pages.
-CREATE TABLE IF NOT EXISTS music_promos (
-    id            bigserial PRIMARY KEY,
-    music_code    text UNIQUE NOT NULL,
-    title         text NOT NULL,
-    artist        text,
-    cover_url     text,
-    banner_url    text,
-    links         jsonb NOT NULL DEFAULT '[]'::jsonb,
-    created_at    timestamptz NOT NULL DEFAULT now(),
-    expires_at    timestamptz,
-    view_count    integer NOT NULL DEFAULT 0,
-    owner_user_id uuid REFERENCES app_users(id) ON DELETE SET NULL
-);
-
--- Abuse reports.
-CREATE TABLE IF NOT EXISTS abuse_reports (
-    id            bigserial PRIMARY KEY,
-    reported_link text NOT NULL,
-    reason        text,
-    status        text DEFAULT 'open',
-    created_at    timestamptz NOT NULL DEFAULT now()
 );
 
 -- Per-click analytics events (optional; logging fails silently if absent).
@@ -91,21 +39,24 @@ CREATE TABLE IF NOT EXISTS site_visits (
     UNIQUE (visitor_hash, visit_month)
 );
 CREATE INDEX IF NOT EXISTS site_visits_month_idx ON site_visits(visit_month, first_visited_at DESC);
+
+-- Aggregate counts imported from a previous analytics provider. Keeping these
+-- separately avoids creating fake URL and click-event records just to preserve
+-- historical dashboard totals.
+CREATE TABLE IF NOT EXISTS analytics_monthly_imports (
+    month       date PRIMARY KEY,
+    visitors    bigint NOT NULL DEFAULT 0 CHECK (visitors >= 0),
+    clicks      bigint NOT NULL DEFAULT 0 CHECK (clicks >= 0),
+    links       bigint NOT NULL DEFAULT 0 CHECK (links >= 0),
+    updated_at  timestamptz NOT NULL DEFAULT now()
+);
 -- On Supabase, keep hashes inaccessible to browser/anon clients. Plain
 -- PostgreSQL installations retain their normal application-role behaviour.
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
         ALTER TABLE site_visits ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE analytics_monthly_imports ENABLE ROW LEVEL SECURITY;
     END IF;
 END
 $$;
-
--- RSS / blog posts.
-CREATE TABLE IF NOT EXISTS posts (
-    id          bigserial PRIMARY KEY,
-    title       text NOT NULL,
-    description text,
-    image       text,
-    pub_date    timestamptz NOT NULL DEFAULT now()
-);

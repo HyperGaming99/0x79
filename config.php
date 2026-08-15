@@ -7,6 +7,7 @@ declare(strict_types=1);
 $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_save_path(__DIR__ . '/sessions');
     session_name('ox79_admin');
     session_set_cookie_params([
         'lifetime' => 0,
@@ -85,13 +86,9 @@ $supabase_url = getenv('SUPABASE_URL');
 $supabase_key = getenv('SUPABASE_KEY');
 $admin_api_key = getenv('ADMIN_API_KEY');
 $admin_password = getenv('ADMIN_PASSWORD') ?: '';
-$abuse_email = getenv('ABUSE_EMAIL');
-// For server-side Storage uploads prefer a Supabase service role key.
-// Fallback keeps old setups working, but anon keys often fail without Storage insert policies.
+// For server-side Storage access prefer a Supabase service role key.
+// Fallback keeps old setups working, but anon keys often fail without Storage read policies.
 $supabase_db_key = getenv('SUPABASE_SERVICE_ROLE_KEY') ?: $supabase_key;
-$supabase_storage_key = getenv('SUPABASE_SERVICE_ROLE_KEY') ?: (getenv('SUPABASE_STORAGE_KEY') ?: $supabase_key);
-$file_upload_bucket = getenv('FILE_UPLOAD_BUCKET') ?: 'files';
-$file_upload_max_mb = (int)(getenv('FILE_UPLOAD_MAX_MB') ?: 100);
 $screenshotone_access_key = getenv('SCREENSHOTONE_ACCESS_KEY') ?: getenv('SCREENSHOT_API_KEY');
 $preview_edge_function_url = getenv('PREVIEW_EDGE_FUNCTION_URL') ?: (rtrim((string)$supabase_url, '/') . '/functions/v1/preview-render');
 $preview_edge_secret = getenv('PREVIEW_EDGE_SECRET') ?: '';
@@ -130,15 +127,5 @@ $LANG_META = [
 
 $short_url = "";
 $error = "";
-$selected_domain = $available_domains[0];
-
-// ---------------------------------------------------------
-// RSS FEED CONFIGURATION
-// ---------------------------------------------------------
-define('FEED_TITLE', getenv('FEED_TITLE') ?: '0x79.one Feed');
-define('FEED_LINK', getenv('FEED_LINK') ?: 'https://0x79.one');
-define('FEED_DESCRIPTION', getenv('FEED_DESCRIPTION') ?: 'Latest updates and files from 0x79.one');
-define('FEED_URL', getenv('FEED_URL') ?: 'https://0x79.one/rss');
-define('IMAGE_DIR', getenv('IMAGE_DIR') ?: (__DIR__ . '/images'));
 
 

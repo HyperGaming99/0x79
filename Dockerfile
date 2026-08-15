@@ -12,8 +12,10 @@ WORKDIR /app
 
 COPY --chown=www-data:www-data . .
 
+RUN mkdir -p /app/sessions && chown www-data:www-data /app/sessions
+
 USER www-data
 
-EXPOSE 8080 8090
+EXPOSE 8080
 
 CMD ["sh", "/app/docker-entrypoint.sh"]
