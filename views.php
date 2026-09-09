@@ -148,18 +148,70 @@ function renderCardThemeStyles(): void {
         /* While a view transition runs, element transitions must stay off -
            the animated clip-path on ::view-transition-new(root) is what shows. */
         html.vt-active, html.vt-active * { transition: none !important; }
+        /* Settings modal. Open/close easing mirrors the modal on
+           status.arolg.dev: fade backdrop, panel enters with an exponential
+           ease from a slightly scaled, offset position and leaves faster. */
+        .modal-backdrop {
+            position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+            background: rgba(10,10,14,.45); padding: 16px; opacity: 0; transition: opacity .15s ease;
+        }
+        .modal-backdrop[hidden] { display: none; }
+        .modal-backdrop.is-open { opacity: 1; transition: opacity .25s ease; }
+        .modal-panel {
+            width: min(300px, 100%); background: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 16px; padding: 20px; box-shadow: var(--shadow-card);
+            opacity: 0; transform: scale(.96) translateY(8px); transition: opacity .15s ease, transform .15s ease;
+        }
+        .modal-backdrop.is-open .modal-panel {
+            opacity: 1; transform: none;
+            transition: opacity .25s ease, transform .25s cubic-bezier(.16,1,.3,1);
+        }
+        .modal-title { font-weight: 800; letter-spacing: -.01em; margin-bottom: 6px; }
+        .modal-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--card-border); }
+        .modal-row:first-of-type { border-top: 0; }
+        .modal-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+        .modal-controls { display: flex; gap: 8px; }
+        .modal-controls a, .modal-controls button {
+            display: inline-flex; align-items: center; justify-content: center; height: 30px; min-width: 30px; padding: 0 9px;
+            font: 700 11px/1 inherit; letter-spacing: .02em; color: var(--muted); text-decoration: none;
+            border: 1px solid var(--card-border); border-radius: 8px; background: var(--card-bg); cursor: pointer;
+        }
+        .modal-controls a[aria-current="true"] { color: var(--accent-contrast); background: var(--accent); border-color: var(--accent); }
+        .modal-controls button svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+        @media (prefers-reduced-motion: reduce) {
+            .modal-backdrop, .modal-panel { transition: none !important; }
+        }
     </style>
     <?php
 }
 
 function renderCardTopbar($lang): void {
+    $de = $lang === 'de';
     ?>
     <div class="topbar">
-        <a href="?lang=de" aria-current="<?= $lang === 'de' ? 'true' : 'false' ?>">DE</a>
-        <a href="?lang=en" aria-current="<?= $lang === 'en' ? 'true' : 'false' ?>">EN</a>
-        <button type="button" id="theme-toggle" aria-label="<?= $lang === 'de' ? 'Design wechseln' : 'Toggle theme' ?>">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <button type="button" id="settings-toggle" aria-haspopup="dialog" aria-label="<?= $de ? 'Einstellungen' : 'Settings' ?>">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1,1-1.73l.43-.25a2 2 0 0 1,2 0l.15.08a2 2 0 0 0,2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1,1-1.74l.15-.09a2 2 0 0 0,.73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         </button>
+    </div>
+    <div class="modal-backdrop" id="settings-modal" hidden>
+        <div class="modal-panel" role="dialog" aria-modal="true" aria-label="<?= $de ? 'Einstellungen' : 'Settings' ?>">
+            <div class="modal-title"><?= $de ? 'Einstellungen' : 'Settings' ?></div>
+            <div class="modal-row">
+                <span class="modal-label"><?= $de ? 'Sprache' : 'Language' ?></span>
+                <span class="modal-controls">
+                    <a href="?lang=de" aria-current="<?= $lang === 'de' ? 'true' : 'false' ?>">DE</a>
+                    <a href="?lang=en" aria-current="<?= $lang === 'en' ? 'true' : 'false' ?>">EN</a>
+                </span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-label"><?= $de ? 'Design' : 'Theme' ?></span>
+                <span class="modal-controls">
+                    <button type="button" id="theme-toggle" aria-label="<?= $de ? 'Design wechseln' : 'Toggle theme' ?>">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+                    </button>
+                </span>
+            </div>
+        </div>
     </div>
     <?php
 }
@@ -179,6 +231,31 @@ function renderCardThemeScript(): void {
     global $csp_nonce;
     ?>
     <script nonce="<?= $csp_nonce ?>">
+        var settingsToggle = document.getElementById('settings-toggle');
+        var modal = document.getElementById('settings-modal');
+        var lastFocus = null;
+
+        function openSettings() {
+            lastFocus = document.activeElement;
+            modal.hidden = false;
+            void modal.offsetWidth; // register transitions before toggling .is-open
+            modal.classList.add('is-open');
+            var first = modal.querySelector('.modal-controls a, .modal-controls button');
+            if (first) first.focus();
+        }
+
+        function closeSettings() {
+            modal.classList.remove('is-open');
+            setTimeout(function () { modal.hidden = true; }, 150); // match leave transition
+            if (lastFocus && lastFocus.focus) lastFocus.focus();
+        }
+
+        settingsToggle.addEventListener('click', openSettings);
+        modal.addEventListener('click', function (e) { if (e.target === modal) closeSettings(); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !modal.hidden) closeSettings();
+        });
+
         document.getElementById('theme-toggle').addEventListener('click', function () {
             var root = document.documentElement;
             var next = root.dataset.theme === 'dark' ? 'light' : 'dark';
