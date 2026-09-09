@@ -25,6 +25,9 @@
   "create_link": "Link maken",
   "enter_link_hint": "Voer hierboven een link in om te verkorten",
   "qr_label": "QR-code weergeven",
+  "copy_label": "Link kopiëren",
+  "copied_label": "Gekopieerd",
+  "download_qr_label": "QR downloaden",
   "api_docs": "API-documentatie",
   "settings": "Instellingen",
   "language": "Taal",
@@ -34,6 +37,5 @@
   "custom_code_label": "Eigen alias",
   "expires_label": "Vervaldatum/tijd",
   "max_clicks_label": "Max. kliks",
-  "preview_label": "Linkvoorbeeld tonen",
   "err_alias": "alias ongeldig of al in gebruik."
 }

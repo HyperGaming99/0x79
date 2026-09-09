@@ -18,7 +18,7 @@ A single-purpose URL shortener: paste a link, get a short one back. No accounts,
 | URL shortener | Anonymous creation, branded QR codes, optional emoji output |
 | Platform | Anonymous API and admin dashboard |
 
-Links created on the homepage can optionally set a password, expiry, click limit, custom alias and link preview (the "more options" section). The API accepts the same fields as `password`, `expires_at`, `max_clicks`, `custom_code` and `preview_enabled`, and the admin dashboard can edit any of these on an existing link.
+Links created on the homepage can optionally set a password, expiry, click limit and custom alias (the "more options" section). The API accepts the same fields as `password`, `expires_at`, `max_clicks` and `custom_code`, and the admin dashboard can edit any of these on an existing link.
 
 ## Requirements
 
@@ -98,7 +98,7 @@ No account or key required.
 
 | Endpoint | Purpose |
 | --- | --- |
-| `POST /api` | Create a short link. JSON or form body: `long_url` (required), `domain`, `password`, `expires_at`, `max_clicks`, `custom_code`, `preview_enabled` |
+| `POST /api` | Create a short link. JSON or form body: `long_url` (required), `domain`, `password`, `expires_at`, `max_clicks`, `custom_code` |
 | `GET /api?code=…` | Look up a short link |
 
 ## Main routes

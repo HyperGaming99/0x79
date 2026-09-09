@@ -466,7 +466,7 @@ function fetchLinkByCode($code) {
 
     if (!isValidCode($code)) return null;
 
-    $select = 'id,long_url,short_code,created_at,expires_at,click_count,max_clicks,password_hash,preview_enabled';
+    $select = 'id,long_url,short_code,created_at,expires_at,click_count,max_clicks,password_hash';
     $url = $supabase_url . "/rest/v1/urls?short_code=eq." . urlencode($code) . "&select=" . urlencode($select) . "&limit=1";
 
     [$http, $response, $error] = supabaseRequest('GET', $url);
@@ -577,7 +577,7 @@ function recordClickAnalytics($row, $code, $referrerHost, $device, $country): vo
     curl_multi_close($mh);
 }
 
-function createShortLink($long_url, $domain, $password = '', $expires_at = '', $max_clicks = '', $custom_code = '', $preview_enabled = false) {
+function createShortLink($long_url, $domain, $password = '', $expires_at = '', $max_clicks = '', $custom_code = '') {
     global $supabase_url, $available_domains;
 
     $long_url = trim((string)$long_url);
@@ -586,7 +586,6 @@ function createShortLink($long_url, $domain, $password = '', $expires_at = '', $
     $max_clicks = parseOptionalMaxClicks($max_clicks);
     $password = trim((string)$password);
     $custom_code = trim((string)$custom_code);
-    $preview_enabled = !empty($preview_enabled);
 
     if ($custom_code !== '' && !isValidCustomCode($custom_code)) {
         return [false, 'invalid_alias', null];
@@ -619,7 +618,6 @@ function createShortLink($long_url, $domain, $password = '', $expires_at = '', $
             'expires_at' => $expires_at,
             'max_clicks' => $max_clicks,
             'password_hash' => $password !== '' ? password_hash($password, PASSWORD_DEFAULT) : null,
-            'preview_enabled' => $preview_enabled,
         ];
 
         $url = $supabase_url . "/rest/v1/urls";
@@ -636,7 +634,6 @@ function createShortLink($long_url, $domain, $password = '', $expires_at = '', $
                 'max_clicks' => $max_clicks,
                 'has_password' => $password !== '',
                 'click_count' => 0,
-                'preview_enabled' => $preview_enabled,
             ]];
         }
     }
@@ -654,7 +651,7 @@ function fetchAdminLinks($limit = 25, $offset = 0, $search = '') {
     $search = adminCleanSearch($search);
     $fetchLimit = $limit + 1;
 
-    $select = 'id,long_url,short_code,created_at,expires_at,click_count,max_clicks,password_hash,preview_enabled';
+    $select = 'id,long_url,short_code,created_at,expires_at,click_count,max_clicks,password_hash';
 
     $url = $supabase_url
         . "/rest/v1/urls?"
@@ -701,7 +698,7 @@ function fetchLinkById($id) {
         return null;
     }
 
-    $select = 'id,long_url,short_code,created_at,expires_at,click_count,max_clicks,password_hash,preview_enabled';
+    $select = 'id,long_url,short_code,created_at,expires_at,click_count,max_clicks,password_hash';
     $url = $supabase_url . "/rest/v1/urls?id=eq." . urlencode($id) . "&select=" . urlencode($select) . "&limit=1";
 
     [$http, $response, $error] = supabaseRequest('GET', $url);

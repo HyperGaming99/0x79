@@ -25,6 +25,9 @@
   "create_link": "Buat link",
   "enter_link_hint": "Masukkan tautan di atas untuk memperpendek",
   "qr_label": "Tampilkan kode QR",
+  "copy_label": "Salin tautan",
+  "copied_label": "Disalin",
+  "download_qr_label": "Unduh QR",
   "api_docs": "Dokumentasi API",
   "settings": "Pengaturan",
   "language": "Bahasa",
@@ -34,6 +37,5 @@
   "custom_code_label": "Alias khusus",
   "expires_label": "Tanggal/waktu kedaluwarsa",
   "max_clicks_label": "Batas klik",
-  "preview_label": "Tampilkan pratinjau tautan",
   "err_alias": "alias tidak valid atau sudah digunakan."
 }

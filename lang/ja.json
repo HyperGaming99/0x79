@@ -25,6 +25,9 @@
   "create_link": "リンクを作成",
   "enter_link_hint": "上にリンクを入力して圧縮",
   "qr_label": "QRコードを表示",
+  "copy_label": "リンクをコピー",
+  "copied_label": "コピーしました",
+  "download_qr_label": "QRをダウンロード",
   "api_docs": "APIドキュメント",
   "settings": "設定",
   "language": "言語",
@@ -34,6 +37,5 @@
   "custom_code_label": "カスタムエイリアス",
   "expires_label": "有効期限",
   "max_clicks_label": "最大クリック数",
-  "preview_label": "リンクプレビューを表示",
   "err_alias": "エイリアスが無効か、すでに使用されています。"
 }

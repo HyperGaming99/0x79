@@ -13,8 +13,7 @@ CREATE TABLE IF NOT EXISTS urls (
     expires_at      timestamptz,
     click_count     integer NOT NULL DEFAULT 0,
     max_clicks      integer,
-    password_hash   text,
-    preview_enabled boolean NOT NULL DEFAULT false
+    password_hash   text
 );
 
 -- Per-click analytics events (optional; logging fails silently if absent).

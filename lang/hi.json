@@ -25,6 +25,9 @@
   "create_link": "लिंक बनाएं",
   "enter_link_hint": "संपीड़ित करने के लिए ऊपर एक लिंक डालें",
   "qr_label": "QR कोड दिखाएं",
+  "copy_label": "लिंक कॉपी करें",
+  "copied_label": "कॉपी हो गया",
+  "download_qr_label": "QR डाउनलोड करें",
   "api_docs": "API दस्तावेज़",
   "settings": "सेटिंग्स",
   "language": "भाषा",
@@ -34,6 +37,5 @@
   "custom_code_label": "कस्टम उपनाम",
   "expires_label": "समाप्ति तिथि/समय",
   "max_clicks_label": "अधिकतम क्लिक",
-  "preview_label": "लिंक पूर्वावलोकन दिखाएं",
   "err_alias": "उपनाम अमान्य या पहले से लिया गया।"
 }

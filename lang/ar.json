@@ -25,6 +25,9 @@
   "create_link": "إنشاء رابط",
   "enter_link_hint": "أدخل رابطًا في الأعلى لضغطه",
   "qr_label": "إظهار رمز QR",
+  "copy_label": "نسخ الرابط",
+  "copied_label": "تم النسخ",
+  "download_qr_label": "تنزيل QR",
   "api_docs": "وثائق API",
   "settings": "الإعدادات",
   "language": "اللغة",
@@ -34,6 +37,5 @@
   "custom_code_label": "اسم مخصص",
   "expires_label": "تاريخ/وقت الانتهاء",
   "max_clicks_label": "الحد الأقصى للنقرات",
-  "preview_label": "إظهار معاينة الرابط",
   "err_alias": "الاسم غير صالح أو مستخدم بالفعل."
 }

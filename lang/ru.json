@@ -25,6 +25,9 @@
   "create_link": "Создать ссылку",
   "enter_link_hint": "Введите ссылку выше, чтобы сократить её",
   "qr_label": "Показать QR-код",
+  "copy_label": "Копировать ссылку",
+  "copied_label": "Скопировано",
+  "download_qr_label": "Скачать QR",
   "api_docs": "Документация API",
   "settings": "Настройки",
   "language": "Язык",
@@ -34,6 +37,5 @@
   "custom_code_label": "Свой алиас",
   "expires_label": "Дата/время истечения",
   "max_clicks_label": "Макс. переходов",
-  "preview_label": "Показать превью ссылки",
   "err_alias": "алиас недействителен или уже занят."
 }

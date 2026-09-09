@@ -25,6 +25,9 @@
   "create_link": "Link oluştur",
   "enter_link_hint": "Kısaltmak için yukarıya bir link girin",
   "qr_label": "QR kodu göster",
+  "copy_label": "Bağlantıyı kopyala",
+  "copied_label": "Kopyalandı",
+  "download_qr_label": "QR indir",
   "api_docs": "API dokümantasyonu",
   "settings": "Ayarlar",
   "language": "Dil",
@@ -34,6 +37,5 @@
   "custom_code_label": "Özel alias",
   "expires_label": "Son kullanma tarihi/saatı",
   "max_clicks_label": "Maks. tıklama",
-  "preview_label": "Link önizlemesini göster",
   "err_alias": "alias geçersiz veya zaten alınmış."
 }

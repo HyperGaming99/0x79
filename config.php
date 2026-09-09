@@ -37,29 +37,20 @@ if (session_status() === PHP_SESSION_NONE) {
 // Per-request nonce for inline scripts (replaces unsafe-inline).
 $csp_nonce = base64_encode(random_bytes(16));
 
-// embed_preview only permitted on short-link paths (alphanumeric codes).
-$_csp_path = trim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
-$embed_preview = isset($_GET['embed_preview']) && $_GET['embed_preview'] === '1'
-    && preg_match('/^[A-Za-z0-9]{1,32}$/', $_csp_path);
-unset($_csp_path);
-$frame_ancestors = $embed_preview ? "'self'" : "'none'";
-
 header("Content-Security-Policy: default-src 'self'; "
     . "script-src 'self' 'nonce-{$csp_nonce}' https://cdn.tailwindcss.com; "
     . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-    // preview-asset läuft über dieselbe Domain. Fonts müssen deshalb 'self' erlauben.
     . "font-src 'self' data: blob: https://fonts.gstatic.com; "
     . "img-src 'self' data: blob:; "
     . "media-src 'self' data: blob:; "
     . "connect-src 'self'; "
-    . "frame-src https:; "
     . "form-action 'self'; "
-    . "frame-ancestors " . $frame_ancestors . "; "
+    . "frame-ancestors 'none'; "
     . "base-uri 'self'; "
     . "object-src 'none'");
 header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 header('X-Content-Type-Options: nosniff');
-header('X-Frame-Options: ' . ($embed_preview ? 'SAMEORIGIN' : 'DENY'));
+header('X-Frame-Options: DENY');
 header('Referrer-Policy: no-referrer');
 header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 
@@ -88,9 +79,6 @@ $admin_password = getenv('ADMIN_PASSWORD') ?: '';
 // Prefer the Supabase service role key server-side; fall back to the anon key.
 $supabase_db_key = getenv('SUPABASE_SERVICE_ROLE_KEY') ?: $supabase_key;
 $screenshotone_access_key = getenv('SCREENSHOTONE_ACCESS_KEY') ?: getenv('SCREENSHOT_API_KEY');
-$preview_edge_function_url = getenv('PREVIEW_EDGE_FUNCTION_URL') ?: (rtrim((string)$supabase_url, '/') . '/functions/v1/preview-render');
-$preview_edge_secret = getenv('PREVIEW_EDGE_SECRET') ?: '';
-$preview_edge_auth_key = getenv('PREVIEW_EDGE_AUTH_KEY') ?: (getenv('SUPABASE_SERVICE_ROLE_KEY') ?: $supabase_key);
 
 // Supabase credentials are only required when the Supabase DB driver is selected.
 $needs_supabase = ($db_driver === 'supabase');

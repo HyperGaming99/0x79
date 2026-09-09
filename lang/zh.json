@@ -25,6 +25,9 @@
   "create_link": "创建链接",
   "enter_link_hint": "在上方输入链接即可压缩",
   "qr_label": "显示二维码",
+  "copy_label": "复制链接",
+  "copied_label": "已复制",
+  "download_qr_label": "下载二维码",
   "api_docs": "API 文档",
   "settings": "设置",
   "language": "语言",
@@ -34,6 +37,5 @@
   "custom_code_label": "自定义别名",
   "expires_label": "过期日期/时间",
   "max_clicks_label": "最大点击次数",
-  "preview_label": "显示链接预览",
   "err_alias": "别名无效或已被占用。"
 }

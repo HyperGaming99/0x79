@@ -25,6 +25,9 @@
   "create_link": "Link erstellen",
   "enter_link_hint": "Gib oben einen Link ein",
   "qr_label": "QR-Code ausgeben",
+  "copy_label": "Link kopieren",
+  "copied_label": "Kopiert",
+  "download_qr_label": "QR herunterladen",
   "api_docs": "API-Dokumentation",
   "settings": "Einstellungen",
   "language": "Sprache",
@@ -34,6 +37,5 @@
   "custom_code_label": "Eigener Alias",
   "expires_label": "Ablaufdatum/-uhrzeit",
   "max_clicks_label": "Max. Klicks",
-  "preview_label": "Link-Vorschau anzeigen",
   "err_alias": "Alias ungültig oder bereits vergeben."
 }

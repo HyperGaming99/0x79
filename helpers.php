@@ -79,23 +79,23 @@ $lang = detectLang($supported_langs);
 
 // Native label, flag image (assets/flags/<flag>.svg) and text direction per
 // language. Flags are local SVG files because emoji flags do not render on
-// Windows - images work on Windows, Linux and macOS alike.
+// Windows.
 $LANG_DATA = [
-    'en' => ['label' => 'English',       'flag' => 'us', 'dir' => 'ltr'],
-    'de' => ['label' => 'Deutsch',       'flag' => 'de', 'dir' => 'ltr'],
-    'es' => ['label' => 'Español',       'flag' => 'es', 'dir' => 'ltr'],
-    'fr' => ['label' => 'Français',      'flag' => 'fr', 'dir' => 'ltr'],
-    'pt' => ['label' => 'Português',     'flag' => 'pt', 'dir' => 'ltr'],
-    'it' => ['label' => 'Italiano',      'flag' => 'it', 'dir' => 'ltr'],
-    'nl' => ['label' => 'Nederlands',    'flag' => 'nl', 'dir' => 'ltr'],
-    'pl' => ['label' => 'Polski',        'flag' => 'pl', 'dir' => 'ltr'],
-    'ru' => ['label' => 'Русский',       'flag' => 'ru', 'dir' => 'ltr'],
-    'tr' => ['label' => 'Türkçe',        'flag' => 'tr', 'dir' => 'ltr'],
-    'ar' => ['label' => 'العربية',       'flag' => 'sa', 'dir' => 'rtl'],
-    'hi' => ['label' => 'हिन्दी',        'flag' => 'in', 'dir' => 'ltr'],
-    'ja' => ['label' => '日本語',         'flag' => 'jp', 'dir' => 'ltr'],
-    'ko' => ['label' => '한국어',         'flag' => 'kr', 'dir' => 'ltr'],
-    'zh' => ['label' => '简体中文',       'flag' => 'cn', 'dir' => 'ltr'],
+    'en' => ['label' => 'English', 'flag' => 'us', 'dir' => 'ltr'],
+    'de' => ['label' => 'Deutsch', 'flag' => 'de', 'dir' => 'ltr'],
+    'es' => ['label' => 'Español', 'flag' => 'es', 'dir' => 'ltr'],
+    'fr' => ['label' => 'Français', 'flag' => 'fr', 'dir' => 'ltr'],
+    'pt' => ['label' => 'Português', 'flag' => 'pt', 'dir' => 'ltr'],
+    'it' => ['label' => 'Italiano', 'flag' => 'it', 'dir' => 'ltr'],
+    'nl' => ['label' => 'Nederlands', 'flag' => 'nl', 'dir' => 'ltr'],
+    'pl' => ['label' => 'Polski', 'flag' => 'pl', 'dir' => 'ltr'],
+    'ru' => ['label' => 'Русский', 'flag' => 'ru', 'dir' => 'ltr'],
+    'tr' => ['label' => 'Türkçe', 'flag' => 'tr', 'dir' => 'ltr'],
+    'ar' => ['label' => 'العربية', 'flag' => 'sa', 'dir' => 'rtl'],
+    'hi' => ['label' => 'हिन्दी', 'flag' => 'in', 'dir' => 'ltr'],
+    'ja' => ['label' => '日本語', 'flag' => 'jp', 'dir' => 'ltr'],
+    'ko' => ['label' => '한국어', 'flag' => 'kr', 'dir' => 'ltr'],
+    'zh' => ['label' => '简体中文', 'flag' => 'cn', 'dir' => 'ltr'],
     'id' => ['label' => 'Bahasa Indonesia', 'flag' => 'id', 'dir' => 'ltr'],
 ];
 
@@ -105,9 +105,7 @@ function loadTranslations($supported) {
         $path = __DIR__ . '/lang/' . $code . '.json';
         if (!is_file($path)) continue;
         $data = json_decode((string)file_get_contents($path), true);
-        if (is_array($data)) {
-            $loaded[$code] = $data;
-        }
+        if (is_array($data)) $loaded[$code] = $data;
     }
     return $loaded;
 }
@@ -117,158 +115,13 @@ function renderLangSelect($lang, $supported, $meta) {
     echo '<span class="ui-preferences-anchor" aria-hidden="true"></span>';
 }
 
-// ---------------------------------------------------------
-// API HELPERS + ROUTES
-// ---------------------------------------------------------
-function cleanHost($host) {
-    $host = strtolower(trim((string)$host));
-    $host = preg_replace('/[^a-z0-9.-]/', '', $host);
-    return $host ?: '0x79.one';
-}
-
-function jsonResponse($payload, $status = 200) {
-    http_response_code($status);
-    header('Content-Type: application/json; charset=utf-8');
-    header('Cache-Control: no-store');
-    echo json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-    exit;
-}
-
-function projectNonEmptyCodeLines() {
-    $extensions = ['php', 'js', 'css', 'sql', 'sh', 'yml', 'yaml'];
-    $files = [];
-    foreach (new DirectoryIterator(__DIR__) as $entry) {
-        if ($entry->isFile() && in_array(strtolower($entry->getExtension()), $extensions, true)) {
-            $files[] = $entry->getPathname();
-        }
-    }
-    $scriptsDir = __DIR__ . '/scripts';
-    if (is_dir($scriptsDir)) {
-        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($scriptsDir, FilesystemIterator::SKIP_DOTS)) as $entry) {
-            if ($entry->isFile() && in_array(strtolower($entry->getExtension()), $extensions, true)) {
-                $files[] = $entry->getPathname();
-            }
-        }
-    }
-    sort($files);
-
-    $signatureParts = [];
-    foreach ($files as $file) $signatureParts[] = $file . '|' . filesize($file) . '|' . filemtime($file);
-    $signature = hash('sha256', implode("\n", $signatureParts));
-    $cacheFile = sys_get_temp_dir() . '/0x79_code_line_count.json';
-    $cached = is_file($cacheFile) ? json_decode((string)@file_get_contents($cacheFile), true) : null;
-    if (is_array($cached) && ($cached['signature'] ?? '') === $signature && isset($cached['count'])) {
-        return max(0, (int)$cached['count']);
-    }
-
-    $count = 0;
-    foreach ($files as $file) {
-        $handle = @fopen($file, 'rb');
-        if (!$handle) continue;
-        while (($line = fgets($handle)) !== false) if (trim($line) !== '') $count++;
-        fclose($handle);
-    }
-    @file_put_contents($cacheFile, json_encode(['signature' => $signature, 'count' => $count]), LOCK_EX);
-    return $count;
-}
-
-// Small, failure-tolerant GitHub repository snapshot for the public landing
-// page. A long cache keeps the unauthenticated GitHub API well below its limit.
-function fetchGithubRepositoryStats() {
-    $empty = ['code_lines' => projectNonEmptyCodeLines(), 'stars' => null, 'forks' => null, 'open_issues' => null];
-    $repository = trim((string)(getenv('GITHUB_REPOSITORY') ?: 'HyperGaming99/0x79'));
-    if (!preg_match('#^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$#', $repository)) return $empty;
-
-    $cacheFile = sys_get_temp_dir() . '/0x79_github_repo_stats_' . hash('sha256', strtolower($repository)) . '.json';
-    if (is_file($cacheFile) && (int)@filemtime($cacheFile) >= time() - 1800) {
-        $cached = json_decode((string)@file_get_contents($cacheFile), true);
-        if (is_array($cached) && array_key_exists('stars', $cached)) {
-            $cached = array_replace($empty, $cached);
-            $cached['code_lines'] = $empty['code_lines'];
-            return $cached;
-        }
-    }
-
-    try {
-        $ch = curl_init('https://api.github.com/repos/' . $repository);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => false,
-            CURLOPT_CONNECTTIMEOUT => 2,
-            CURLOPT_TIMEOUT => 4,
-            CURLOPT_HTTPHEADER => [
-                'Accept: application/vnd.github+json',
-                'X-GitHub-Api-Version: 2022-11-28',
-                'User-Agent: 0x79-landing-stats/1.0',
-            ],
-        ]);
-        $response = curl_exec($ch);
-        $http = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        $data = is_string($response) && $http === 200 ? json_decode($response, true) : null;
-        if (!is_array($data)) return $empty;
-
-        $stats = [
-            'code_lines' => $empty['code_lines'],
-            'stars' => max(0, (int)($data['stargazers_count'] ?? 0)),
-            'forks' => max(0, (int)($data['forks_count'] ?? 0)),
-            'open_issues' => max(0, (int)($data['open_issues_count'] ?? 0)),
-        ];
-        @file_put_contents($cacheFile, json_encode($stats, JSON_UNESCAPED_SLASHES), LOCK_EX);
-        return $stats;
-    } catch (Throwable $e) {
-        return $empty;
-    }
-}
-
-function apiReadInput() {
-    $contentType = strtolower($_SERVER['CONTENT_TYPE'] ?? '');
-
-    if (strpos($contentType, 'application/json') !== false) {
-        $raw = file_get_contents('php://input');
-        $data = json_decode($raw ?: '{}', true);
-        return is_array($data) ? $data : [];
-    }
-
-    return $_POST;
-}
-
-function clampInt($value, $min, $max, $default) {
-    if ($value === null || $value === '') return $default;
-    $n = (int)$value;
-    return max($min, min($max, $n));
-}
-
-function boolParam($value, $default = false) {
-    if ($value === null || $value === '') return $default;
-    if (is_bool($value)) return $value;
-    $v = strtolower(trim((string)$value));
-    return in_array($v, ['1', 'true', 'yes', 'on'], true);
-}
-
-
 function builtInLinkSchemes() {
-    return [
-        'http', 'https',
-        'ftp', 'sftp', 'ftps',
-        'mailto', 'tel', 'sms',
-        'magnet',
-        'ws', 'wss',
-        'irc', 'xmpp',
-        'geo',
-        'steam', 'discord', 'tg', 'whatsapp',
-    ];
+    return ['http', 'https', 'ftp', 'sftp', 'ftps', 'file', 'mailto', 'tel', 'sms', 'ssh', 'git', 'magnet', 'data', 'blob', 'ws', 'wss', 'irc', 'xmpp', 'ipfs', 'ipns', 'bitcoin', 'ethereum', 'geo', 'intent', 'market', 'itms-apps', 'steam', 'discord', 'tg', 'whatsapp'];
 }
 
 function isValidConfigurableScheme($scheme) {
     $scheme = strtolower(trim((string)$scheme));
-
-    if ($scheme === '' || $scheme === 'javascript') {
-        return false;
-    }
-
-    // RFC-style scheme names: start with a letter, then letters/digits/+.-
-    // Limit keeps the admin config tidy and avoids weird oversized input.
+    if ($scheme === '' || $scheme === 'javascript') return false;
     return (bool)preg_match('/^[a-z][a-z0-9+.-]{0,63}$/', $scheme);
 }
 
@@ -575,7 +428,7 @@ function isValidCode($code) {
 
 function isReservedCode($code) {
     $reserved = [
-        'api', 'admin', 'abuse', 'upload', 'shorten', 'paste', 'raw', 'screenshot', 'preview-asset', 'file', 'files', 'login', 'logout', 'docs', 'assets', 'static',
+        'api', 'admin', 'abuse', 'upload', 'shorten', 'paste', 'raw', 'screenshot', 'file', 'files', 'login', 'logout', 'docs', 'assets', 'static',
         'css', 'js', 'img', 'qr', 'favicon', 'robots.txt', 'sitemap.xml', 'register', 'account', 'music', 'discord', 'discord-asset', 'discord-app-icon', 'minecraft', 'rss', 'status', 'posts',
     ];
 
@@ -805,7 +658,6 @@ function normalizeLinkRow($row, $host = null) {
         'click_count' => isset($row['click_count']) ? (int)$row['click_count'] : 0,
         'max_clicks' => !empty($row['max_clicks']) ? (int)$row['max_clicks'] : null,
         'has_password' => !empty($row['password_hash']),
-        'preview_enabled' => !empty($row['preview_enabled']),
     ];
 }
 
@@ -881,56 +733,6 @@ function sanitizeAdminReturnTo($returnTo, $fallback = '/admin') {
     return $returnTo;
 }
 
-
-function isWebPreviewableTarget($url) {
-    $scheme = strtolower((string)parse_url((string)$url, PHP_URL_SCHEME));
-    return in_array($scheme, ['http', 'https'], true) && filter_var($url, FILTER_VALIDATE_URL);
-}
-
-function previewBase64UrlEncode($value) {
-    return rtrim(strtr(base64_encode((string)$value), '+/', '-_'), '=');
-}
-
-function previewBase64UrlDecode($value) {
-    $value = strtr((string)$value, '-_', '+/');
-    $pad = strlen($value) % 4;
-    if ($pad) $value .= str_repeat('=', 4 - $pad);
-    $decoded = base64_decode($value, true);
-    return $decoded === false ? '' : $decoded;
-}
-
-function absolutePreviewUrl($url, $base) {
-    $url = trim((string)$url);
-    if ($url === '' || preg_match('/^(javascript|data|blob|file):/i', $url)) return '';
-    if (preg_match('/^[a-z][a-z0-9+.-]*:/i', $url)) return $url;
-
-    $bp = parse_url((string)$base);
-    if (empty($bp['scheme']) || empty($bp['host'])) return '';
-    $scheme = $bp['scheme'];
-    $host = $bp['host'];
-    $port = isset($bp['port']) ? ':' . $bp['port'] : '';
-    $root = $scheme . '://' . $host . $port;
-
-    if (strpos($url, '//') === 0) return $scheme . ':' . $url;
-    if ($url[0] === '/') return $root . $url;
-
-    $path = $bp['path'] ?? '/';
-    $dir = preg_replace('#/[^/]*$#', '/', $path);
-    $combined = $dir . $url;
-    $parts = [];
-    foreach (explode('/', $combined) as $part) {
-        if ($part === '' || $part === '.') continue;
-        if ($part === '..') array_pop($parts);
-        else $parts[] = $part;
-    }
-    return $root . '/' . implode('/', $parts);
-}
-
-function previewAssetProxyUrl($assetUrl, $baseUrl) {
-    $abs = absolutePreviewUrl($assetUrl, $baseUrl);
-    if (!isWebPreviewableTarget($abs)) return '';
-    return '/preview-asset?u=' . previewBase64UrlEncode($abs);
-}
 
 function fetchPreviewHttp($url, $maxRedirects = 3) {
     [$valid, $validationError] = isPublicHttpUrl($url);

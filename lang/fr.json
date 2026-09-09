@@ -25,6 +25,9 @@
   "create_link": "Créer le lien",
   "enter_link_hint": "Entrez un lien ci-dessus pour le compresser",
   "qr_label": "Afficher le QR code",
+  "copy_label": "Copier le lien",
+  "copied_label": "Copié",
+  "download_qr_label": "Télécharger le QR",
   "api_docs": "Documentation de l'API",
   "settings": "Paramètres",
   "language": "Langue",
@@ -34,6 +37,5 @@
   "custom_code_label": "Alias personnalisé",
   "expires_label": "Date/heure d'expiration",
   "max_clicks_label": "Clics max",
-  "preview_label": "Afficher l'aperçu du lien",
   "err_alias": "alias invalide ou déjà pris."
 }

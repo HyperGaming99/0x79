@@ -25,6 +25,9 @@
   "create_link": "Crea link",
   "enter_link_hint": "Inserisci un link qui sopra per comprimerlo",
   "qr_label": "Genera codice QR",
+  "copy_label": "Copia link",
+  "copied_label": "Copiato",
+  "download_qr_label": "Scarica QR",
   "api_docs": "Documentazione API",
   "settings": "Impostazioni",
   "language": "Lingua",
@@ -34,6 +37,5 @@
   "custom_code_label": "Alias personalizzato",
   "expires_label": "Data/ora di scadenza",
   "max_clicks_label": "Clic max",
-  "preview_label": "Mostra anteprima del link",
   "err_alias": "alias non valido o già in uso."
 }

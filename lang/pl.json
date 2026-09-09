@@ -25,6 +25,9 @@
   "create_link": "Utwórz link",
   "enter_link_hint": "Wpisz powyżej link, aby go skrócić",
   "qr_label": "Pokaż kod QR",
+  "copy_label": "Kopiuj link",
+  "copied_label": "Skopiowano",
+  "download_qr_label": "Pobierz QR",
   "api_docs": "Dokumentacja API",
   "settings": "Ustawienia",
   "language": "Język",
@@ -34,6 +37,5 @@
   "custom_code_label": "Własny alias",
   "expires_label": "Data/godzina ważności",
   "max_clicks_label": "Maks. kliknięć",
-  "preview_label": "Pokaż podgląd linku",
   "err_alias": "alias nieprawidłowy lub zajęty."
 }
