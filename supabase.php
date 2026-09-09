@@ -227,6 +227,10 @@ function supabaseHttpRequest($method, $url, $body = null) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    // Bounds worst-case latency: without these, a hanging Supabase request
+    // would block the single php -S worker indefinitely.
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
     if ($body !== null) {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
@@ -490,6 +494,77 @@ function incrementClickCount($row) {
     [$http, $response, $error] = supabaseRequest('PATCH', $url, ['click_count' => $next]);
 
     return !$error && $http >= 200 && $http < 300;
+}
+
+// Combined best-effort analytics write for the redirect hot path: click
+// counter (PATCH) and click log (POST) fire concurrently via curl_multi,
+// costing one network round-trip instead of two sequential ones. Failures
+// are ignored — analytics must never block or break a redirect.
+function recordClickAnalytics($row, $code, $referrerHost, $device, $country): void {
+    global $db_driver, $supabase_url, $supabase_key, $supabase_db_key;
+
+    if (($db_driver ?? 'supabase') !== 'supabase') {
+        incrementClickCount($row);
+        logLinkClick($code, $referrerHost, $device, $country);
+        return;
+    }
+
+    $requests = [];
+    if (!empty($row['id'])) {
+        $requests[] = [
+            'PATCH',
+            rtrim((string)$supabase_url, '/') . '/rest/v1/urls?id=eq.' . urlencode((string)$row['id']),
+            ['click_count' => isset($row['click_count']) ? (int)$row['click_count'] + 1 : 1],
+        ];
+    }
+
+    $code = trim((string)$code);
+    if ($code !== '') {
+        $requests[] = [
+            'POST',
+            rtrim((string)$supabase_url, '/') . '/rest/v1/link_clicks',
+            [
+                'short_code'    => $code,
+                'referrer_host' => $referrerHost !== '' ? $referrerHost : null,
+                'device'        => $device !== '' ? $device : null,
+                'country'       => $country !== '' ? $country : null,
+            ],
+        ];
+    }
+
+    if (!$requests) return;
+
+    $key = $supabase_db_key ?: $supabase_key;
+    $mh = curl_multi_init();
+    $handles = [];
+
+    foreach ($requests as [$method, $url, $body]) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER  => true,
+            CURLOPT_CUSTOMREQUEST   => $method,
+            CURLOPT_POSTFIELDS      => json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            CURLOPT_CONNECTTIMEOUT  => 5,
+            CURLOPT_TIMEOUT         => 10,
+            CURLOPT_HTTPHEADER      => [
+                "apikey: $key",
+                "Authorization: Bearer $key",
+                'Content-Type: application/json',
+                'Prefer: return=minimal',
+            ],
+        ]);
+        curl_multi_add_handle($mh, $ch);
+        $handles[] = $ch;
+    }
+
+    $running = null;
+    do {
+        curl_multi_exec($mh, $running);
+        if ($running > 0) curl_multi_select($mh, 0.2);
+    } while ($running > 0);
+
+    foreach ($handles as $ch) curl_multi_remove_handle($mh, $ch);
+    curl_multi_close($mh);
 }
 
 function createShortLink($long_url, $domain, $password = '', $expires_at = '', $max_clicks = '', $custom_code = '', $preview_enabled = false) {

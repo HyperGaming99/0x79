@@ -25,7 +25,7 @@ $request_path = trim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/
 // Backwards-compatible logo path used across the older views.
 if ($request_path === 'logo.png') {
     header('Content-Type: image/jpeg');
-    header('Cache-Control: public, max-age=86400');
+    header('Cache-Control: public, max-age=604800');
     readfile(__DIR__ . '/logomark_0x79.jpg');
     exit;
 }
@@ -37,7 +37,7 @@ if ($request_path === 'qr') {
     $svg = qrSvg($d, 8, 4);
     if ($svg === '') { http_response_code(413); header('Content-Type: text/plain'); exit('qr data too long'); }
     header('Content-Type: image/svg+xml; charset=utf-8');
-    header('Cache-Control: public, max-age=86400');
+    header('Cache-Control: public, max-age=604800');
     header('X-Content-Type-Options: nosniff');
     echo $svg;
     exit;
@@ -462,11 +462,11 @@ if ($path_code !== '' || isset($_GET['c'])) {
                 }
             }
 
-            incrementClickCount($row);
-
             $refHost = strtolower((string)parse_url((string)($_SERVER['HTTP_REFERER'] ?? ''), PHP_URL_HOST));
             $refHost = preg_replace('/^www\./', '', $refHost);
-            logLinkClick(
+
+            recordClickAnalytics(
+                $row,
                 $code,
                 $refHost,
                 detectDeviceType($_SERVER['HTTP_USER_AGENT'] ?? ''),
