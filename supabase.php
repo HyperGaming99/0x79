@@ -509,6 +509,16 @@ function recordClickAnalytics($row, $code, $referrerHost, $device, $country): vo
         return;
     }
 
+    // curl_multi_* is a separate function family: hardened/shared PHP setups
+    // can disable it while plain curl keeps working - which turned every
+    // redirect into a fatal 500. Fall back to the sequential best-effort
+    // writes there.
+    if (!function_exists('curl_multi_init') || !function_exists('curl_multi_exec') || !function_exists('curl_multi_select')) {
+        incrementClickCount($row);
+        logLinkClick($code, $referrerHost, $device, $country);
+        return;
+    }
+
     $requests = [];
     if (!empty($row['id'])) {
         $requests[] = [
