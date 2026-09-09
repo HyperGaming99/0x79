@@ -131,10 +131,7 @@ if (!isset($T[$lang])) {
 }
 $t = array_replace($T['en'], $T[$lang] ?? []);
 
-$LANG_META = [
-    'de' => ['label' => 'Deutsch', 'flag' => '🇩🇪'],
-    'en' => ['label' => 'English', 'flag' => '🇬🇧'],
-];
+$LANG_META = $LANG_DATA;
 
 $short_url = "";
 $error = "";

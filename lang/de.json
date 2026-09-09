@@ -18,5 +18,16 @@
   "admin_invalid": "falsches passwort.",
   "admin_dashboard": "Admin-Dashboard",
   "admin_logout": "ausloggen",
-  "admin_csv": "CSV exportieren"
+  "admin_csv": "CSV exportieren",
+  "tagline": "Lange Links, kurz gemacht.",
+  "url_placeholder": "https://ein-langer-link.de/",
+  "domain_label": "Domain",
+  "create_link": "Link erstellen",
+  "enter_link_hint": "Gib oben einen Link ein",
+  "qr_label": "QR-Code ausgeben",
+  "api_docs": "API-Dokumentation",
+  "settings": "Einstellungen",
+  "language": "Sprache",
+  "theme": "Design",
+  "toggle_theme": "Design wechseln"
 }

@@ -178,6 +178,30 @@ function renderCardThemeStyles(): void {
         }
         .modal-controls a[aria-current="true"] { color: var(--accent-contrast); background: var(--accent); border-color: var(--accent); }
         .modal-controls button svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+        /* Language dropdown inside the settings modal. Flags are local SVG
+           files so they render on Windows too (no emoji-flag dependency). */
+        .lang-select { position: relative; }
+        .lang-current {
+            display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 10px;
+            font: 700 11px/1 inherit; letter-spacing: .02em; color: var(--muted);
+            border: 1px solid var(--card-border); border-radius: 8px; background: var(--card-bg); cursor: pointer;
+        }
+        .lang-current img { border-radius: 2px; object-fit: cover; }
+        .lang-current .chev { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; transition: transform .15s; }
+        .lang-current[aria-expanded="true"] .chev { transform: rotate(180deg); }
+        .lang-menu {
+            position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; min-width: 190px; max-height: 240px; overflow-y: auto;
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
+            box-shadow: var(--shadow-card); padding: 6px;
+        }
+        .lang-menu[hidden] { display: none; }
+        .lang-menu a {
+            display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px;
+            font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: none;
+        }
+        .lang-menu a:hover { background: var(--input-bg); }
+        .lang-menu a.active { color: var(--accent); }
+        .lang-menu img { border-radius: 2px; object-fit: cover; }
         @media (prefers-reduced-motion: reduce) {
             .modal-backdrop, .modal-panel { transition: none !important; }
         }
@@ -186,27 +210,39 @@ function renderCardThemeStyles(): void {
 }
 
 function renderCardTopbar($lang): void {
-    $de = $lang === 'de';
+    global $supported_langs, $LANG_DATA, $t;
     ?>
     <div class="topbar">
-        <button type="button" id="settings-toggle" aria-haspopup="dialog" aria-label="<?= $de ? 'Einstellungen' : 'Settings' ?>">
+        <button type="button" id="settings-toggle" aria-haspopup="dialog" aria-label="<?= h($t['settings']) ?>">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1,1-1.73l.43-.25a2 2 0 0 1,2 0l.15.08a2 2 0 0 0,2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1,1-1.74l.15-.09a2 2 0 0 0,.73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         </button>
     </div>
     <div class="modal-backdrop" id="settings-modal" hidden>
-        <div class="modal-panel" role="dialog" aria-modal="true" aria-label="<?= $de ? 'Einstellungen' : 'Settings' ?>">
-            <div class="modal-title"><?= $de ? 'Einstellungen' : 'Settings' ?></div>
+        <div class="modal-panel" role="dialog" aria-modal="true" aria-label="<?= h($t['settings']) ?>">
+            <div class="modal-title"><?= h($t['settings']) ?></div>
             <div class="modal-row">
-                <span class="modal-label"><?= $de ? 'Sprache' : 'Language' ?></span>
-                <span class="modal-controls">
-                    <a href="?lang=de" aria-current="<?= $lang === 'de' ? 'true' : 'false' ?>">DE</a>
-                    <a href="?lang=en" aria-current="<?= $lang === 'en' ? 'true' : 'false' ?>">EN</a>
-                </span>
+                <span class="modal-label"><?= h($t['language']) ?></span>
+                <div class="lang-select">
+                    <button type="button" class="lang-current" id="lang-current" aria-haspopup="listbox" aria-expanded="false">
+                        <img src="/assets/flags/<?= h($LANG_DATA[$lang]['flag']) ?>.svg" alt="" width="18" height="12">
+                        <span><?= h($LANG_DATA[$lang]['label']) ?></span>
+                        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+                    </button>
+                    <div class="lang-menu" id="lang-menu" role="listbox" hidden>
+                        <?php foreach ($supported_langs as $code):
+                            $meta = $LANG_DATA[$code]; ?>
+                        <a href="?lang=<?= h($code) ?>" role="option" aria-selected="<?= $code === $lang ? 'true' : 'false' ?>"<?= $code === $lang ? ' class="active"' : '' ?>>
+                            <img src="/assets/flags/<?= h($meta['flag']) ?>.svg" alt="" width="18" height="12">
+                            <span><?= h($meta['label']) ?></span>
+                        </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
             </div>
             <div class="modal-row">
-                <span class="modal-label"><?= $de ? 'Design' : 'Theme' ?></span>
+                <span class="modal-label"><?= h($t['theme']) ?></span>
                 <span class="modal-controls">
-                    <button type="button" id="theme-toggle" aria-label="<?= $de ? 'Design wechseln' : 'Toggle theme' ?>">
+                    <button type="button" id="theme-toggle" aria-label="<?= h($t['toggle_theme']) ?>">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
                     </button>
                 </span>
@@ -254,6 +290,27 @@ function renderCardThemeScript(): void {
         modal.addEventListener('click', function (e) { if (e.target === modal) closeSettings(); });
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && !modal.hidden) closeSettings();
+        });
+
+        var langCurrent = document.getElementById('lang-current');
+        var langMenu = document.getElementById('lang-menu');
+
+        function closeLangMenu() {
+            langMenu.hidden = true;
+            langCurrent.setAttribute('aria-expanded', 'false');
+        }
+
+        langCurrent.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var open = langMenu.hidden;
+            langMenu.hidden = !open;
+            langCurrent.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        document.addEventListener('click', function (e) {
+            if (!langMenu.hidden && !e.target.closest('.lang-select')) closeLangMenu();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !langMenu.hidden) closeLangMenu();
         });
 
         document.getElementById('theme-toggle').addEventListener('click', function () {
@@ -345,15 +402,16 @@ function renderAdminLogin($error = '') {
 }
 
 function renderApiDocs() {
-    global $lang, $csp_nonce, $available_domains;
+    global $lang, $csp_nonce, $available_domains, $LANG_DATA;
 
     $host = cleanHost($_SERVER['HTTP_HOST'] ?? '0x79.one');
     $de = $lang === 'de';
+    $dir = $LANG_DATA[$lang]['dir'] ?? 'ltr';
 
     header('Content-Type: text/html; charset=utf-8');
     ?>
 <!DOCTYPE html>
-<html lang="<?= h($lang) ?>">
+<html lang="<?= h($lang) ?>" dir="<?= h($dir) ?>">
 <head><link rel="icon" href="/logo.png" type="image/jpeg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

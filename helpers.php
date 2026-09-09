@@ -74,8 +74,30 @@ function detectLang($supported = ['de', 'en']) {
     return 'en';
 }
 
-$supported_langs = ['de', 'en'];
+$supported_langs = ['en', 'de', 'es', 'fr', 'pt', 'it', 'nl', 'pl', 'ru', 'tr', 'ar', 'hi', 'ja', 'ko', 'zh', 'id'];
 $lang = detectLang($supported_langs);
+
+// Native label, flag image (assets/flags/<flag>.svg) and text direction per
+// language. Flags are local SVG files because emoji flags do not render on
+// Windows - images work on Windows, Linux and macOS alike.
+$LANG_DATA = [
+    'en' => ['label' => 'English',       'flag' => 'us', 'dir' => 'ltr'],
+    'de' => ['label' => 'Deutsch',       'flag' => 'de', 'dir' => 'ltr'],
+    'es' => ['label' => 'Español',       'flag' => 'es', 'dir' => 'ltr'],
+    'fr' => ['label' => 'Français',      'flag' => 'fr', 'dir' => 'ltr'],
+    'pt' => ['label' => 'Português',     'flag' => 'pt', 'dir' => 'ltr'],
+    'it' => ['label' => 'Italiano',      'flag' => 'it', 'dir' => 'ltr'],
+    'nl' => ['label' => 'Nederlands',    'flag' => 'nl', 'dir' => 'ltr'],
+    'pl' => ['label' => 'Polski',        'flag' => 'pl', 'dir' => 'ltr'],
+    'ru' => ['label' => 'Русский',       'flag' => 'ru', 'dir' => 'ltr'],
+    'tr' => ['label' => 'Türkçe',        'flag' => 'tr', 'dir' => 'ltr'],
+    'ar' => ['label' => 'العربية',       'flag' => 'sa', 'dir' => 'rtl'],
+    'hi' => ['label' => 'हिन्दी',        'flag' => 'in', 'dir' => 'ltr'],
+    'ja' => ['label' => '日本語',         'flag' => 'jp', 'dir' => 'ltr'],
+    'ko' => ['label' => '한국어',         'flag' => 'kr', 'dir' => 'ltr'],
+    'zh' => ['label' => '简体中文',       'flag' => 'cn', 'dir' => 'ltr'],
+    'id' => ['label' => 'Bahasa Indonesia', 'flag' => 'id', 'dir' => 'ltr'],
+];
 
 function loadTranslations($supported) {
     $loaded = [];

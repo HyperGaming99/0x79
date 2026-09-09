@@ -432,7 +432,7 @@ if ($path_code !== '' || isset($_GET['c'])) {
                     header('Content-Type: text/html; charset=utf-8');
                     ?>
 <!DOCTYPE html>
-<html lang="<?= h($lang) ?>">
+<html lang="<?= h($lang) ?>" dir="<?= h($LANG_DATA[$lang]['dir'] ?? 'ltr') ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -531,7 +531,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_url'])) {
 header('Content-Type: text/html; charset=utf-8');
 ?>
 <!DOCTYPE html>
-<html lang="<?= h($lang) ?>">
+<html lang="<?= h($lang) ?>" dir="<?= h($LANG_DATA[$lang]['dir'] ?? 'ltr') ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -588,16 +588,16 @@ header('Content-Type: text/html; charset=utf-8');
                 <img src="/logo.png" alt="">
                 <h1>0x79</h1>
             </div>
-            <p class="tagline"><?= $lang === 'de' ? 'Lange Links, kurz gemacht.' : 'Long links, made short.' ?></p>
+            <p class="tagline"><?= h($t['tagline']) ?></p>
             <form method="POST" action="/">
                 <input type="hidden" name="csrf" value="<?= h(formCsrfToken()) ?>">
-                <input type="url" name="long_url" required autofocus placeholder="https://some-long.link/" value="<?= h($_POST['long_url'] ?? '') ?>">
-                <select name="domain" aria-label="<?= $lang === 'de' ? 'Domain' : 'Domain' ?>">
+                <input type="url" name="long_url" required autofocus placeholder="<?= h($t['url_placeholder']) ?>" value="<?= h($_POST['long_url'] ?? '') ?>">
+                <select name="domain" aria-label="<?= h($t['domain_label']) ?>">
                     <?php foreach ($available_domains as $d): ?>
                         <option value="<?= h($d) ?>" <?= $d === $selected_domain ? 'selected' : '' ?>><?= h($d) ?></option>
                     <?php endforeach; ?>
                 </select>
-                <button type="submit"><?= $lang === 'de' ? 'Link erstellen' : 'Create link' ?> →</button>
+                <button type="submit"><?= h($t['create_link']) ?> →</button>
                 <div class="result<?= $error !== '' ? ' error' : '' ?>">
                     <?php if ($short_url !== ''): ?>
                         <a href="<?= h($short_url) ?>" target="_blank" rel="noopener"><?= h($short_url) ?></a>
@@ -605,16 +605,16 @@ header('Content-Type: text/html; charset=utf-8');
                     <?php elseif ($error !== ''): ?>
                         <?= h($error) ?>
                     <?php else: ?>
-                        <?= $lang === 'de' ? 'Gib oben einen Link ein' : 'Enter a link above to compress' ?>
+                        <?= h($t['enter_link_hint']) ?>
                     <?php endif; ?>
                 </div>
                 <div class="opts">
-                    <label><input type="checkbox" name="qr" value="1" <?= $want_qr ? 'checked' : '' ?>> <?= $lang === 'de' ? 'QR-Code ausgeben' : 'Output QR code' ?></label>
+                    <label><input type="checkbox" name="qr" value="1" <?= $want_qr ? 'checked' : '' ?>> <?= h($t['qr_label']) ?></label>
                 </div>
             </form>
             <a class="api-link" href="/api/docs">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20.5L4 12l6-8.5M14 3.5L20 12l-6 8.5"></path></svg>
-                <?= $lang === 'de' ? 'API-Dokumentation' : 'API docs' ?>
+                <?= h($t['api_docs']) ?>
             </a>
         </div>
         <?php renderCardFooter(); ?>

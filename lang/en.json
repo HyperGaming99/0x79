@@ -18,5 +18,16 @@
   "admin_invalid": "wrong password.",
   "admin_dashboard": "Admin Dashboard",
   "admin_logout": "logout",
-  "admin_csv": "export CSV"
+  "admin_csv": "export CSV",
+  "tagline": "Long links, made short.",
+  "url_placeholder": "https://some-long.link/",
+  "domain_label": "Domain",
+  "create_link": "Create link",
+  "enter_link_hint": "Enter a link above to compress",
+  "qr_label": "Output QR code",
+  "api_docs": "API docs",
+  "settings": "Settings",
+  "language": "Language",
+  "theme": "Theme",
+  "toggle_theme": "Toggle theme"
 }
