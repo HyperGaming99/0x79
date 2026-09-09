@@ -145,6 +145,9 @@ function renderCardThemeStyles(): void {
             transition: background-color .35s ease, border-color .35s ease, color .35s ease,
                         box-shadow .35s ease, fill .35s ease, stroke .35s ease !important;
         }
+        /* While a view transition runs, element transitions must stay off -
+           the animated clip-path on ::view-transition-new(root) is what shows. */
+        html.vt-active, html.vt-active * { transition: none !important; }
     </style>
     <?php
 }
@@ -178,13 +181,48 @@ function renderCardThemeScript(): void {
     <script nonce="<?= $csp_nonce ?>">
         document.getElementById('theme-toggle').addEventListener('click', function () {
             var root = document.documentElement;
-            root.classList.add('theme-anim');
-            // Force reflow so the transition class is registered before the
-            // theme (and with it every CSS variable) changes.
-            void root.offsetWidth;
             var next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-            root.dataset.theme = next;
-            localStorage.setItem('0x79-theme', next);
+
+            function applyTheme() {
+                root.dataset.theme = next;
+                localStorage.setItem('0x79-theme', next);
+            }
+
+            if (typeof document.startViewTransition === 'function') {
+                // Circular reveal growing from the toggle button.
+                var rect = this.getBoundingClientRect();
+                var x = rect.left + rect.width / 2;
+                var y = rect.top + rect.height / 2;
+                var radius = Math.hypot(
+                    Math.max(x, window.innerWidth - x),
+                    Math.max(y, window.innerHeight - y)
+                );
+
+                root.classList.add('vt-active');
+                var transition = document.startViewTransition(applyTheme);
+                transition.ready.then(function () {
+                    root.animate(
+                        {
+                            clipPath: [
+                                'circle(0px at ' + x + 'px ' + y + 'px)',
+                                'circle(' + radius + 'px at ' + x + 'px ' + y + 'px)',
+                            ],
+                        },
+                        { duration: 450, easing: 'ease', pseudoElement: '::view-transition-new(root)' }
+                    );
+                }).catch(function () {});
+                transition.finished.then(function () {
+                    root.classList.remove('vt-active');
+                }).catch(function () {
+                    root.classList.remove('vt-active');
+                });
+                return;
+            }
+
+            // Fallback for browsers without View Transitions API: fade.
+            root.classList.add('theme-anim');
+            void root.offsetWidth;
+            applyTheme();
             setTimeout(function () { root.classList.remove('theme-anim'); }, 450);
         });
     </script>
