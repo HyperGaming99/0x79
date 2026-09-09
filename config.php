@@ -74,6 +74,7 @@ $pg_password = getenv('POSTGRES_PASSWORD') ?: '';
 
 $supabase_url = getenv('SUPABASE_URL');
 $supabase_key = getenv('SUPABASE_KEY');
+$app_version = '2.0.1';
 $admin_api_key = getenv('ADMIN_API_KEY');
 $admin_password = getenv('ADMIN_PASSWORD') ?: '';
 // Prefer the Supabase service role key server-side; fall back to the anon key.
