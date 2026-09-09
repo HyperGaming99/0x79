@@ -81,6 +81,11 @@ function renderCardThemeStyles(): void {
         })();
     </script>
     <style>
+        /* Registered color properties let the page background gradient fade
+           between themes instead of snapping (browsers without @property
+           support just switch instantly). */
+        @property --bg-a { syntax: '<color>'; inherits: true; initial-value: #eef4ff; }
+        @property --bg-b { syntax: '<color>'; inherits: true; initial-value: #eef9f1; }
         * { box-sizing: border-box; }
         :root {
             --bg-a:#eef4ff; --bg-b:#eef9f1; --page-bg:#fff; --card-bg:#fff; --card-border:#eceef2;
@@ -131,6 +136,15 @@ function renderCardThemeStyles(): void {
         }
         .page-footer a:hover { color:var(--accent); border-color:var(--accent); }
         .page-footer a svg { width:15px; height:15px; }
+        /* Theme-switch animation: only applied while .theme-anim is set (see
+           renderCardThemeScript), so page loads and hover effects stay snappy. */
+        .theme-anim body {
+            transition: --bg-a .35s ease, --bg-b .35s ease, background-color .35s ease, color .35s ease !important;
+        }
+        .theme-anim body *, .theme-anim body *::before, .theme-anim body *::after {
+            transition: background-color .35s ease, border-color .35s ease, color .35s ease,
+                        box-shadow .35s ease, fill .35s ease, stroke .35s ease !important;
+        }
     </style>
     <?php
 }
@@ -163,9 +177,15 @@ function renderCardThemeScript(): void {
     ?>
     <script nonce="<?= $csp_nonce ?>">
         document.getElementById('theme-toggle').addEventListener('click', function () {
-            var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-            document.documentElement.dataset.theme = next;
+            var root = document.documentElement;
+            root.classList.add('theme-anim');
+            // Force reflow so the transition class is registered before the
+            // theme (and with it every CSS variable) changes.
+            void root.offsetWidth;
+            var next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+            root.dataset.theme = next;
             localStorage.setItem('0x79-theme', next);
+            setTimeout(function () { root.classList.remove('theme-anim'); }, 450);
         });
     </script>
     <?php
