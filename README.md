@@ -123,9 +123,15 @@ No account or key required.
 | `/` | The shortener |
 | `/admin` | Administration dashboard (password login, no accounts) |
 
-## Star history
+## Star History
 
-[![0x79 Star History](assets/star-history.svg)](https://github.com/HyperGaming99/0x79/stargazers)
+<a href="https://www.star-history.com/?repos=hypergaming99%2F0x79&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=hypergaming99/0x79&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=hypergaming99/0x79&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=hypergaming99/0x79&type=date&legend=top-left" />
+ </picture>
+</a>
 
 The chart is generated inside this repository and updated daily by GitHub Actions. No public access token is embedded in the README.
 
