@@ -7,7 +7,18 @@ declare(strict_types=1);
 $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_save_path(__DIR__ . '/sessions');
+    // sessions/ liegt nicht im Repo (nur das Docker-Image legt es an).
+    // Ohne Verzeichnis schlägt session_start() still fehl und CSRF-Tokens gehen verloren.
+    $session_dir = __DIR__ . '/sessions';
+    if (!is_dir($session_dir) && !mkdir($session_dir, 0700, true) && !is_dir($session_dir)) {
+        http_response_code(500);
+        die('Configuration error: cannot create sessions directory.');
+    }
+    if (!is_writable($session_dir)) {
+        http_response_code(500);
+        die('Configuration error: sessions directory is not writable.');
+    }
+    session_save_path($session_dir);
     session_name('ox79_admin');
     session_set_cookie_params([
         'lifetime' => 0,
