@@ -43,10 +43,6 @@ if ($request_path === 'qr') {
     exit;
 }
 
-if ($request_path === 'preview-asset') {
-    streamPreviewAsset();
-}
-
 if ($request_path === 'api/docs') {
     renderApiDocs();
 }
@@ -300,13 +296,11 @@ if ($request_path === 'api') {
         $expires_at = $input['expires_at'] ?? $input['valid_until'] ?? '';
         $max_clicks = $input['max_clicks'] ?? $input['burn_after'] ?? '';
         $custom_code = $input['custom_code'] ?? $input['alias'] ?? $input['short_code'] ?? '';
-        $preview_enabled = !empty($input['preview_enabled'] ?? $input['preview'] ?? false);
-
         if (!checkCreateRateLimit()) {
             jsonResponse(['ok' => false, 'error' => 'rate_limited'], 429);
         }
 
-        [$ok, $err, $result] = createShortLink($long_url, $domain, $password, $expires_at, $max_clicks, $custom_code, $preview_enabled);
+        [$ok, $err, $result] = createShortLink($long_url, $domain, $password, $expires_at, $max_clicks, $custom_code);
 
         if (!$ok) {
             $status = in_array($err, ['invalid_url', 'invalid_alias', 'invalid_expiry'], true) ? 400 : ($err === 'alias_taken' ? 409 : 500);
@@ -359,48 +353,6 @@ if ($path_code !== '' || isset($_GET['c'])) {
 
             $target = str_replace(["\r", "\n", "\0"], '', $target);
             $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
-
-            $bot_patterns = [
-                'discordbot', 'twitterbot', 'slackbot', 'facebookexternalhit', 'whatsapp',
-                'telegrambot', 'linkedinbot', 'skypeuripreview', 'pinterest', 'redditbot',
-                'embedly', 'quora link preview', 'showyoubot', 'outbrain', 'vkshare',
-                'w3c_validator', 'bingpreview', 'googlebot', 'bitlybot', 'tumblr',
-                'mattermost', 'iframely', 'snapchat',
-            ];
-
-            $is_bot = false;
-            $ua_lower = strtolower($ua);
-
-            foreach ($bot_patterns as $p) {
-                if (strpos($ua_lower, $p) !== false) {
-                    $is_bot = true;
-                    break;
-                }
-            }
-
-            if ($is_bot) {
-                $host = $_SERVER['HTTP_HOST'] ?? '0x79.one';
-                $self = 'https://' . $host . '/' . urlencode($code);
-
-                header('Content-Type: text/html; charset=utf-8');
-                header('X-Robots-Tag: noindex, nofollow');
-
-                echo '<!DOCTYPE html><html lang="' . h($lang) . '"><head>'
-                    . '<meta charset="UTF-8">'
-                    . '<title>' . h($t['title']) . '</title>'
-                    . '<meta name="description" content="' . h($t['og_desc']) . '">'
-                    . '<meta name="robots" content="noindex,nofollow">'
-                    . '<meta property="og:title" content="' . h($t['title']) . '">'
-                    . '<meta property="og:description" content="' . h($t['og_desc']) . '">'
-                    . '<meta property="og:url" content="' . h($self) . '">'
-                    . '<meta property="og:type" content="website">'
-                    . '<meta name="twitter:card" content="summary">'
-                    . '<meta name="twitter:title" content="' . h($t['title']) . '">'
-                    . '<meta name="twitter:description" content="' . h($t['og_desc']) . '">'
-                    . '</head><body></body></html>';
-
-                exit;
-            }
 
             if (!empty($row['password_hash'])) {
                 $post_password = (string)($_POST['link_password'] ?? '');
@@ -458,10 +410,6 @@ if ($path_code !== '' || isset($_GET['c'])) {
                 getenv('CLOUDFLARE_PROXY') === 'true' ? strtoupper(substr((string)($_SERVER['HTTP_CF_IPCOUNTRY'] ?? ''), 0, 2)) : ''
             );
 
-            if (!empty($row['preview_enabled']) && empty($_GET['go']) && empty($_GET['no_preview'])) {
-                renderUrlPreviewPage($code, $target);
-            }
-
             header("Location: " . $target);
             exit;
         }
@@ -493,7 +441,6 @@ $opt_password     = (string)($_POST['password'] ?? '');
 $opt_expires_at   = (string)($_POST['expires_at'] ?? '');
 $opt_max_clicks   = (string)($_POST['max_clicks'] ?? '');
 $opt_custom_code  = (string)($_POST['custom_code'] ?? '');
-$opt_preview      = !empty($_POST['preview_enabled']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_url'])) {
     requireFormCsrf();
@@ -508,8 +455,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_url'])) {
             $opt_password,
             $opt_expires_at,
             $opt_max_clicks,
-            $opt_custom_code,
-            $opt_preview
+            $opt_custom_code
         );
     }
 
@@ -544,26 +490,26 @@ header('Content-Type: text/html; charset=utf-8');
             background:var(--input-bg); color:var(--ink); text-align:center; transition:border-color .15s, background .15s;
         }
         input[type=url]:focus { outline:none; border-color:var(--accent); background:var(--card-bg); box-shadow:0 0 0 4px rgba(59,130,246,.12); }
-        select[name=domain] {
-            width:100%;
-            margin-top:10px;
-            padding:12px 44px 12px 16px;
-            font:inherit;
-            font-size:13px;
-            font-weight:600;
-            color:var(--muted);
-            border:1px solid var(--input-border);
-            border-radius:12px;
-            background:var(--input-bg);
-            text-align:center;
-            text-align-last:center;
-            appearance:auto;
-            -webkit-appearance:auto;
-            cursor:pointer;
-            transition:border-color .15s, background .15s;
-        }
-        select[name=domain]:focus { outline:none; border-color:var(--accent); background:var(--card-bg); box-shadow:0 0 0 4px rgba(59,130,246,.12); }
-        select[name=domain] option { background:var(--card-bg); color:var(--ink); }
+        .domain-picker { position:relative; margin-top:10px; text-align:left; }
+        .domain-trigger { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:56px; padding:8px 14px 8px 12px; border:1px solid var(--input-border); border-radius:12px; background:var(--input-bg); color:var(--ink); font:600 13px/1 inherit; cursor:pointer; transition:border-color .15s, background .15s, box-shadow .15s; }
+        .domain-trigger:hover, .domain-trigger[aria-expanded="true"] { border-color:var(--accent); background:var(--card-bg); }
+        .domain-trigger[aria-expanded="true"] { box-shadow:0 0 0 4px rgba(59,130,246,.12); }
+        .domain-trigger-copy { display:flex; align-items:center; gap:10px; min-width:0; }
+        .domain-mark { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; flex:none; border:1px solid var(--input-border); border-radius:8px; background:var(--card-bg); color:var(--accent); font:800 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace; }
+        .domain-trigger-text { display:grid; gap:4px; min-width:0; text-align:left; }
+        .domain-kicker { color:var(--muted); font-size:9px; font-weight:800; letter-spacing:.1em; line-height:1; text-transform:uppercase; }
+        #domain-current { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .domain-chevron { width:16px; height:16px; flex:none; stroke:var(--muted); fill:none; stroke-width:2; transition:transform .15s; }
+        .domain-trigger[aria-expanded="true"] .domain-chevron { transform:rotate(180deg); stroke:var(--accent); }
+        .domain-menu { position:absolute; left:0; right:0; top:calc(100% + 7px); z-index:20; display:grid; gap:4px; max-height:240px; overflow:auto; padding:8px; border:1px solid var(--card-border); border-radius:14px; background:var(--card-bg); box-shadow:0 18px 40px -24px rgba(20,30,60,.55); }
+        .domain-menu[hidden] { display:none; }
+        .domain-option { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; padding:5px 9px; border:1px solid transparent; border-radius:9px; background:transparent; color:var(--ink); font:600 13px/1 inherit; text-align:left; cursor:pointer; }
+        .domain-option:hover, .domain-option[aria-selected="true"] { border-color:var(--input-border); background:var(--input-bg); color:var(--accent); }
+        .domain-option-content { display:flex; align-items:center; gap:10px; min-width:0; }
+        .domain-option-mark { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; flex:none; border:1px solid var(--input-border); border-radius:7px; background:var(--card-bg); color:var(--muted); font:800 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace; }
+        .domain-option[aria-selected="true"] .domain-option-mark { border-color:var(--accent); color:var(--accent); }
+        .domain-option-check { width:15px; height:15px; flex:none; opacity:0; stroke:var(--accent); fill:none; stroke-width:2.2; }
+        .domain-option[aria-selected="true"] .domain-option-check { opacity:1; }
         button[type=submit] {
             margin-top:12px; width:100%; padding:14px 16px; font:inherit; font-weight:700; letter-spacing:-.01em;
             border:0; border-radius:12px; background:var(--accent); color:var(--accent-contrast); cursor:pointer; transition:background .15s, transform .1s;
@@ -574,6 +520,12 @@ header('Content-Type: text/html; charset=utf-8');
         .result a { color:var(--accent); text-decoration:none; }
         .result a:hover { text-decoration:underline; }
         .result.error { color:var(--error); }
+        .result-actions { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:12px; }
+        .result-action { display:inline-flex; align-items:center; justify-content:center; min-height:32px; padding:0 10px; border:1px solid var(--card-border); border-radius:8px; background:var(--input-bg); color:var(--muted); font:700 12px/1 inherit; text-decoration:none !important; cursor:pointer; }
+        .result-action:hover { border-color:var(--accent); color:var(--accent) !important; background:var(--card-bg); }
+        .result-action svg { width:14px; height:14px; margin-right:6px; stroke:currentColor; fill:none; stroke-width:1.8; }
+        .qr-result { display:grid; justify-items:center; gap:10px; margin-top:16px; }
+        .qr-result[hidden] { display:none; }
         .opts { margin-top:22px; display:flex; justify-content:center; font-size:13px; font-weight:600; color:var(--muted); }
         .opts label { display:flex; align-items:center; gap:9px; cursor:pointer; }
         .opts input[type=checkbox] {
@@ -620,26 +572,50 @@ header('Content-Type: text/html; charset=utf-8');
             <form method="POST" action="/">
                 <input type="hidden" name="csrf" value="<?= h(formCsrfToken()) ?>">
                 <input type="url" name="long_url" required autofocus placeholder="<?= h($t['url_placeholder']) ?>" value="<?= h($_POST['long_url'] ?? '') ?>">
-                <select name="domain" aria-label="<?= h($t['domain_label']) ?>">
-                    <?php foreach ($available_domains as $d): ?>
-                        <option value="<?= h($d) ?>" <?= $d === $selected_domain ? 'selected' : '' ?>><?= h($d) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <details class="more-opts"<?= ($opt_password !== '' || $opt_expires_at !== '' || $opt_max_clicks !== '' || $opt_custom_code !== '' || $opt_preview || $error !== '') ? ' open' : '' ?>>
+                <div class="domain-picker">
+                    <input type="hidden" name="domain" id="domain-value" value="<?= h($selected_domain) ?>">
+                    <button type="button" class="domain-trigger" id="domain-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="<?= h($t['domain_label']) ?>">
+                        <span class="domain-trigger-copy">
+                            <span class="domain-mark" aria-hidden="true">0x</span>
+                            <span class="domain-trigger-text"><span class="domain-kicker"><?= h($t['domain_label']) ?></span><span id="domain-current"><?= h($selected_domain) ?></span></span>
+                        </span>
+                        <svg class="domain-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+                    </button>
+                    <div class="domain-menu" id="domain-menu" role="listbox" aria-label="<?= h($t['domain_label']) ?>" hidden>
+                        <?php foreach ($available_domains as $d): ?>
+                            <button type="button" class="domain-option" role="option" data-domain-value="<?= h($d) ?>" aria-selected="<?= $d === $selected_domain ? 'true' : 'false' ?>">
+                                <span class="domain-option-content"><span class="domain-option-mark" aria-hidden="true">0x</span><span><?= h($d) ?></span></span>
+                                <svg class="domain-option-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <details class="more-opts"<?= ($opt_password !== '' || $opt_expires_at !== '' || $opt_max_clicks !== '' || $opt_custom_code !== '' || $error !== '') ? ' open' : '' ?>>
                     <summary><?= h($t['options_label']) ?></summary>
                     <div class="more-opts-body">
                         <input type="text" name="custom_code" value="<?= h($opt_custom_code) ?>" placeholder="<?= h($t['custom_code_label']) ?>" autocomplete="off" spellcheck="false">
                         <input type="text" name="password" value="<?= h($opt_password) ?>" placeholder="<?= h($t['password_label']) ?> (<?= h($t['burn_placeholder']) ?>)" autocomplete="off">
                         <input type="datetime-local" name="expires_at" value="<?= h($opt_expires_at) ?>" aria-label="<?= h($t['expires_label']) ?>">
                         <input type="number" name="max_clicks" value="<?= h($opt_max_clicks) ?>" min="1" max="1000000" placeholder="<?= h($t['max_clicks_label']) ?>">
-                        <label class="preview-opt"><input type="checkbox" name="preview_enabled" value="1" <?= $opt_preview ? 'checked' : '' ?>> <?= h($t['preview_label']) ?></label>
                     </div>
                 </details>
                 <button type="submit"><?= h($t['create_link']) ?> →</button>
                 <div class="result<?= $error !== '' ? ' error' : '' ?>">
                     <?php if ($short_url !== ''): ?>
                         <a href="<?= h($short_url) ?>" target="_blank" rel="noopener"><?= h($short_url) ?></a>
-                        <?php if ($want_qr): ?><br><img class="qr" src="/qr?d=<?= h(rawurlencode($short_url)) ?>" alt="QR code"><?php endif; ?>
+                        <div class="result-actions">
+                            <button type="button" class="result-action" id="copy-link" data-url="<?= h($short_url) ?>" data-copied-label="<?= h($t['copied_label']) ?>" data-copy-label="<?= h($t['copy_label']) ?>">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                <?= h($t['copy_label']) ?>
+                            </button>
+                        </div>
+                        <div class="qr-result" id="qr-result"<?= $want_qr ? '' : ' hidden' ?>>
+                            <a class="result-action" id="qr-download" href="/qr?d=<?= h(rawurlencode($short_url)) ?>" download="0x79-<?= h($result['short_code']) ?>.svg">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h3v3h-3zM21 15v6h-3M15 12h2M21 12v2"></path></svg>
+                                <?= h($t['download_qr_label']) ?>
+                            </a>
+                            <img class="qr" id="qr-image" src="/qr?d=<?= h(rawurlencode($short_url)) ?>" alt="QR code">
+                        </div>
                     <?php elseif ($error !== ''): ?>
                         <?= h($error) ?>
                     <?php else: ?>
@@ -647,7 +623,7 @@ header('Content-Type: text/html; charset=utf-8');
                     <?php endif; ?>
                 </div>
                 <div class="opts">
-                    <label><input type="checkbox" name="qr" value="1" <?= $want_qr ? 'checked' : '' ?>> <?= h($t['qr_label']) ?></label>
+                    <label><input type="checkbox" id="qr-toggle" name="qr" value="1" <?= $want_qr ? 'checked' : '' ?>> <?= h($t['qr_label']) ?></label>
                 </div>
             </form>
             <a class="api-link" href="/api/docs">
@@ -657,6 +633,81 @@ header('Content-Type: text/html; charset=utf-8');
         </div>
         <?php renderCardFooter(); ?>
     </main>
+        <?php if ($short_url !== ''): ?>
+        <script nonce="<?= $csp_nonce ?>">
+            (function () {
+                var copyButton = document.getElementById('copy-link');
+                if (!copyButton) return;
+                copyButton.addEventListener('click', function () {
+                    var value = copyButton.getAttribute('data-url') || '';
+                    var done = function () {
+                        copyButton.textContent = copyButton.getAttribute('data-copied-label');
+                        window.setTimeout(function () {
+                            copyButton.textContent = copyButton.getAttribute('data-copy-label');
+                        }, 1800);
+                    };
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(value).then(done).catch(function () {});
+                        return;
+                    }
+                    var field = document.createElement('textarea');
+                    field.value = value;
+                    field.style.position = 'fixed';
+                    field.style.opacity = '0';
+                    document.body.appendChild(field);
+                    field.select();
+                    if (document.execCommand('copy')) done();
+                    field.remove();
+                });
+            }());
+        </script>
+        <?php endif; ?>
+        <?php if ($short_url !== ''): ?>
+        <script nonce="<?= $csp_nonce ?>">
+            (function () {
+                var toggle = document.getElementById('qr-toggle');
+                var result = document.getElementById('qr-result');
+                if (!toggle || !result) return;
+                toggle.addEventListener('change', function () {
+                    result.hidden = !toggle.checked;
+                });
+            }());
+        </script>
+        <?php endif; ?>
+        <script nonce="<?= $csp_nonce ?>">
+            (function () {
+                var trigger = document.getElementById('domain-trigger');
+                var menu = document.getElementById('domain-menu');
+                var value = document.getElementById('domain-value');
+                var current = document.getElementById('domain-current');
+                if (!trigger || !menu || !value || !current) return;
+                function closeMenu() {
+                    menu.hidden = true;
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+                trigger.addEventListener('click', function () {
+                    var open = menu.hidden;
+                    menu.hidden = !open;
+                    trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+                });
+                menu.querySelectorAll('.domain-option').forEach(function (option) {
+                    option.addEventListener('click', function () {
+                        value.value = option.dataset.domainValue;
+                        current.textContent = option.dataset.domainValue;
+                        menu.querySelectorAll('.domain-option').forEach(function (item) {
+                            item.setAttribute('aria-selected', item === option ? 'true' : 'false');
+                        });
+                        closeMenu();
+                    });
+                });
+                document.addEventListener('click', function (event) {
+                    if (!event.target.closest('.domain-picker')) closeMenu();
+                });
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape') closeMenu();
+                });
+            }());
+        </script>
     <?php renderCardThemeScript(); ?>
 </body>
 </html>

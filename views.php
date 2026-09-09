@@ -150,63 +150,41 @@ function renderCardThemeStyles(): void {
         /* While a view transition runs, element transitions must stay off -
            the animated clip-path on ::view-transition-new(root) is what shows. */
         html.vt-active, html.vt-active * { transition: none !important; }
-        /* Settings modal. Open/close easing mirrors the modal on
-           status.arolg.dev: fade backdrop, panel enters with an exponential
-           ease from a slightly scaled, offset position and leaves faster. */
-        .modal-backdrop {
-            position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
-            background: rgba(10,10,14,.45); padding: 16px; opacity: 0; transition: opacity .15s ease;
+            ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+            ::view-transition-new(root) { mix-blend-mode: normal; }
+        /* Right-side settings panel keeps the full language list visible. */
+        .sidebar-backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(10,10,14,.42); opacity: 0; transition: opacity .2s ease; }
+        .sidebar-backdrop[hidden] { display: none; }
+        .sidebar-backdrop.is-open { opacity: 1; }
+        .sidebar-panel {
+            position: absolute; top: 0; right: 0; display: flex; flex-direction: column;
+            width: min(340px, 100%); height: 100%; padding: 28px 24px;
+            background: var(--card-bg); border-left: 1px solid var(--card-border); box-shadow: -18px 0 45px -28px rgba(20,30,60,.4);
+            transform: translateX(100%); transition: transform .25s cubic-bezier(.16,1,.3,1);
         }
-        .modal-backdrop[hidden] { display: none; }
-        .modal-backdrop.is-open { opacity: 1; transition: opacity .25s ease; }
-        .modal-panel {
-            width: min(300px, 100%); background: var(--card-bg); border: 1px solid var(--card-border);
-            border-radius: 16px; padding: 20px; box-shadow: var(--shadow-card);
-            opacity: 0; transform: scale(.96) translateY(8px); transition: opacity .15s ease, transform .15s ease;
-        }
-        .modal-backdrop.is-open .modal-panel {
-            opacity: 1; transform: none;
-            transition: opacity .25s ease, transform .25s cubic-bezier(.16,1,.3,1);
-        }
-        .modal-title { font-weight: 800; letter-spacing: -.01em; margin-bottom: 6px; }
-        .modal-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--card-border); }
-        .modal-row:first-of-type { border-top: 0; }
-        .modal-label { font-size: 13px; color: var(--muted); font-weight: 600; }
-        .modal-controls { display: flex; gap: 8px; }
-        .modal-controls a, .modal-controls button {
-            display: inline-flex; align-items: center; justify-content: center; height: 30px; min-width: 30px; padding: 0 9px;
-            font: 700 11px/1 inherit; letter-spacing: .02em; color: var(--muted); text-decoration: none;
-            border: 1px solid var(--card-border); border-radius: 8px; background: var(--card-bg); cursor: pointer;
-        }
-        .modal-controls a[aria-current="true"] { color: var(--accent-contrast); background: var(--accent); border-color: var(--accent); }
-        .modal-controls button svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-        /* Language dropdown inside the settings modal. Flags are local SVG
-           files so they render on Windows too (no emoji-flag dependency). */
-        .lang-select { position: relative; }
-        .lang-current {
-            display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 10px;
-            font: 700 11px/1 inherit; letter-spacing: .02em; color: var(--muted);
-            border: 1px solid var(--card-border); border-radius: 8px; background: var(--card-bg); cursor: pointer;
-        }
-        .lang-current img { border-radius: 2px; object-fit: cover; }
-        .lang-current .chev { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; transition: transform .15s; }
-        .lang-current[aria-expanded="true"] .chev { transform: rotate(180deg); }
-        .lang-menu {
-            position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; min-width: 190px; max-height: 240px; overflow-y: auto;
-            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
-            box-shadow: var(--shadow-card); padding: 6px;
-        }
-        .lang-menu[hidden] { display: none; }
-        .lang-menu a {
-            display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px;
-            font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: none;
-        }
-        .lang-menu a:hover { background: var(--input-bg); }
-        .lang-menu a.active { color: var(--accent); }
-        .lang-menu img { border-radius: 2px; object-fit: cover; }
+        .sidebar-backdrop.is-open .sidebar-panel { transform: none; }
+        .sidebar-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 26px; }
+        .sidebar-title { font-weight: 800; letter-spacing: -.01em; }
+        .sidebar-close { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 1px solid var(--card-border); border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; }
+        .sidebar-close:hover { color: var(--ink); background: var(--input-bg); }
+        .sidebar-close svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .sidebar-label { margin: 0 0 9px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+        .language-list { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; max-height: 52vh; overflow-y: auto; padding-right: 3px; }
+        .language-list a { display: flex; align-items: center; gap: 9px; min-height: 40px; padding: 8px 10px; border: 1px solid transparent; border-radius: 9px; color: var(--ink); font-size: 13px; font-weight: 600; text-decoration: none; }
+        .language-list a:hover { background: var(--input-bg); border-color: var(--input-border); }
+        .language-list a.active { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+        .language-list img { flex: none; border-radius: 2px; object-fit: cover; }
+        .sidebar-divider { height: 1px; margin: 24px 0; background: var(--card-border); }
+        .sidebar-theme { display: grid; gap: 10px; }
+        .sidebar-theme .sidebar-label { margin: 0; }
+        .theme-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .theme-choice { min-height: 34px; border: 1px solid var(--card-border); border-radius: 8px; background: transparent; color: var(--muted); font:700 11px/1 inherit; cursor: pointer; }
+        .theme-choice:hover { color: var(--ink); background: var(--input-bg); }
+        .theme-choice[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
         @media (prefers-reduced-motion: reduce) {
-            .modal-backdrop, .modal-panel { transition: none !important; }
+            .sidebar-backdrop, .sidebar-panel { transition: none !important; }
         }
+        @media (max-width: 420px) { .sidebar-panel { padding: 24px 18px; } }
     </style>
     <?php
 }
@@ -219,37 +197,34 @@ function renderCardTopbar($lang): void {
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1,1-1.73l.43-.25a2 2 0 0 1,2 0l.15.08a2 2 0 0 0,2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1,1-1.74l.15-.09a2 2 0 0 0,.73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         </button>
     </div>
-    <div class="modal-backdrop" id="settings-modal" hidden>
-        <div class="modal-panel" role="dialog" aria-modal="true" aria-label="<?= h($t['settings']) ?>">
-            <div class="modal-title"><?= h($t['settings']) ?></div>
-            <div class="modal-row">
-                <span class="modal-label"><?= h($t['language']) ?></span>
-                <div class="lang-select">
-                    <button type="button" class="lang-current" id="lang-current" aria-haspopup="listbox" aria-expanded="false">
-                        <img src="/assets/flags/<?= h($LANG_DATA[$lang]['flag']) ?>.svg" alt="" width="18" height="12">
-                        <span><?= h($LANG_DATA[$lang]['label']) ?></span>
-                        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
-                    </button>
-                    <div class="lang-menu" id="lang-menu" role="listbox" hidden>
-                        <?php foreach ($supported_langs as $code):
-                            $meta = $LANG_DATA[$code]; ?>
-                        <a href="?lang=<?= h($code) ?>" role="option" aria-selected="<?= $code === $lang ? 'true' : 'false' ?>"<?= $code === $lang ? ' class="active"' : '' ?>>
-                            <img src="/assets/flags/<?= h($meta['flag']) ?>.svg" alt="" width="18" height="12">
-                            <span><?= h($meta['label']) ?></span>
-                        </a>
-                        <?php endforeach; ?>
-                    </div>
+    <div class="sidebar-backdrop" id="settings-modal" hidden>
+        <aside class="sidebar-panel" role="dialog" aria-modal="true" aria-label="<?= h($t['settings']) ?>">
+            <div class="sidebar-heading">
+                <div class="sidebar-title"><?= h($t['settings']) ?></div>
+                <button type="button" class="sidebar-close" id="settings-close" aria-label="Close">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+                </button>
+            </div>
+            <p class="sidebar-label"><?= h($t['language']) ?></p>
+            <nav class="language-list" aria-label="<?= h($t['language']) ?>">
+                <?php foreach ($supported_langs as $code):
+                    $meta = $LANG_DATA[$code]; ?>
+                <a href="?lang=<?= h($code) ?>" lang="<?= h($code) ?>"<?= $code === $lang ? ' class="active" aria-current="true"' : '' ?>>
+                    <img src="/assets/flags/<?= h($meta['flag']) ?>.svg" alt="" width="18" height="12">
+                    <span><?= h($meta['label']) ?></span>
+                </a>
+                <?php endforeach; ?>
+            </nav>
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-theme">
+                <span class="sidebar-label"><?= h($t['theme']) ?></span>
+                <div class="theme-choices" role="group" aria-label="<?= h($t['theme']) ?>">
+                    <button type="button" class="theme-choice" data-theme-choice="system" aria-pressed="false">System</button>
+                    <button type="button" class="theme-choice" data-theme-choice="dark" aria-pressed="false">Dark</button>
+                    <button type="button" class="theme-choice" data-theme-choice="light" aria-pressed="false">Light</button>
                 </div>
             </div>
-            <div class="modal-row">
-                <span class="modal-label"><?= h($t['theme']) ?></span>
-                <span class="modal-controls">
-                    <button type="button" id="theme-toggle" aria-label="<?= h($t['toggle_theme']) ?>">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
-                    </button>
-                </span>
-            </div>
-        </div>
+        </aside>
     </div>
     <?php
 }
@@ -278,7 +253,7 @@ function renderCardThemeScript(): void {
             modal.hidden = false;
             void modal.offsetWidth; // register transitions before toggling .is-open
             modal.classList.add('is-open');
-            var first = modal.querySelector('.modal-controls a, .modal-controls button');
+            var first = modal.querySelector('.language-list a, .theme-button');
             if (first) first.focus();
         }
 
@@ -289,78 +264,66 @@ function renderCardThemeScript(): void {
         }
 
         settingsToggle.addEventListener('click', openSettings);
+        document.getElementById('settings-close').addEventListener('click', closeSettings);
         modal.addEventListener('click', function (e) { if (e.target === modal) closeSettings(); });
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && !modal.hidden) closeSettings();
         });
 
-        var langCurrent = document.getElementById('lang-current');
-        var langMenu = document.getElementById('lang-menu');
+        var themeChoices = Array.from(document.querySelectorAll('[data-theme-choice]'));
+        var systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 
-        function closeLangMenu() {
-            langMenu.hidden = true;
-            langCurrent.setAttribute('aria-expanded', 'false');
+        function syncThemeChoices() {
+            var savedTheme = localStorage.getItem('0x79-theme');
+            var selected = savedTheme || 'system';
+            themeChoices.forEach(function (choice) {
+                choice.setAttribute('aria-pressed', choice.dataset.themeChoice === selected ? 'true' : 'false');
+            });
         }
 
-        langCurrent.addEventListener('click', function (e) {
-            e.stopPropagation();
-            var open = langMenu.hidden;
-            langMenu.hidden = !open;
-            langCurrent.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
-        document.addEventListener('click', function (e) {
-            if (!langMenu.hidden && !e.target.closest('.lang-select')) closeLangMenu();
-        });
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && !langMenu.hidden) closeLangMenu();
-        });
-
-        document.getElementById('theme-toggle').addEventListener('click', function () {
-            var root = document.documentElement;
-            var next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-
-            function applyTheme() {
-                root.dataset.theme = next;
-                localStorage.setItem('0x79-theme', next);
-            }
-
-            if (typeof document.startViewTransition === 'function') {
-                // Circular reveal growing from the toggle button.
-                var rect = this.getBoundingClientRect();
+        themeChoices.forEach(function (choice) {
+            choice.addEventListener('click', function () {
+                var selected = choice.dataset.themeChoice;
+                var next = selected === 'system' ? systemTheme : selected;
+                var root = document.documentElement;
+                var rect = choice.getBoundingClientRect();
                 var x = rect.left + rect.width / 2;
                 var y = rect.top + rect.height / 2;
+
+                if (selected === 'system') localStorage.removeItem('0x79-theme');
+                else localStorage.setItem('0x79-theme', selected);
+
+                function applyTheme() {
+                    root.dataset.theme = next;
+                }
+
+                if (typeof document.startViewTransition !== 'function') {
+                    root.classList.add('theme-anim');
+                    void root.offsetWidth;
+                    applyTheme();
+                    syncThemeChoices();
+                    setTimeout(function () { root.classList.remove('theme-anim'); }, 450);
+                    return;
+                }
+
                 var radius = Math.hypot(
                     Math.max(x, window.innerWidth - x),
                     Math.max(y, window.innerHeight - y)
                 );
-
                 root.classList.add('vt-active');
                 var transition = document.startViewTransition(applyTheme);
                 transition.ready.then(function () {
-                    root.animate(
-                        {
-                            clipPath: [
-                                'circle(0px at ' + x + 'px ' + y + 'px)',
-                                'circle(' + radius + 'px at ' + x + 'px ' + y + 'px)',
-                            ],
-                        },
-                        { duration: 450, easing: 'ease', pseudoElement: '::view-transition-new(root)' }
+                    var reveal = document.documentElement.animate(
+                        { clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + radius + 'px at ' + x + 'px ' + y + 'px)'] },
+                        { duration: 600, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'both', pseudoElement: '::view-transition-new(root)' }
                     );
-                }).catch(function () {});
-                transition.finished.then(function () {
-                    root.classList.remove('vt-active');
-                }).catch(function () {
-                    root.classList.remove('vt-active');
-                });
-                return;
-            }
-
-            // Fallback for browsers without View Transitions API: fade.
-            root.classList.add('theme-anim');
-            void root.offsetWidth;
-            applyTheme();
-            setTimeout(function () { root.classList.remove('theme-anim'); }, 450);
+                    syncThemeChoices();
+                    reveal.finished.then(function () { root.classList.remove('vt-active'); }).catch(function () { root.classList.remove('vt-active'); });
+                }).catch(function () { root.classList.remove('vt-active'); });
+                transition.finished.catch(function () { root.classList.remove('vt-active'); });
+            });
         });
+        syncThemeChoices();
     </script>
     <?php
 }
@@ -463,7 +426,7 @@ function renderApiDocs() {
             <pre>curl -X POST https://<?= h($host) ?>/api \
   -H "Content-Type: application/json" \
   -d '{"long_url":"https://example.com"}'</pre>
-            <p class="muted"><?= $de ? 'Optionale Felder:' : 'Optional fields:' ?> <code>domain</code>, <code>password</code>, <code>expires_at</code>, <code>max_clicks</code>, <code>custom_code</code>, <code>preview_enabled</code></p>
+            <p class="muted"><?= $de ? 'Optionale Felder:' : 'Optional fields:' ?> <code>domain</code>, <code>password</code>, <code>expires_at</code>, <code>max_clicks</code>, <code>custom_code</code></p>
             <p class="muted"><?= $de ? 'Verfügbare Domains:' : 'Available domains:' ?> <?php foreach ($available_domains as $i => $d): ?><?= $i > 0 ? ', ' : '' ?><code><?= h($d) ?></code><?php endforeach; ?></p>
             <pre>{
   "ok": true,
@@ -847,79 +810,3 @@ function renderAdminDashboard() {
     exit;
 }
 
-function renderUrlPreviewPage($code, $target) {
-    global $lang;
-
-    $host = cleanHost($_SERVER['HTTP_HOST'] ?? '0x79.one');
-    $targetHost = strtolower((string)(parse_url((string)$target, PHP_URL_HOST) ?: ''));
-    $targetScheme = strtolower((string)(parse_url((string)$target, PHP_URL_SCHEME) ?: ''));
-    $canPreview = in_array($targetScheme, ['http', 'https'], true) && $targetHost !== '';
-    $goUrl = '/' . rawurlencode((string)$code) . '?go=1';
-    $frameUrl = (string)$target;
-
-    // Wenn die eigene Domain im iframe angezeigt wird, darf diese konkrete iframe-Antwort sich selbst einbetten lassen.
-    if ($canPreview && $targetHost === strtolower($host)) {
-        $frameUrl = addQueryParamToUrl($frameUrl, 'embed_preview', '1');
-    }
-
-    header('Content-Type: text/html; charset=utf-8');
-    ?>
-<!DOCTYPE html>
-<html lang="<?= h($lang) ?>">
-<head><link rel="icon" href="/logo.png" type="image/jpeg">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>preview — <?= h($host) ?></title>
-    <?php renderUiPreferences(); ?>
-    <style>
-        *{box-sizing:border-box}html,body{height:100%}body{margin:0;background:#0b0b0c;color:#f5f2ea;font:14px/1.5 Inter,ui-sans-serif,system-ui,sans-serif}.top{height:64px;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:space-between;padding:0 18px;gap:14px;background:#0b0b0c;position:sticky;top:0;z-index:20}.brand{font-family:monospace;text-decoration:none;color:#f5f2ea}.meta{min-width:0;color:rgba(255,255,255,.55);font-family:monospace;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.actions{display:flex;gap:10px;align-items:center}.btn{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 13px;text-decoration:none;border:1px solid rgba(255,255,255,.16);font-family:monospace;font-size:12px;color:#f5f2ea}.primary{background:#f5f2ea;color:#0b0b0c;border-color:#f5f2ea}.frame-wrap{background:#fff;min-height:calc(100vh - 64px);position:relative}.frame{display:block;width:100%;height:calc(100vh - 64px);border:0;background:#fff}.hint{position:absolute;left:18px;right:18px;bottom:18px;padding:12px 14px;background:rgba(11,11,12,.88);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.72);font-family:monospace;font-size:12px;pointer-events:none}.notice{max-width:760px;margin:80px auto;padding:0 24px}.card{border:1px solid rgba(255,255,255,.12);background:#101011;padding:24px}.muted{color:rgba(255,255,255,.55)}code{word-break:break-all;background:#0b0b0c;border:1px solid rgba(255,255,255,.12);padding:8px;display:block;margin:14px 0;font-family:monospace;color:#f5f2ea}@media(max-width:720px){.top{height:auto;min-height:64px;align-items:flex-start;flex-direction:column;padding:14px}.actions{width:100%}.btn{flex:1}.frame{height:calc(100vh - 122px)}.frame-wrap{min-height:calc(100vh - 122px)}}
-    </style>
-</head>
-<body>
-    <div class="top">
-        <a class="brand" href="/" style="display:inline-flex;align-items:center;gap:6px"><img src="/logo.png" alt="Logo" class="h-10 w-10 rounded-lg object-cover">0x79</a>
-        <div class="meta">iframe preview: <?= h($targetHost ?: $target) ?> · <?= h($target) ?></div>
-        <div class="actions">
-            <a class="btn" href="/<?= h($code) ?>?no_preview=1">reload normal</a>
-            <a class="btn primary" href="<?= h($goUrl) ?>" rel="noopener">open target →</a>
-        </div>
-    </div>
-
-    <?php if ($canPreview): ?>
-        <main class="frame-wrap">
-            <iframe class="frame" src="<?= h($frameUrl) ?>" referrerpolicy="no-referrer" sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"></iframe>
-            <div class="hint">Wenn die Vorschau leer bleibt, blockiert die Zielseite iframe-Embedding. Dann bitte „open target“ nutzen.</div>
-        </main>
-    <?php else: ?>
-        <main class="notice"><section class="card"><h1>preview not available</h1><p class="muted">Iframe preview funktioniert nur für http/https Ziele.</p><code><?= h($target) ?></code><a class="btn primary" href="<?= h($goUrl) ?>">open target →</a></section></main>
-    <?php endif; ?>
-</body>
-</html>
-    <?php
-    exit;
-}
-
-function streamPreviewAsset() {
-    $encoded = (string)($_GET['u'] ?? '');
-    $url = previewBase64UrlDecode($encoded);
-    [$valid, $validationError] = isPublicHttpUrl($url);
-    if (!$valid) {
-        http_response_code(400);
-        header('Content-Type: text/plain; charset=utf-8');
-        echo 'blocked: ' . $validationError;
-        exit;
-    }
-
-    [$ok, $err, $body, $contentType, $status] = callPreviewEdgeAsset($url);
-    if (!$ok || !is_string($body)) {
-        http_response_code($status ?: 502);
-        header('Content-Type: text/plain; charset=utf-8');
-        echo $err ?: 'asset fetch failed';
-        exit;
-    }
-
-    header('Content-Type: ' . ($contentType ?: 'application/octet-stream'));
-    header('Cache-Control: public, max-age=3600');
-    echo $body;
-    exit;
-}
