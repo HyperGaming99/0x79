@@ -547,9 +547,22 @@ header('Content-Type: text/html; charset=utf-8');
         }
         input[type=url]:focus { outline:none; border-color:var(--accent); background:var(--card-bg); box-shadow:0 0 0 4px rgba(59,130,246,.12); }
         select[name=domain] {
-            width:100%; margin-top:10px; padding:12px 16px; font:inherit; font-size:13px; font-weight:600; color:var(--muted);
-            border:1px solid var(--input-border); border-radius:12px; background:var(--input-bg); text-align:center;
-            text-align-last:center; appearance:none; -webkit-appearance:none; cursor:pointer; transition:border-color .15s, background .15s;
+            width:100%;
+            margin-top:10px;
+            padding:12px 44px 12px 16px;
+            font:inherit;
+            font-size:13px;
+            font-weight:600;
+            color:var(--muted);
+            border:1px solid var(--input-border);
+            border-radius:12px;
+            background:var(--input-bg);
+            text-align:center;
+            text-align-last:center;
+            appearance:auto;
+            -webkit-appearance:auto;
+            cursor:pointer;
+            transition:border-color .15s, background .15s;
         }
         select[name=domain]:focus { outline:none; border-color:var(--accent); background:var(--card-bg); box-shadow:0 0 0 4px rgba(59,130,246,.12); }
         select[name=domain] option { background:var(--card-bg); color:var(--ink); }
