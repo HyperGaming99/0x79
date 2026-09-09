@@ -29,5 +29,11 @@
   "settings": "الإعدادات",
   "language": "اللغة",
   "theme": "المظهر",
-  "toggle_theme": "تبديل المظهر"
+  "toggle_theme": "تبديل المظهر",
+  "options_label": "خيارات أكثر",
+  "custom_code_label": "اسم مخصص",
+  "expires_label": "تاريخ/وقت الانتهاء",
+  "max_clicks_label": "الحد الأقصى للنقرات",
+  "preview_label": "إظهار معاينة الرابط",
+  "err_alias": "الاسم غير صالح أو مستخدم بالفعل."
 }

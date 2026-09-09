@@ -29,5 +29,11 @@
   "settings": "Settings",
   "language": "Language",
   "theme": "Theme",
-  "toggle_theme": "Toggle theme"
+  "toggle_theme": "Toggle theme",
+  "options_label": "More options",
+  "custom_code_label": "Custom alias",
+  "expires_label": "Expiry date/time",
+  "max_clicks_label": "Max clicks",
+  "preview_label": "Show link preview",
+  "err_alias": "alias invalid or already taken."
 }

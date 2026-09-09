@@ -29,5 +29,11 @@
   "settings": "설정",
   "language": "언어",
   "theme": "테마",
-  "toggle_theme": "테마 전환"
+  "toggle_theme": "테마 전환",
+  "options_label": "추가 옵션",
+  "custom_code_label": "커스텀 별칭",
+  "expires_label": "만료 날짜/시간",
+  "max_clicks_label": "최대 클릭 수",
+  "preview_label": "링크 미리보기 표시",
+  "err_alias": "별칭이 올바르지 않거나 이미 사용 중입니다."
 }

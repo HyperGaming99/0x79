@@ -29,5 +29,11 @@
   "settings": "सेटिंग्स",
   "language": "भाषा",
   "theme": "थीम",
-  "toggle_theme": "थीम बदलें"
+  "toggle_theme": "थीम बदलें",
+  "options_label": "और विकल्प",
+  "custom_code_label": "कस्टम उपनाम",
+  "expires_label": "समाप्ति तिथि/समय",
+  "max_clicks_label": "अधिकतम क्लिक",
+  "preview_label": "लिंक पूर्वावलोकन दिखाएं",
+  "err_alias": "उपनाम अमान्य या पहले से लिया गया।"
 }

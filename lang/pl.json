@@ -29,5 +29,11 @@
   "settings": "Ustawienia",
   "language": "Język",
   "theme": "Motyw",
-  "toggle_theme": "Przełącz motyw"
+  "toggle_theme": "Przełącz motyw",
+  "options_label": "Więcej opcji",
+  "custom_code_label": "Własny alias",
+  "expires_label": "Data/godzina ważności",
+  "max_clicks_label": "Maks. kliknięć",
+  "preview_label": "Pokaż podgląd linku",
+  "err_alias": "alias nieprawidłowy lub zajęty."
 }

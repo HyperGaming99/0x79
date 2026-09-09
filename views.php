@@ -87,6 +87,8 @@ function renderCardThemeStyles(): void {
         @property --bg-a { syntax: '<color>'; inherits: true; initial-value: #eef4ff; }
         @property --bg-b { syntax: '<color>'; inherits: true; initial-value: #eef9f1; }
         * { box-sizing: border-box; }
+        html { color-scheme: light; }
+        html[data-theme="dark"] { color-scheme: dark; }
         :root {
             --bg-a:#eef4ff; --bg-b:#eef9f1; --page-bg:#fff; --card-bg:#fff; --card-border:#eceef2;
             --ink:#111; --muted:#667; --input-bg:#f7f8fa; --input-border:#dde1e8;

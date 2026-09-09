@@ -745,36 +745,15 @@ function requireAdminAuth() {
 }
 
 
-function isAllowedUploadMime($mime, $ext = '') {
-    $mime = strtolower((string)$mime);
-    $ext = strtolower((string)$ext);
+function parseOptionalExpiresAt($value) {
+    $value = trim((string)$value);
+    if ($value === '') return null;
 
-    if (in_array($mime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'], true)) {
-        return in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'], true);
-    }
+    // HTML datetime-local liefert z.B. 2026-05-25T18:30
+    $ts = strtotime($value);
+    if ($ts === false) return null;
 
-    if (in_array($mime, ['application/zip', 'application/x-zip-compressed', 'multipart/x-zip', 'application/octet-stream'], true)) {
-        return $ext === 'zip';
-    }
-
-    return false;
-}
-
-
-// Public URL prefixes we are willing to serve/proxy. Keeps the proxy from
-// becoming an open relay: only our own storage backends are allowed.
-function storagePublicPrefixes() {
-    global $supabase_url, $storage_driver;
-
-    $prefixes = [];
-    if (!empty($supabase_url)) {
-        $prefixes[] = rtrim((string)$supabase_url, '/') . '/storage/v1/object/public/';
-    }
-    if (($storage_driver ?? 'supabase') === 's3' && function_exists('s3PublicUrl')) {
-        $base = s3PublicUrl('');
-        if ($base !== '' && $base !== '/') $prefixes[] = $base;
-    }
-    return array_values(array_filter($prefixes));
+    return gmdate('c', $ts);
 }
 
 // Coarse device classification from a User-Agent string.
@@ -786,95 +765,6 @@ function detectDeviceType($ua) {
     return 'desktop';
 }
 
-function isHostedFileStorageUrl($url) {
-    $url = trim((string)$url);
-    if ($url === '' || !filter_var($url, FILTER_VALIDATE_URL)) return false;
-
-    $matched = false;
-    foreach (storagePublicPrefixes() as $prefix) {
-        if (strncmp($url, $prefix, strlen($prefix)) === 0) { $matched = true; break; }
-    }
-    if (!$matched) return false;
-
-    $path = parse_url($url, PHP_URL_PATH) ?: '';
-    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-    return in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'zip'], true);
-}
-
-function isHostedImageStorageUrl($url) {
-    $path = parse_url((string)$url, PHP_URL_PATH) ?: '';
-    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-    return isHostedFileStorageUrl($url) && in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'], true);
-}
-
-function proxyHostedFile($url) {
-    $url = trim((string)$url);
-
-    if (!isHostedFileStorageUrl($url)) {
-        return false;
-    }
-
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HEADER, true);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Accept: image/avif,image/webp,image/png,image/jpeg,image/gif,application/zip,*/*;q=0.8'
-    ]);
-
-    $response = curl_exec($ch);
-    $error = curl_error($ch);
-    $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE) ?: '';
-    curl_close($ch);
-
-    if ($error || $response === false || $http < 200 || $http >= 300) {
-        http_response_code(502);
-        header('Content-Type: text/plain; charset=utf-8');
-        echo 'file proxy failed.';
-        exit;
-    }
-
-    $body = substr($response, (int)$headerSize);
-
-    $contentType = strtolower(trim(explode(';', $contentType)[0]));
-    $ext = strtolower(pathinfo(parse_url($url, PHP_URL_PATH) ?: 'file', PATHINFO_EXTENSION));
-
-    if (!isAllowedUploadMime($contentType, $ext)) {
-        http_response_code(415);
-        header('Content-Type: text/plain; charset=utf-8');
-        echo 'blocked: not an allowed file type.';
-        exit;
-    }
-
-    $filename = ($ext === 'zip' ? 'download' : 'image') . ($ext ? '.' . $ext : '');
-    $disposition = $ext === 'zip' ? 'attachment' : 'inline';
-
-    header('Content-Type: ' . $contentType);
-    header('Content-Disposition: ' . $disposition . '; filename="' . str_replace('"', '', $filename) . '"');
-    header('Cache-Control: public, max-age=86400');
-    header('X-Robots-Tag: noindex, nofollow');
-    header('Content-Length: ' . strlen($body));
-    echo $body;
-    exit;
-}
-
-
-// Rewrite a Supabase storage image URL to a same-origin proxy path so it
-// passes the strict img-src CSP. Non-hosted/other URLs are returned unchanged.
-function parseOptionalExpiresAt($value) {
-    $value = trim((string)$value);
-    if ($value === '') return null;
-
-    // HTML datetime-local liefert z.B. 2026-05-25T18:30
-    $ts = strtotime($value);
-    if ($ts === false) return null;
-
-    return gmdate('c', $ts);
-}
 
 function isExpiredRow($row) {
     if (empty($row['expires_at'])) return false;

@@ -51,19 +51,6 @@ if ($request_path === 'api/docs') {
     renderApiDocs();
 }
 
-// Same-origin image proxy for hosted Supabase images (keeps img-src CSP strict).
-if ($request_path === 'img') {
-    $proxyTarget = (string)($_GET['u'] ?? '');
-    if (!isHostedImageStorageUrl($proxyTarget)) {
-        http_response_code(404);
-        header('Content-Type: text/plain; charset=utf-8');
-        echo 'not found';
-        exit;
-    }
-    proxyHostedFile($proxyTarget);
-    exit;
-}
-
 
 // ---------------------------------------------------------
 // ADMIN LOGIN + DASHBOARD
@@ -391,9 +378,7 @@ if ($path_code !== '' || isset($_GET['c'])) {
                 }
             }
 
-            $is_hosted_file = isHostedFileStorageUrl($target);
-
-            if ($is_bot && !$is_hosted_file) {
+            if ($is_bot) {
                 $host = $_SERVER['HTTP_HOST'] ?? '0x79.one';
                 $self = 'https://' . $host . '/' . urlencode($code);
 
@@ -473,10 +458,6 @@ if ($path_code !== '' || isset($_GET['c'])) {
                 getenv('CLOUDFLARE_PROXY') === 'true' ? strtoupper(substr((string)($_SERVER['HTTP_CF_IPCOUNTRY'] ?? ''), 0, 2)) : ''
             );
 
-            if ($is_hosted_file) {
-                proxyHostedFile($target);
-            }
-
             if (!empty($row['preview_enabled']) && empty($_GET['go']) && empty($_GET['no_preview'])) {
                 renderUrlPreviewPage($code, $target);
             }
@@ -507,6 +488,13 @@ $want_qr = !empty($_POST['qr'] ?? null);
 $selected_domain = (isset($_POST['domain']) && in_array($_POST['domain'], $available_domains, true))
     ? $_POST['domain'] : $available_domains[0];
 
+// Optional fields ("more options" section) — same set the API accepts.
+$opt_password     = (string)($_POST['password'] ?? '');
+$opt_expires_at   = (string)($_POST['expires_at'] ?? '');
+$opt_max_clicks   = (string)($_POST['max_clicks'] ?? '');
+$opt_custom_code  = (string)($_POST['custom_code'] ?? '');
+$opt_preview      = !empty($_POST['preview_enabled']);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_url'])) {
     requireFormCsrf();
 
@@ -514,13 +502,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_url'])) {
         $ok = false;
         $err = 'rate_limited';
     } else {
-        [$ok, $err, $result] = createShortLink($_POST['long_url'], $selected_domain);
+        [$ok, $err, $result] = createShortLink(
+            $_POST['long_url'],
+            $selected_domain,
+            $opt_password,
+            $opt_expires_at,
+            $opt_max_clicks,
+            $opt_custom_code,
+            $opt_preview
+        );
     }
 
     if ($ok) {
         $short_url = $result['short_url'];
-    } elseif ($err === 'invalid_url') {
+    } elseif ($err === 'invalid_url' || $err === 'invalid_expiry') {
         $error = $t['err_invalid'];
+    } elseif ($err === 'invalid_alias' || $err === 'alias_taken') {
+        $error = $t['err_alias'] ?? $t['err_save'];
     } elseif ($err === 'rate_limited') {
         $error = $t['err_rate_limit'];
     } else {
@@ -590,6 +588,23 @@ header('Content-Type: text/html; charset=utf-8');
             border:solid var(--accent-contrast); border-width:0 2px 2px 0; transform:rotate(45deg);
         }
         .opts input[type=checkbox]:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+        .more-opts { margin-top:10px; text-align:left; }
+        .more-opts summary {
+            cursor:pointer; list-style:none; padding:10px 0; text-align:center;
+            font-size:13px; font-weight:600; color:var(--muted); transition:color .15s;
+        }
+        .more-opts summary::-webkit-details-marker { display:none; }
+        .more-opts summary::before { content:'+ '; color:var(--accent); }
+        .more-opts[open] summary::before { content:'– '; }
+        .more-opts summary:hover { color:var(--ink); }
+        .more-opts-body { display:grid; gap:8px; padding-bottom:4px; }
+        .more-opts input[type=text], .more-opts input[type=number], .more-opts input[type=datetime-local] {
+            width:100%; padding:10px 14px; font:inherit; font-size:13px; border:1px solid var(--input-border); border-radius:10px;
+            background:var(--input-bg); color:var(--ink); transition:border-color .15s, background .15s;
+        }
+        .more-opts input:focus { outline:none; border-color:var(--accent); background:var(--card-bg); }
+        .preview-opt { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; padding:2px 0; }
+        .preview-opt input { accent-color:var(--accent); width:16px; height:16px; margin:0; }
         .qr { margin-top:16px; width:140px; height:140px; border:1px solid var(--card-border); border-radius:12px; }
     </style>
 </head>
@@ -610,6 +625,16 @@ header('Content-Type: text/html; charset=utf-8');
                         <option value="<?= h($d) ?>" <?= $d === $selected_domain ? 'selected' : '' ?>><?= h($d) ?></option>
                     <?php endforeach; ?>
                 </select>
+                <details class="more-opts"<?= ($opt_password !== '' || $opt_expires_at !== '' || $opt_max_clicks !== '' || $opt_custom_code !== '' || $opt_preview || $error !== '') ? ' open' : '' ?>>
+                    <summary><?= h($t['options_label']) ?></summary>
+                    <div class="more-opts-body">
+                        <input type="text" name="custom_code" value="<?= h($opt_custom_code) ?>" placeholder="<?= h($t['custom_code_label']) ?>" autocomplete="off" spellcheck="false">
+                        <input type="text" name="password" value="<?= h($opt_password) ?>" placeholder="<?= h($t['password_label']) ?> (<?= h($t['burn_placeholder']) ?>)" autocomplete="off">
+                        <input type="datetime-local" name="expires_at" value="<?= h($opt_expires_at) ?>" aria-label="<?= h($t['expires_label']) ?>">
+                        <input type="number" name="max_clicks" value="<?= h($opt_max_clicks) ?>" min="1" max="1000000" placeholder="<?= h($t['max_clicks_label']) ?>">
+                        <label class="preview-opt"><input type="checkbox" name="preview_enabled" value="1" <?= $opt_preview ? 'checked' : '' ?>> <?= h($t['preview_label']) ?></label>
+                    </div>
+                </details>
                 <button type="submit"><?= h($t['create_link']) ?> →</button>
                 <div class="result<?= $error !== '' ? ' error' : '' ?>">
                     <?php if ($short_url !== ''): ?>

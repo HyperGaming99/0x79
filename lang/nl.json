@@ -29,5 +29,11 @@
   "settings": "Instellingen",
   "language": "Taal",
   "theme": "Thema",
-  "toggle_theme": "Thema wisselen"
+  "toggle_theme": "Thema wisselen",
+  "options_label": "Meer opties",
+  "custom_code_label": "Eigen alias",
+  "expires_label": "Vervaldatum/tijd",
+  "max_clicks_label": "Max. kliks",
+  "preview_label": "Linkvoorbeeld tonen",
+  "err_alias": "alias ongeldig of al in gebruik."
 }

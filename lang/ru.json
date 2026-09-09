@@ -29,5 +29,11 @@
   "settings": "Настройки",
   "language": "Язык",
   "theme": "Тема",
-  "toggle_theme": "Сменить тему"
+  "toggle_theme": "Сменить тему",
+  "options_label": "Дополнительные параметры",
+  "custom_code_label": "Свой алиас",
+  "expires_label": "Дата/время истечения",
+  "max_clicks_label": "Макс. переходов",
+  "preview_label": "Показать превью ссылки",
+  "err_alias": "алиас недействителен или уже занят."
 }

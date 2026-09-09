@@ -29,5 +29,11 @@
   "settings": "Ajustes",
   "language": "Idioma",
   "theme": "Tema",
-  "toggle_theme": "Cambiar tema"
+  "toggle_theme": "Cambiar tema",
+  "options_label": "Más opciones",
+  "custom_code_label": "Alias personalizado",
+  "expires_label": "Fecha/hora de caducidad",
+  "max_clicks_label": "Máx. de clics",
+  "preview_label": "Mostrar vista previa del enlace",
+  "err_alias": "alias no válido o ya en uso."
 }

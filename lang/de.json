@@ -29,5 +29,11 @@
   "settings": "Einstellungen",
   "language": "Sprache",
   "theme": "Design",
-  "toggle_theme": "Design wechseln"
+  "toggle_theme": "Design wechseln",
+  "options_label": "Weitere Optionen",
+  "custom_code_label": "Eigener Alias",
+  "expires_label": "Ablaufdatum/-uhrzeit",
+  "max_clicks_label": "Max. Klicks",
+  "preview_label": "Link-Vorschau anzeigen",
+  "err_alias": "Alias ungültig oder bereits vergeben."
 }

@@ -29,5 +29,11 @@
   "settings": "Pengaturan",
   "language": "Bahasa",
   "theme": "Tema",
-  "toggle_theme": "Ganti tema"
+  "toggle_theme": "Ganti tema",
+  "options_label": "Opsi lainnya",
+  "custom_code_label": "Alias khusus",
+  "expires_label": "Tanggal/waktu kedaluwarsa",
+  "max_clicks_label": "Batas klik",
+  "preview_label": "Tampilkan pratinjau tautan",
+  "err_alias": "alias tidak valid atau sudah digunakan."
 }

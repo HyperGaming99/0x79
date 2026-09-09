@@ -29,5 +29,11 @@
   "settings": "Ayarlar",
   "language": "Dil",
   "theme": "Tema",
-  "toggle_theme": "Temayı değiştir"
+  "toggle_theme": "Temayı değiştir",
+  "options_label": "Diğer seçenekler",
+  "custom_code_label": "Özel alias",
+  "expires_label": "Son kullanma tarihi/saatı",
+  "max_clicks_label": "Maks. tıklama",
+  "preview_label": "Link önizlemesini göster",
+  "err_alias": "alias geçersiz veya zaten alınmış."
 }

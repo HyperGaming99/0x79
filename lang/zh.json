@@ -29,5 +29,11 @@
   "settings": "设置",
   "language": "语言",
   "theme": "主题",
-  "toggle_theme": "切换主题"
+  "toggle_theme": "切换主题",
+  "options_label": "更多选项",
+  "custom_code_label": "自定义别名",
+  "expires_label": "过期日期/时间",
+  "max_clicks_label": "最大点击次数",
+  "preview_label": "显示链接预览",
+  "err_alias": "别名无效或已被占用。"
 }
