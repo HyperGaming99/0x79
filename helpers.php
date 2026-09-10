@@ -637,6 +637,12 @@ function parseOptionalMaxClicks($value) {
     return ($n >= 1 && $n <= 1000000) ? $n : null;
 }
 
+function cleanHost($host) {
+    $host = strtolower(trim((string)$host));
+    $host = preg_replace('/[^a-z0-9.-]/', '', $host);
+    return $host ?: '0x79.one';
+}
+
 function isBurnedRow($row) {
     if (empty($row['max_clicks'])) return false;
     $max = (int)$row['max_clicks'];
