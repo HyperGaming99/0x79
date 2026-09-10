@@ -188,6 +188,10 @@ function renderCardThemeStyles(): void {
         }
         .page-footer a:hover { color:var(--accent); border-color:var(--accent); }
         .page-footer a svg { width:15px; height:15px; }
+        a.footer-status {
+            width:auto; gap:6px; padding:0 11px; font-size:11px; font-weight:800; letter-spacing:.04em; text-decoration:none;
+        }
+        a.footer-status svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
         .landscape-credit { position:fixed; left:16px; bottom:14px; z-index:10; max-width:calc(100vw - 32px); color:#fff; font-size:11px; font-weight:800; letter-spacing:.01em; line-height:1.3; text-shadow:0 1px 4px rgba(0,0,0,.9); }
         .landscape-credit a { color:#fff; text-decoration:none; }
         .landscape-credit a:hover { text-decoration:underline; text-underline-offset:2px; }
@@ -304,8 +308,9 @@ function renderCardTopbar($lang): void {
 }
 
 function renderCardFooter(): void {
-    global $app_version, $landscape_backgrounds;
+    global $app_version, $landscape_backgrounds, $lang;
     $first_landscape = $landscape_backgrounds[0] ?? null;
+    $status_locale = $lang === 'de' ? 'de' : 'en';
     ?>
     <?php if ($first_landscape): ?>
     <div class="landscape-credit" id="landscape-credit">
@@ -315,6 +320,10 @@ function renderCardFooter(): void {
     <div class="page-footer">
         <span>© 2026 0x79.one</span>
         <span class="footer-version">Current version v<?= h($app_version) ?></span>
+        <a class="footer-status" href="https://status.arolg.dev/<?= h($status_locale) ?>" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12h4l2.5 7 5-14 2.5 7h5"></path></svg>
+            <span>Status</span>
+        </a>
         <a href="https://github.com/HyperGaming99/0x79" target="_blank" rel="noopener" aria-label="GitHub">
             <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.55-.29-5.23-1.27-5.23-5.67 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.17a10.9 10.9 0 0 1 5.74 0c2.18-1.48 3.14-1.17 3.14-1.17.63 1.58.24 2.75.12 3.04.74.8 1.18 1.82 1.18 3.07 0 4.41-2.69 5.38-5.25 5.66.42.36.8 1.08.8 2.18v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
         </a>
