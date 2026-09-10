@@ -75,6 +75,43 @@ $pg_password = getenv('POSTGRES_PASSWORD') ?: '';
 $supabase_url = getenv('SUPABASE_URL');
 $supabase_key = getenv('SUPABASE_KEY');
 $app_version = '2.0.1';
+$landscape_backgrounds = [
+    [
+        'image' => '/backgrounds/hampi.jpg',
+        'artist' => 'Vyacheslav Argenberg',
+        'source' => 'Wikimedia Commons',
+        'url' => 'https://commons.wikimedia.org/wiki/File:Hampi,_India,_Rocky_landscape_of_Hampi,_Granite_rocks_of_Matanga_Hill.jpg',
+        'tint' => 'rgba(91, 54, 24, .58)',
+    ],
+    [
+        'image' => '/backgrounds/laugavegur.jpg',
+        'artist' => 'Chmee2 / Valtameri',
+        'source' => 'Wikimedia Commons',
+        'url' => 'https://commons.wikimedia.org/wiki/File:Landscape_during_Laugavegur_hiking_trail_2-CA_reduced.jpg',
+        'tint' => 'rgba(19, 67, 79, .55)',
+    ],
+    [
+        'image' => '/backgrounds/tuscany-harvest.jpg',
+        'artist' => 'Martin Falbisoner',
+        'source' => 'Wikimedia Commons',
+        'url' => 'https://commons.wikimedia.org/wiki/File:Tuscan_Landscape_7.JPG',
+        'tint' => 'rgba(101, 76, 31, .52)',
+    ],
+    [
+        'image' => '/backgrounds/tuscany-tree.jpg',
+        'artist' => 'Eric Kilby',
+        'source' => 'Wikimedia Commons',
+        'url' => 'https://commons.wikimedia.org/wiki/File:Tuscan_landscape_with_lonely_tree.jpg',
+        'tint' => 'rgba(74, 43, 47, .52)',
+    ],
+    [
+        'image' => '/backgrounds/italian-pines.jpg',
+        'artist' => 'Hendrik Voogd',
+        'source' => 'Wikimedia Commons, public domain',
+        'url' => 'https://commons.wikimedia.org/wiki/File:Hendrik_Voogd_-_Italian_landscape_with_Umbrella_Pines.jpg',
+        'tint' => 'rgba(31, 55, 47, .56)',
+    ],
+];
 $admin_api_key = getenv('ADMIN_API_KEY');
 $admin_password = getenv('ADMIN_PASSWORD') ?: '';
 // Prefer the Supabase service role key server-side; fall back to the anon key.
