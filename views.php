@@ -71,7 +71,7 @@ function renderUiPreferences(bool $withTheme = false): void {
 
 /** Shared design system (gradient background, card, topbar) for the public-facing pages. */
 function renderCardThemeStyles(): void {
-    global $csp_nonce;
+    global $csp_nonce, $landscape_backgrounds;
     ?>
     <script nonce="<?= $csp_nonce ?>">
         (function () {
@@ -79,6 +79,45 @@ function renderCardThemeStyles(): void {
             var preferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             document.documentElement.dataset.theme = saved || preferred;
         })();
+        document.addEventListener('DOMContentLoaded', function () {
+            var scenes = <?= json_encode($landscape_backgrounds, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+            var credit = document.getElementById('landscape-credit');
+            if (!scenes.length) return;
+            var layers = [document.createElement('div'), document.createElement('div')];
+            layers.forEach(function (layer) {
+                layer.className = 'landscape-layer';
+                document.body.prepend(layer);
+            });
+            var index = 0;
+            var activeLayer = 0;
+            function showScene(initial) {
+                var scene = scenes[index];
+                var root = document.documentElement;
+                var image = new Image();
+                var applied = false;
+                function applyScene() {
+                    if (applied) return;
+                    applied = true;
+                    var nextLayer = initial ? layers[activeLayer] : layers[1 - activeLayer];
+                    nextLayer.style.backgroundImage = 'url("' + scene.image + '")';
+                    nextLayer.classList.add('is-visible');
+                    if (!initial) layers[activeLayer].classList.remove('is-visible');
+                    activeLayer = initial ? activeLayer : 1 - activeLayer;
+                    root.style.setProperty('--landscape-tint', scene.tint);
+                }
+                image.onload = function () {
+                    applyScene();
+                };
+                image.onerror = applyScene;
+                image.src = scene.image;
+                if (credit) {
+                    credit.innerHTML = '<span>Foto von © </span><a href="' + scene.url + '" target="_blank" rel="noopener">' + scene.artist + '</a>';
+                }
+                index = (index + 1) % scenes.length;
+            }
+            showScene(true);
+            window.setInterval(showScene, 12000);
+        });
     </script>
     <style>
         /* Registered color properties let the page background gradient fade
@@ -90,23 +129,33 @@ function renderCardThemeStyles(): void {
         html { color-scheme: light; }
         html[data-theme="dark"] { color-scheme: dark; }
         :root {
-            --bg-a:#eef4ff; --bg-b:#eef9f1; --page-bg:#fff; --card-bg:#fff; --card-border:#eceef2;
-            --ink:#111; --muted:#667; --input-bg:#f7f8fa; --input-border:#dde1e8;
+            --bg-a:#eef4ff; --bg-b:#eef9f1; --page-bg:#fff; --card-bg:rgba(255,255,255,.86); --card-border:#eceef2;
+            --ink:#111; --muted:#667; --input-bg:rgba(247,248,250,.82); --input-border:#dde1e8;
             --accent:#3b82f6; --accent-hover:#2f6fe0; --accent-contrast:#fff; --error:#dc2626;
             --shadow-card:0 20px 45px -20px rgba(20,30,60,.18); --shadow-brand:0 6px 16px -6px rgba(20,30,60,.35);
         }
         html[data-theme="dark"] {
-            --bg-a:#1a1a1a; --bg-b:#1a1a1a; --page-bg:#1a1a1a; --card-bg:#262626; --card-border:#3d3d3d;
-            --ink:#f2f2f2; --muted:#a3a3a3; --input-bg:#2e2e2e; --input-border:#454545;
+            --bg-a:#1a1a1a; --bg-b:#1a1a1a; --page-bg:#1a1a1a; --card-bg:rgba(38,38,38,.88); --card-border:#3d3d3d;
+            --ink:#f2f2f2; --muted:#a3a3a3; --input-bg:rgba(46,46,46,.84); --input-border:#454545;
             --accent:#5b9bff; --accent-hover:#75aaff; --accent-contrast:#0a0e15; --error:#f87171;
             --shadow-card:0 20px 45px -20px rgba(0,0,0,.6); --shadow-brand:0 6px 16px -6px rgba(0,0,0,.6);
         }
+        html[data-theme="light"] { --muted:#334155; --landscape-tint:rgba(255,255,255,.22); }
         body {
-            margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+            margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; isolation:isolate;
             font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; color:var(--ink);
             background:radial-gradient(circle at 20% 15%, var(--bg-a) 0%, var(--page-bg) 45%), radial-gradient(circle at 85% 85%, var(--bg-b) 0%, var(--page-bg) 50%);
             padding:24px; transition:background-color .2s, color .2s;
         }
+        .landscape-layer { position:fixed; inset:0; z-index:-2; background-position:center; background-size:cover; background-repeat:no-repeat; opacity:0; filter:saturate(1.12) contrast(1.03); transform:scale(1.03); transition:opacity .7s ease; pointer-events:none; }
+        .landscape-layer.is-visible { opacity:.34; }
+        body::after { content:""; position:fixed; inset:0; z-index:-1; background:var(--landscape-tint, rgba(255,255,255,.24)); mix-blend-mode:multiply; pointer-events:none; transition:background 1s ease; }
+        html[data-theme="light"] body::after { background:rgba(255,255,255,.2); mix-blend-mode:screen; }
+        body > * { position:relative; z-index:0; }
+        body.home-page { justify-content:flex-start; padding-top:30px; padding-bottom:70px; }
+        body.home-page .landscape-layer.is-visible { opacity:.52; }
+        body.home-page::after { background:rgba(22,17,30,.34); mix-blend-mode:multiply; }
+        html[data-theme="light"] body.home-page::after { background:rgba(255,255,255,.08); mix-blend-mode:multiply; }
         main { width:100%; max-width:440px; }
         .topbar { display:flex; justify-content:flex-end; gap:8px; margin-bottom:14px; }
         .topbar a, .topbar button {
@@ -131,13 +180,20 @@ function renderCardThemeStyles(): void {
         .api-link svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; transition:transform .15s; }
         .api-link:hover { color:var(--accent); }
         .api-link:hover svg { transform:translateX(2px); }
-        .page-footer { margin-top:18px; display:flex; align-items:center; justify-content:center; gap:10px; font-size:12px; color:var(--muted); }
+        .page-footer { margin-top:18px; display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; font-size:12px; font-weight:700; letter-spacing:.01em; color:var(--muted); text-shadow:0 1px 2px rgba(255,255,255,.18); }
+        .footer-version { color:var(--ink); font-weight:800; }
         .page-footer a {
             display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px;
             border:1px solid var(--card-border); border-radius:8px; color:var(--muted); transition:color .15s, border-color .15s;
         }
         .page-footer a:hover { color:var(--accent); border-color:var(--accent); }
         .page-footer a svg { width:15px; height:15px; }
+        .landscape-credit { position:fixed; left:16px; bottom:14px; z-index:10; max-width:calc(100vw - 32px); color:#fff; font-size:11px; font-weight:800; letter-spacing:.01em; line-height:1.3; text-shadow:0 1px 4px rgba(0,0,0,.9); }
+        .landscape-credit a { color:#fff; text-decoration:none; }
+        .landscape-credit a:hover { text-decoration:underline; text-underline-offset:2px; }
+        html[data-theme="light"] .page-footer { color:#334155; text-shadow:0 1px 2px rgba(255,255,255,.7); }
+        html[data-theme="light"] .footer-version { color:#0f172a; }
+        html[data-theme="light"] .page-footer a { color:#334155; border-color:rgba(30,41,59,.28); }
         /* Theme-switch animation: only applied while .theme-anim is set (see
            renderCardThemeScript), so page loads and hover effects stay snappy. */
         .theme-anim body {
@@ -153,38 +209,46 @@ function renderCardThemeStyles(): void {
             ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
             ::view-transition-new(root) { mix-blend-mode: normal; }
         /* Right-side settings panel keeps the full language list visible. */
-        .sidebar-backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(10,10,14,.42); opacity: 0; transition: opacity .2s ease; }
+        .sidebar-backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(10,10,14,.42); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); opacity: 0; transition: opacity .2s ease; }
         .sidebar-backdrop[hidden] { display: none; }
         .sidebar-backdrop.is-open { opacity: 1; }
         .sidebar-panel {
-            position: absolute; top: 0; right: 0; display: flex; flex-direction: column;
-            width: min(340px, 100%); height: 100%; padding: 28px 24px;
-            background: var(--card-bg); border-left: 1px solid var(--card-border); box-shadow: -18px 0 45px -28px rgba(20,30,60,.4);
-            transform: translateX(100%); transition: transform .25s cubic-bezier(.16,1,.3,1);
+            position: absolute; top: 10px; right: 10px; bottom: 10px; display: flex; flex-direction: column;
+            width: min(340px, calc(100% - 20px)); padding: 22px 20px;
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 18px;
+            box-shadow: -18px 0 45px -28px rgba(20,30,60,.4); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            transform: translateX(calc(100% + 12px)); transition: transform .3s cubic-bezier(.16,1,.3,1);
         }
         .sidebar-backdrop.is-open .sidebar-panel { transform: none; }
-        .sidebar-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 26px; }
-        .sidebar-title { font-weight: 800; letter-spacing: -.01em; }
-        .sidebar-close { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 1px solid var(--card-border); border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; }
-        .sidebar-close:hover { color: var(--ink); background: var(--input-bg); }
+        .sidebar-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+        .sidebar-title { font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
+        .sidebar-close { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 1px solid var(--card-border); border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; transition: color .15s, border-color .15s, background-color .15s; }
+        .sidebar-close:hover { color: var(--accent); border-color: var(--accent); }
         .sidebar-close svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
         .sidebar-label { margin: 0 0 9px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-        .language-list { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; max-height: 52vh; overflow-y: auto; padding-right: 3px; }
-        .language-list a { display: flex; align-items: center; gap: 9px; min-height: 40px; padding: 8px 10px; border: 1px solid transparent; border-radius: 9px; color: var(--ink); font-size: 13px; font-weight: 600; text-decoration: none; }
+        .language-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-height: 52vh; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; scrollbar-color: var(--input-border) transparent; }
+        .language-list::-webkit-scrollbar { width: 6px; }
+        .language-list::-webkit-scrollbar-thumb { background: var(--input-border); border-radius: 3px; }
+        .language-list a { position: relative; display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 9px; border: 1px solid transparent; border-radius: 10px; color: var(--ink); font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+        .language-list a > span { overflow: hidden; text-overflow: ellipsis; }
         .language-list a:hover { background: var(--input-bg); border-color: var(--input-border); }
         .language-list a.active { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
         .language-list img { flex: none; border-radius: 2px; object-fit: cover; }
-        .sidebar-divider { height: 1px; margin: 24px 0; background: var(--card-border); }
+        .lang-check { flex: none; width: 13px; height: 13px; margin-left: auto; stroke: currentColor; fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; visibility: hidden; }
+        .language-list a.active .lang-check { visibility: visible; }
+        .sidebar-divider { height: 1px; margin: 22px 0; background: var(--card-border); }
         .sidebar-theme { display: grid; gap: 10px; }
         .sidebar-theme .sidebar-label { margin: 0; }
         .theme-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .theme-choice { min-height: 34px; border: 1px solid var(--card-border); border-radius: 8px; background: transparent; color: var(--muted); font:700 11px/1 inherit; cursor: pointer; }
+        .theme-choice { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 48px; padding: 7px 4px; border: 1px solid var(--card-border); border-radius: 10px; background: transparent; color: var(--muted); font: 700 11px/1 inherit; letter-spacing: .03em; cursor: pointer; transition: color .15s, border-color .15s, background-color .15s; }
+        .theme-choice svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
         .theme-choice:hover { color: var(--ink); background: var(--input-bg); }
         .theme-choice[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
         @media (prefers-reduced-motion: reduce) {
-            .sidebar-backdrop, .sidebar-panel { transition: none !important; }
+            .landscape-layer, .sidebar-backdrop, .sidebar-panel { transition: none !important; }
         }
-        @media (max-width: 420px) { .sidebar-panel { padding: 24px 18px; } }
+        @media (max-width: 420px) { .sidebar-panel { top: 6px; right: 6px; bottom: 6px; width: calc(100% - 12px); padding: 20px 16px; } }
+        @media (max-width: 520px) { body.home-page { padding:18px 12px 64px; } body.home-page .card { border-width:6px; } body.home-page .brand, body.home-page form { padding-left:18px; padding-right:18px; } body.home-page .tagline { padding-left:18px; padding-right:18px; } }
     </style>
     <?php
 }
@@ -201,7 +265,7 @@ function renderCardTopbar($lang): void {
         <aside class="sidebar-panel" role="dialog" aria-modal="true" aria-label="<?= h($t['settings']) ?>">
             <div class="sidebar-heading">
                 <div class="sidebar-title"><?= h($t['settings']) ?></div>
-                <button type="button" class="sidebar-close" id="settings-close" aria-label="Close">
+                <button type="button" class="sidebar-close" id="settings-close" aria-label="<?= h($t['close']) ?>">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
                 </button>
             </div>
@@ -212,6 +276,7 @@ function renderCardTopbar($lang): void {
                 <a href="?lang=<?= h($code) ?>" lang="<?= h($code) ?>"<?= $code === $lang ? ' class="active" aria-current="true"' : '' ?>>
                     <img src="/assets/flags/<?= h($meta['flag']) ?>.svg" alt="" width="18" height="12">
                     <span><?= h($meta['label']) ?></span>
+                    <svg class="lang-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"></path></svg>
                 </a>
                 <?php endforeach; ?>
             </nav>
@@ -219,9 +284,18 @@ function renderCardTopbar($lang): void {
             <div class="sidebar-theme">
                 <span class="sidebar-label"><?= h($t['theme']) ?></span>
                 <div class="theme-choices" role="group" aria-label="<?= h($t['theme']) ?>">
-                    <button type="button" class="theme-choice" data-theme-choice="system" aria-pressed="false">System</button>
-                    <button type="button" class="theme-choice" data-theme-choice="dark" aria-pressed="false">Dark</button>
-                    <button type="button" class="theme-choice" data-theme-choice="light" aria-pressed="false">Light</button>
+                    <button type="button" class="theme-choice" data-theme-choice="system" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4" width="19" height="12.5" rx="2"></rect><path d="M8.5 20h7M12 16.5V20"></path></svg>
+                        <span><?= h($t['theme_system']) ?></span>
+                    </button>
+                    <button type="button" class="theme-choice" data-theme-choice="dark" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.2A8.4 8.4 0 0 1 10.8 3.4a8.4 8.4 0 1 0 9.8 9.8Z"></path></svg>
+                        <span><?= h($t['theme_dark']) ?></span>
+                    </button>
+                    <button type="button" class="theme-choice" data-theme-choice="light" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.6"></circle><path d="M12 2.5v2.2M12 19.3v2.2M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6"></path></svg>
+                        <span><?= h($t['theme_light']) ?></span>
+                    </button>
                 </div>
             </div>
         </aside>
@@ -230,8 +304,14 @@ function renderCardTopbar($lang): void {
 }
 
 function renderCardFooter(): void {
-    global $app_version;
+    global $app_version, $landscape_backgrounds;
+    $first_landscape = $landscape_backgrounds[0] ?? null;
     ?>
+    <?php if ($first_landscape): ?>
+    <div class="landscape-credit" id="landscape-credit">
+        <span>Foto von © </span><a href="<?= h($first_landscape['url']) ?>" target="_blank" rel="noopener"><?= h($first_landscape['artist']) ?></a>
+    </div>
+    <?php endif; ?>
     <div class="page-footer">
         <span>© 2026 0x79.one</span>
         <span class="footer-version">Current version v<?= h($app_version) ?></span>
