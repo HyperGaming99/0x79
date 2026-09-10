@@ -217,8 +217,8 @@ function renderCardThemeStyles(): void {
         .sidebar-backdrop[hidden] { display: none; }
         .sidebar-backdrop.is-open { opacity: 1; }
         .sidebar-panel {
-            position: absolute; top: 10px; right: 10px; bottom: 10px; display: flex; flex-direction: column;
-            width: min(340px, calc(100% - 20px)); padding: 22px 20px;
+            position: absolute; top: 10px; right: 10px; bottom: auto; display: flex; flex-direction: column;
+            width: min(340px, calc(100% - 20px)); max-height: calc(100dvh - 20px); padding: 22px 20px;
             background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 18px;
             box-shadow: -18px 0 45px -28px rgba(20,30,60,.4); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
             transform: translateX(calc(100% + 12px)); transition: transform .3s cubic-bezier(.16,1,.3,1);
@@ -230,7 +230,7 @@ function renderCardThemeStyles(): void {
         .sidebar-close:hover { color: var(--accent); border-color: var(--accent); }
         .sidebar-close svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
         .sidebar-label { margin: 0 0 9px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-        .language-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-height: 52vh; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; scrollbar-color: var(--input-border) transparent; }
+        .language-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; scrollbar-color: var(--input-border) transparent; }
         .language-list::-webkit-scrollbar { width: 6px; }
         .language-list::-webkit-scrollbar-thumb { background: var(--input-border); border-radius: 3px; }
         .language-list a { position: relative; display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 9px; border: 1px solid transparent; border-radius: 10px; color: var(--ink); font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap; }
@@ -251,7 +251,7 @@ function renderCardThemeStyles(): void {
         @media (prefers-reduced-motion: reduce) {
             .landscape-layer, .sidebar-backdrop, .sidebar-panel { transition: none !important; }
         }
-        @media (max-width: 420px) { .sidebar-panel { top: 6px; right: 6px; bottom: 6px; width: calc(100% - 12px); padding: 20px 16px; } }
+        @media (max-width: 420px) { .sidebar-panel { top: 6px; right: 6px; max-height: calc(100dvh - 12px); width: calc(100% - 12px); padding: 20px 16px; } }
         @media (max-width: 520px) { body.home-page { padding:18px 12px 64px; } body.home-page .card { border-width:6px; } body.home-page .brand, body.home-page form { padding-left:18px; padding-right:18px; } body.home-page .tagline { padding-left:18px; padding-right:18px; } }
     </style>
     <?php
