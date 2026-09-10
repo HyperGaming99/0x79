@@ -643,6 +643,39 @@ function cleanHost($host) {
     return $host ?: '0x79.one';
 }
 
+function jsonResponse($payload, $status = 200) {
+    http_response_code($status);
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store');
+    echo json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    exit;
+}
+
+function apiReadInput() {
+    $contentType = strtolower($_SERVER['CONTENT_TYPE'] ?? '');
+
+    if (strpos($contentType, 'application/json') !== false) {
+        $raw = file_get_contents('php://input');
+        $data = json_decode($raw ?: '{}', true);
+        return is_array($data) ? $data : [];
+    }
+
+    return $_POST;
+}
+
+function clampInt($value, $min, $max, $default) {
+    if ($value === null || $value === '') return $default;
+    $n = (int)$value;
+    return max($min, min($max, $n));
+}
+
+function boolParam($value, $default = false) {
+    if ($value === null || $value === '') return $default;
+    if (is_bool($value)) return $value;
+    $v = strtolower(trim((string)$value));
+    return in_array($v, ['1', 'true', 'yes', 'on'], true);
+}
+
 function isBurnedRow($row) {
     if (empty($row['max_clicks'])) return false;
     $max = (int)$row['max_clicks'];
@@ -738,245 +771,3 @@ function sanitizeAdminReturnTo($returnTo, $fallback = '/admin') {
     }
     return $returnTo;
 }
-
-
-function fetchPreviewHttp($url, $maxRedirects = 3) {
-    [$valid, $validationError] = isPublicHttpUrl($url);
-    if (!$valid) return [false, $validationError, null, null, null];
-
-    $current = (string)$url;
-    for ($i = 0; $i <= $maxRedirects; $i++) {
-        $ch = curl_init($current);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HEADER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_MAXFILESIZE, 2 * 1024 * 1024);
-        curl_setopt($ch, CURLOPT_USERAGENT, '0x79-preview/1.0');
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: text/html,application/xhtml+xml,text/css,image/*,*/*;q=0.8']);
-        if (defined('CURLOPT_PROTOCOLS')) curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
-        $raw = curl_exec($ch);
-        $err = curl_error($ch);
-        $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-        $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-        $effective = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL) ?: $current;
-        curl_close($ch);
-
-        if ($err || $raw === false) return [false, 'fetch_failed', null, null, $err];
-        $headers = substr($raw, 0, $headerSize);
-        $body = substr($raw, $headerSize);
-
-        if ($http >= 300 && $http < 400 && preg_match('/^Location:\s*(.+)$/mi', $headers, $m)) {
-            $next = absolutePreviewUrl(trim($m[1]), $effective);
-            [$ok, $why] = isPublicHttpUrl($next);
-            if (!$ok) return [false, $why, null, null, null];
-            $current = $next;
-            continue;
-        }
-
-        if ($http < 200 || $http >= 300) return [false, 'http_' . $http, null, $contentType, null];
-        return [true, null, $body, $contentType, $effective];
-    }
-
-    return [false, 'too_many_redirects', null, null, null];
-}
-
-function sanitizePreviewHtml($html, $baseUrl) {
-    if (!class_exists('DOMDocument')) {
-        return '<pre>' . h(substr((string)$html, 0, 50000)) . '</pre>';
-    }
-
-    libxml_use_internal_errors(true);
-    $doc = new DOMDocument('1.0', 'UTF-8');
-    $doc->loadHTML('<?xml encoding="utf-8" ?>' . (string)$html, LIBXML_NOWARNING | LIBXML_NOERROR | LIBXML_NONET);
-    libxml_clear_errors();
-
-    $removeTags = ['script', 'iframe', 'object', 'embed', 'applet', 'meta', 'base'];
-    foreach ($removeTags as $tag) {
-        while (($nodes = $doc->getElementsByTagName($tag))->length > 0) {
-            $node = $nodes->item(0);
-            $node->parentNode->removeChild($node);
-        }
-    }
-
-    $xpath = new DOMXPath($doc);
-    foreach ($xpath->query('//*') as $el) {
-        if (!$el->hasAttributes()) continue;
-        $attrs = [];
-        foreach ($el->attributes as $attr) $attrs[] = $attr->name;
-        foreach ($attrs as $name) {
-            $value = $el->getAttribute($name);
-            $lname = strtolower($name);
-            if (strpos($lname, 'on') === 0 || in_array($lname, ['srcdoc', 'integrity', 'nonce', 'style'], true)) {
-                $el->removeAttribute($name);
-                continue;
-            }
-            if (in_array($lname, ['href', 'src', 'poster'], true)) {
-                if ($el->tagName === 'link' && strtolower($el->getAttribute('rel')) === 'stylesheet') {
-                    $proxy = previewAssetProxyUrl($value, $baseUrl);
-                    if ($proxy !== '') $el->setAttribute($name, $proxy); else $el->parentNode->removeChild($el);
-                    continue;
-                }
-                if (in_array($el->tagName, ['img', 'source', 'video', 'audio'], true)) {
-                    $proxy = previewAssetProxyUrl($value, $baseUrl);
-                    if ($proxy !== '') $el->setAttribute($name, $proxy); else $el->removeAttribute($name);
-                    continue;
-                }
-                $abs = absolutePreviewUrl($value, $baseUrl);
-                if ($abs !== '') {
-                    $el->setAttribute($name, $abs);
-                    if ($el->tagName === 'a') {
-                        $el->setAttribute('target', '_blank');
-                        $el->setAttribute('rel', 'noopener noreferrer nofollow');
-                    }
-                } else {
-                    $el->removeAttribute($name);
-                }
-            }
-            if ($lname === 'srcset') {
-                $el->removeAttribute($name);
-            }
-            if ($el->tagName === 'form' && $lname === 'action') {
-                $el->removeAttribute($name);
-            }
-        }
-        if ($el->tagName === 'form') {
-            $el->setAttribute('data-disabled', 'true');
-        }
-    }
-
-    $body = $doc->getElementsByTagName('body')->item(0);
-    if (!$body) return '';
-    $out = '';
-    foreach ($body->childNodes as $child) {
-        $out .= $doc->saveHTML($child);
-    }
-    return $out;
-}
-
-
-function previewEdgeConfigured() {
-    global $preview_edge_function_url, $preview_edge_secret;
-    return !empty($preview_edge_function_url) && !empty($preview_edge_secret);
-}
-
-function callPreviewEdgeJson($payload) {
-    global $preview_edge_function_url, $preview_edge_secret, $preview_edge_auth_key;
-
-    if (!previewEdgeConfigured()) {
-        return [false, 'preview_edge_not_configured', null];
-    }
-
-    $headers = [
-        'Content-Type: application/json',
-        'Accept: application/json',
-        'X-Preview-Secret: ' . $preview_edge_secret,
-    ];
-
-    if (!empty($preview_edge_auth_key)) {
-        $headers[] = 'Authorization: Bearer ' . $preview_edge_auth_key;
-    }
-
-    $ch = curl_init($preview_edge_function_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 6);
-
-    $response = curl_exec($ch);
-    $error = curl_error($ch);
-    $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($error || $response === false) {
-        return [false, 'edge_request_failed' . ($error ? ': ' . $error : ''), null];
-    }
-
-    $data = json_decode((string)$response, true);
-    if ($http < 200 || $http >= 300) {
-        $msg = is_array($data) && isset($data['error']) ? (string)$data['error'] : ('edge_http_' . $http);
-        return [false, $msg, $data];
-    }
-
-    if (!is_array($data)) {
-        return [false, 'edge_invalid_json', null];
-    }
-
-    return [true, null, $data];
-}
-
-function callPreviewEdgeAsset($url) {
-    global $preview_edge_function_url, $preview_edge_secret, $preview_edge_auth_key;
-
-    if (!previewEdgeConfigured()) {
-        return [false, 'preview_edge_not_configured', null, null, 500];
-    }
-
-    $headers = [
-        'Content-Type: application/json',
-        'Accept: */*',
-        'X-Preview-Secret: ' . $preview_edge_secret,
-    ];
-
-    if (!empty($preview_edge_auth_key)) {
-        $headers[] = 'Authorization: Bearer ' . $preview_edge_auth_key;
-    }
-
-    $payload = ['mode' => 'asset', 'url' => $url];
-
-    $ch = curl_init($preview_edge_function_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HEADER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 6);
-
-    $raw = curl_exec($ch);
-    $error = curl_error($ch);
-    $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-    curl_close($ch);
-
-    if ($error || $raw === false) {
-        return [false, 'edge_asset_request_failed', null, null, 502];
-    }
-
-    $body = substr((string)$raw, $headerSize);
-    if ($http < 200 || $http >= 300) {
-        return [false, 'edge_asset_http_' . $http, $body, $contentType, $http];
-    }
-
-    return [true, null, $body, $contentType, $http];
-}
-
-function addQueryParamToUrl($url, $key, $value) {
-    $parts = parse_url((string)$url);
-    if (!$parts || empty($parts['scheme']) || empty($parts['host'])) return (string)$url;
-
-    $query = [];
-    if (!empty($parts['query'])) {
-        parse_str($parts['query'], $query);
-    }
-    $query[$key] = $value;
-
-    $rebuilt = $parts['scheme'] . '://';
-    if (!empty($parts['user'])) {
-        $rebuilt .= $parts['user'];
-        if (!empty($parts['pass'])) $rebuilt .= ':' . $parts['pass'];
-        $rebuilt .= '@';
-    }
-    $rebuilt .= $parts['host'];
-    if (!empty($parts['port'])) $rebuilt .= ':' . $parts['port'];
-    $rebuilt .= $parts['path'] ?? '/';
-    $rebuilt .= '?' . http_build_query($query);
-    if (!empty($parts['fragment'])) $rebuilt .= '#' . $parts['fragment'];
-    return $rebuilt;
-}
-
