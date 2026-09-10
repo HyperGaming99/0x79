@@ -37,5 +37,9 @@
   "custom_code_label": "कस्टम उपनाम",
   "expires_label": "समाप्ति तिथि/समय",
   "max_clicks_label": "अधिकतम क्लिक",
-  "err_alias": "उपनाम अमान्य या पहले से लिया गया।"
+  "err_alias": "उपनाम अमान्य या पहले से लिया गया।",
+  "theme_system": "सिस्टम",
+  "theme_dark": "डार्क",
+  "theme_light": "लाइट",
+  "close": "बंद करें"
 }

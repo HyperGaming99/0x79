@@ -37,5 +37,9 @@
   "custom_code_label": "اسم مخصص",
   "expires_label": "تاريخ/وقت الانتهاء",
   "max_clicks_label": "الحد الأقصى للنقرات",
-  "err_alias": "الاسم غير صالح أو مستخدم بالفعل."
+  "err_alias": "الاسم غير صالح أو مستخدم بالفعل.",
+  "theme_system": "النظام",
+  "theme_dark": "داكن",
+  "theme_light": "فاتح",
+  "close": "إغلاق"
 }

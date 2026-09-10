@@ -37,5 +37,9 @@
   "custom_code_label": "Alias khusus",
   "expires_label": "Tanggal/waktu kedaluwarsa",
   "max_clicks_label": "Batas klik",
-  "err_alias": "alias tidak valid atau sudah digunakan."
+  "err_alias": "alias tidak valid atau sudah digunakan.",
+  "theme_system": "Sistem",
+  "theme_dark": "Gelap",
+  "theme_light": "Terang",
+  "close": "Tutup"
 }

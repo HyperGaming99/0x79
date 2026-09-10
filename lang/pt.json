@@ -37,5 +37,9 @@
   "custom_code_label": "Alias personalizado",
   "expires_label": "Data/hora de validade",
   "max_clicks_label": "Máx. de cliques",
-  "err_alias": "alias inválido ou já em uso."
+  "err_alias": "alias inválido ou já em uso.",
+  "theme_system": "Sistema",
+  "theme_dark": "Escuro",
+  "theme_light": "Claro",
+  "close": "Fechar"
 }

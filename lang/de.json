@@ -37,5 +37,9 @@
   "custom_code_label": "Eigener Alias",
   "expires_label": "Ablaufdatum/-uhrzeit",
   "max_clicks_label": "Max. Klicks",
-  "err_alias": "Alias ungültig oder bereits vergeben."
+  "err_alias": "Alias ungültig oder bereits vergeben.",
+  "theme_system": "System",
+  "theme_dark": "Dunkel",
+  "theme_light": "Hell",
+  "close": "Schließen"
 }

@@ -37,5 +37,9 @@
   "custom_code_label": "커스텀 별칭",
   "expires_label": "만료 날짜/시간",
   "max_clicks_label": "최대 클릭 수",
-  "err_alias": "별칭이 올바르지 않거나 이미 사용 중입니다."
+  "err_alias": "별칭이 올바르지 않거나 이미 사용 중입니다.",
+  "theme_system": "시스템",
+  "theme_dark": "다크",
+  "theme_light": "라이트",
+  "close": "닫기"
 }

@@ -37,5 +37,9 @@
   "custom_code_label": "自定义别名",
   "expires_label": "过期日期/时间",
   "max_clicks_label": "最大点击次数",
-  "err_alias": "别名无效或已被占用。"
+  "err_alias": "别名无效或已被占用。",
+  "theme_system": "系统",
+  "theme_dark": "深色",
+  "theme_light": "浅色",
+  "close": "关闭"
 }

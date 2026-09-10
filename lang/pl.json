@@ -37,5 +37,9 @@
   "custom_code_label": "Własny alias",
   "expires_label": "Data/godzina ważności",
   "max_clicks_label": "Maks. kliknięć",
-  "err_alias": "alias nieprawidłowy lub zajęty."
+  "err_alias": "alias nieprawidłowy lub zajęty.",
+  "theme_system": "System",
+  "theme_dark": "Ciemny",
+  "theme_light": "Jasny",
+  "close": "Zamknij"
 }

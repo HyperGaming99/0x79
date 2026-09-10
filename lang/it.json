@@ -37,5 +37,9 @@
   "custom_code_label": "Alias personalizzato",
   "expires_label": "Data/ora di scadenza",
   "max_clicks_label": "Clic max",
-  "err_alias": "alias non valido o già in uso."
+  "err_alias": "alias non valido o già in uso.",
+  "theme_system": "Sistema",
+  "theme_dark": "Scuro",
+  "theme_light": "Chiaro",
+  "close": "Chiudi"
 }

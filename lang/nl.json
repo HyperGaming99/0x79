@@ -37,5 +37,9 @@
   "custom_code_label": "Eigen alias",
   "expires_label": "Vervaldatum/tijd",
   "max_clicks_label": "Max. kliks",
-  "err_alias": "alias ongeldig of al in gebruik."
+  "err_alias": "alias ongeldig of al in gebruik.",
+  "theme_system": "Systeem",
+  "theme_dark": "Donker",
+  "theme_light": "Licht",
+  "close": "Sluiten"
 }

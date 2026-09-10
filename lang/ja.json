@@ -37,5 +37,9 @@
   "custom_code_label": "カスタムエイリアス",
   "expires_label": "有効期限",
   "max_clicks_label": "最大クリック数",
-  "err_alias": "エイリアスが無効か、すでに使用されています。"
+  "err_alias": "エイリアスが無効か、すでに使用されています。",
+  "theme_system": "システム",
+  "theme_dark": "ダーク",
+  "theme_light": "ライト",
+  "close": "閉じる"
 }

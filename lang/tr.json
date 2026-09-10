@@ -37,5 +37,9 @@
   "custom_code_label": "Özel alias",
   "expires_label": "Son kullanma tarihi/saatı",
   "max_clicks_label": "Maks. tıklama",
-  "err_alias": "alias geçersiz veya zaten alınmış."
+  "err_alias": "alias geçersiz veya zaten alınmış.",
+  "theme_system": "Sistem",
+  "theme_dark": "Karanlık",
+  "theme_light": "Açık",
+  "close": "Kapat"
 }
