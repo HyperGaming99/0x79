@@ -152,7 +152,7 @@ function renderCardThemeStyles(): void {
         body::after { content:""; position:fixed; inset:0; z-index:-1; background:var(--landscape-tint, rgba(255,255,255,.24)); mix-blend-mode:multiply; pointer-events:none; transition:background 1s ease; }
         html[data-theme="light"] body::after { background:rgba(255,255,255,.2); mix-blend-mode:screen; }
         body > * { position:relative; z-index:0; }
-        body.home-page { justify-content:flex-start; padding-top:30px; padding-bottom:70px; }
+        body.home-page { justify-content:center; padding-top:24px; padding-bottom:24px; }
         body.home-page .landscape-layer.is-visible { opacity:.52; }
         body.home-page::after { background:rgba(22,17,30,.34); mix-blend-mode:multiply; }
         html[data-theme="light"] body.home-page::after { background:rgba(255,255,255,.08); mix-blend-mode:multiply; }
