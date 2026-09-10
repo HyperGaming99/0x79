@@ -431,7 +431,7 @@ if ($request_path !== '') {
 // 2. CREATE LINK
 // ---------------------------------------------------------
 $short_url = '';
-$error = '';
+$error = !empty($_GET['csrf']) ? ($t['err_csrf'] ?? 'Session expired. Please submit the form again.') : '';
 $want_qr = !empty($_POST['qr'] ?? null);
 $selected_domain = (isset($_POST['domain']) && in_array($_POST['domain'], $available_domains, true))
     ? $_POST['domain'] : $available_domains[0];

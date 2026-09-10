@@ -565,8 +565,8 @@ function formCsrfToken() {
 function requireFormCsrf() {
     $token = (string)($_POST['csrf'] ?? '');
     if (empty($_SESSION['form_csrf']) || !hash_equals($_SESSION['form_csrf'], $token)) {
-        http_response_code(403);
-        exit('invalid csrf token');
+        header('Location: /?csrf=expired', true, 303);
+        exit;
     }
 }
 
