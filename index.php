@@ -370,28 +370,45 @@ if ($path_code !== '' || isset($_GET['c'])) {
                     ?>
 <!DOCTYPE html>
 <html lang="<?= h($lang) ?>" dir="<?= h($LANG_DATA[$lang]['dir'] ?? 'ltr') ?>">
-<head>
+<head><link rel="icon" href="/logo.png" type="image/jpeg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= h($t['title']) ?></title>
-    <?php renderUiPreferences(); ?>
+    <title><?= h($t['password_label']) ?> — 0x79</title>
+    <?php renderCardThemeStyles(); ?>
     <style>
-        body { margin:0; min-height:100vh; display:grid; place-items:center; font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; background:#0e0e10; color:#ebe9e3; padding:24px; }
-        form { width:100%; max-width:420px; border:1px solid #ebe9e3; padding:24px; display:grid; gap:14px; }
-        input, button { font:inherit; padding:12px; border:1px solid #ebe9e3; }
-        input { background:transparent; color:#ebe9e3; }
-        button { background:#ebe9e3; color:#0e0e10; cursor:pointer; }
-        .err { color:#ff6b6b; }
+        main { max-width:400px; }
+        .password-form { margin-top:24px; display:grid; gap:12px; }
+        .password-form input {
+            width:100%; padding:14px 16px; font:inherit; border:1px solid var(--input-border);
+            border-radius:12px; background:var(--input-bg); color:var(--ink);
+        }
+        .password-form input:focus { outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+        .password-form button {
+            min-height:48px; border:0; border-radius:12px; background:var(--accent); color:var(--accent-contrast);
+            font:700 14px/1 inherit; letter-spacing:.02em; cursor:pointer;
+        }
+        .password-form button:hover { background:var(--accent-hover); }
+        .err { margin:0; color:var(--error); font-size:13px; font-weight:600; }
     </style>
 </head>
 <body>
-    <form method="POST" action="/<?= h($code) ?>">
-        <h1><?= h($t['password_label']) ?></h1>
-        <?php if (!empty($password_error)): ?><p class="err"><?= h($password_error) ?></p><?php endif; ?>
-        <input type="hidden" name="code" value="<?= h($code) ?>">
-        <input type="password" name="link_password" placeholder="<?= h($t['password_label']) ?>" required autofocus>
-        <button type="submit"><?= h($t['open_link']) ?> →</button>
-    </form>
+    <main>
+        <?php renderCardTopbar($lang); ?>
+        <div class="card">
+            <div class="brand">
+                <img src="/logo.png" alt="">
+                <h1><?= h($t['password_label']) ?></h1>
+            </div>
+            <form class="password-form" method="POST" action="/<?= h($code) ?>">
+                <?php if (!empty($password_error)): ?><p class="err"><?= h($password_error) ?></p><?php endif; ?>
+                <input type="hidden" name="code" value="<?= h($code) ?>">
+                <input type="password" name="link_password" placeholder="<?= h($t['password_label']) ?>" required autofocus autocomplete="off">
+                <button type="submit"><?= h($t['open_link']) ?> →</button>
+            </form>
+        </div>
+        <?php renderCardFooter(); ?>
+    </main>
+    <?php renderCardThemeScript(); ?>
 </body>
 </html>
                     <?php
