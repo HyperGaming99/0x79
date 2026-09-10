@@ -484,6 +484,22 @@ header('Content-Type: text/html; charset=utf-8');
     <meta name="description" content="<?= h($t['lead']) ?>">
     <?php renderCardThemeStyles(); ?>
     <style>
+        body.home-page main { max-width:470px; }
+        body.home-page .card { padding:0; overflow:visible; background:rgba(255,255,255,.94); border:8px solid rgba(255,255,255,.74); border-radius:19px; box-shadow:0 28px 70px -28px rgba(15,23,42,.68); backdrop-filter:blur(18px); }
+        html[data-theme="dark"] body.home-page .card { background:rgba(27,27,29,.94); border-color:rgba(255,255,255,.7); }
+        body.home-page .brand { justify-content:flex-start; padding:20px 25px 16px; border-bottom:1px solid #dce1e8; }
+        html[data-theme="dark"] body.home-page .brand { border-bottom-color:#444; }
+        body.home-page .brand img { width:36px; height:36px; border-radius:10px; }
+        body.home-page .brand h1 { font-size:27px; }
+        body.home-page .tagline { margin:0; padding:20px 25px 0; font-size:14px; }
+        body.home-page form { margin-top:22px; padding:0 25px 24px; }
+        body.home-page input[type=url] { min-height:52px; border-radius:10px; background:rgba(255,255,255,.62); }
+        html[data-theme="dark"] body.home-page input[type=url] { background:rgba(0,0,0,.2); }
+        body.home-page .domain-picker { margin-top:9px; }
+        body.home-page .more-opts { margin-top:8px; }
+        body.home-page button[type=submit] { min-height:48px; border-radius:10px; }
+        body.home-page .api-link { margin:0 25px; padding-bottom:18px; }
+        body.home-page .page-footer { margin-top:16px; }
         form { margin-top:28px; }
         input[type=url] {
             width:100%; padding:14px 16px; font:inherit; border:1px solid var(--input-border); border-radius:12px;
@@ -501,10 +517,14 @@ header('Content-Type: text/html; charset=utf-8');
         #domain-current { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .domain-chevron { width:16px; height:16px; flex:none; stroke:var(--muted); fill:none; stroke-width:2; transition:transform .15s; }
         .domain-trigger[aria-expanded="true"] .domain-chevron { transform:rotate(180deg); stroke:var(--accent); }
-        .domain-menu { position:absolute; left:0; right:0; top:calc(100% + 7px); z-index:20; display:grid; gap:4px; max-height:240px; overflow:auto; padding:8px; border:1px solid var(--card-border); border-radius:14px; background:var(--card-bg); box-shadow:0 18px 40px -24px rgba(20,30,60,.55); }
+        .domain-menu { position:absolute; left:0; right:0; top:calc(100% + 7px); z-index:20; display:grid; gap:4px; max-height:240px; overflow:auto; padding:8px; border:1px solid var(--card-border); border-radius:14px; background:#fff; box-shadow:0 18px 40px -24px rgba(20,30,60,.55); }
+        html[data-theme="dark"] .domain-menu { background:#262626; box-shadow:0 18px 40px -24px rgba(0,0,0,.85); }
         .domain-menu[hidden] { display:none; }
         .domain-option { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; padding:5px 9px; border:1px solid transparent; border-radius:9px; background:transparent; color:var(--ink); font:600 13px/1 inherit; text-align:left; cursor:pointer; }
-        .domain-option:hover, .domain-option[aria-selected="true"] { border-color:var(--input-border); background:var(--input-bg); color:var(--accent); }
+        .domain-option:hover { border-color:var(--input-border); background:#f1f5f9; color:var(--accent); }
+        html[data-theme="dark"] .domain-option:hover { background:#303030; }
+        .domain-option[aria-selected="true"] { border-color:var(--accent); background:#e8f0ff; color:var(--accent); }
+        html[data-theme="dark"] .domain-option[aria-selected="true"] { background:#1d355f; }
         .domain-option-content { display:flex; align-items:center; gap:10px; min-width:0; }
         .domain-option-mark { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; flex:none; border:1px solid var(--input-border); border-radius:7px; background:var(--card-bg); color:var(--muted); font:800 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace; }
         .domain-option[aria-selected="true"] .domain-option-mark { border-color:var(--accent); color:var(--accent); }
@@ -560,7 +580,7 @@ header('Content-Type: text/html; charset=utf-8');
         .qr { margin-top:16px; width:140px; height:140px; border:1px solid var(--card-border); border-radius:12px; }
     </style>
 </head>
-<body>
+<body class="home-page">
     <main>
         <?php renderCardTopbar($lang); ?>
         <div class="card">
