@@ -458,10 +458,9 @@ function renderAdminLogin($error = '') {
 }
 
 function renderApiDocs() {
-    global $lang, $csp_nonce, $available_domains, $LANG_DATA;
+    global $lang, $csp_nonce, $available_domains, $LANG_DATA, $t;
 
     $host = cleanHost($_SERVER['HTTP_HOST'] ?? '0x79.one');
-    $de = $lang === 'de';
     $dir = $LANG_DATA[$lang]['dir'] ?? 'ltr';
 
     header('Content-Type: text/html; charset=utf-8');
@@ -471,35 +470,69 @@ function renderApiDocs() {
 <head><link rel="icon" href="/logo.png" type="image/jpeg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API docs — 0x79</title>
+    <title>API — 0x79</title>
     <?php renderCardThemeStyles(); ?>
     <style>
-        main { max-width:620px; }
-        .card { text-align:left; }
+        main { max-width:920px; }
+        .card { text-align:left; padding:32px 30px; }
         .card > .brand { justify-content:flex-start; }
         .lead { margin:10px 0 0; color:var(--muted); font-size:14px; }
         h2 {
-            display:flex; align-items:center; gap:10px; margin:34px 0 12px; font-size:15px; font-weight:700;
-            letter-spacing:-.01em; padding-top:24px; border-top:1px solid var(--card-border);
+            display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin:36px 0 14px; font-size:16px; font-weight:800;
+            letter-spacing:-.01em; padding-top:26px; border-top:1px solid var(--card-border);
         }
-        h2:first-of-type { padding-top:0; border-top:0; margin-top:28px; }
+        h2:first-of-type { padding-top:0; border-top:0; margin-top:26px; }
+        .h2-desc { font-size:12px; font-weight:600; color:var(--muted); letter-spacing:0; }
         .method {
-            display:inline-flex; align-items:center; justify-content:center; min-width:48px; height:22px;
-            border-radius:6px; font:700 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.02em;
+            display:inline-flex; align-items:center; justify-content:center; min-width:52px; height:24px;
+            border-radius:7px; font:800 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.04em;
             color:var(--accent-contrast); background:var(--accent);
         }
         .method.get { background:#10b981; }
+        .method.opt { background:var(--muted); }
+        .api-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start; margin:14px 0 4px; }
+        .api-col-label { margin:0 0 8px; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
         p { margin:10px 0; font-size:14px; line-height:1.6; color:var(--ink); }
         p.muted { color:var(--muted); font-size:13px; }
-        code {
-            font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px; background:var(--input-bg);
-            border:1px solid var(--input-border); border-radius:5px; padding:1px 6px;
-        }
+        code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:5px; padding:1px 6px; }
         pre {
-            margin:10px 0; padding:14px 16px; overflow-x:auto; border-radius:12px;
+            margin:0 0 12px; padding:14px 16px; overflow-x:auto; border-radius:12px;
             background:var(--input-bg); border:1px solid var(--input-border);
             font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px; line-height:1.6; color:var(--ink);
         }
+        .param { padding:11px 13px; border:1px solid var(--input-border); border-radius:10px; background:var(--input-bg); }
+        .param + .param { margin-top:8px; }
+        .param-head { display:flex; align-items:center; gap:9px; }
+        .param-name { font:700 12.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--ink); }
+        .param-badge { font:800 9px/1 inherit; letter-spacing:.07em; text-transform:uppercase; padding:4px 7px; border-radius:5px; }
+        .param-badge.req { color:var(--accent-contrast); background:var(--accent); }
+        .param-badge.opt { color:var(--muted); background:var(--input-border); }
+        .param-type { margin-left:auto; font:600 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--muted); letter-spacing:.04em; }
+        .param-desc { margin:7px 0 0; font-size:13px; line-height:1.55; color:var(--muted); }
+        .error-table { display:grid; gap:0; border:1px solid var(--input-border); border-radius:10px; overflow:hidden; }
+        .error-row { display:flex; align-items:center; gap:12px; padding:9px 13px; background:var(--input-bg); }
+        .error-row + .error-row { border-top:1px solid var(--input-border); }
+        .error-name { font:700 12.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--error); }
+        .error-status { margin-left:auto; font:800 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--muted); letter-spacing:.05em; }
+        .try-form { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+        .try-form .full { grid-column:1 / -1; }
+        .try-form input, .try-form select {
+            width:100%; box-sizing:border-box; padding:12px 14px; font:inherit; font-size:13px;
+            border:1px solid var(--input-border); border-radius:10px; background:var(--card-bg); color:var(--ink);
+        }
+        .try-form input:focus, .try-form select:focus { outline:2px solid var(--accent); outline-offset:1px; }
+        .try-send {
+            grid-column:1 / -1; min-height:46px; border:0; border-radius:10px; background:var(--accent);
+            color:var(--accent-contrast); font:700 13px/1 inherit; letter-spacing:.02em; cursor:pointer;
+        }
+        .try-send:hover { background:var(--accent-hover); }
+        .try-send:disabled { opacity:.6; cursor:wait; }
+        .try-result { margin-top:14px; }
+        .try-result[hidden] { display:none; }
+        .try-status { display:inline-flex; align-items:center; margin-bottom:8px; padding:5px 9px; border-radius:6px; font:800 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.04em; }
+        .try-status.ok { color:#059669; background:color-mix(in srgb, #10b981 14%, transparent); }
+        .try-status.err { color:var(--error); background:color-mix(in srgb, var(--error) 12%, transparent); }
+        @media (max-width:760px) { .api-grid { grid-template-columns:1fr; } }
     </style>
 </head>
 <body>
@@ -510,38 +543,118 @@ function renderApiDocs() {
                 <img src="/logo.png" alt="">
                 <h1>API</h1>
             </div>
-            <p class="lead"><?= $de ? 'Kein Account, kein API-Key nötig.' : 'No account, no API key needed.' ?></p>
+            <p class="lead"><?= h($t['api_intro']) ?></p>
 
-            <h2><span class="method">POST</span>/api</h2>
-            <p><?= $de ? 'Legt einen Kurzlink an.' : 'Creates a short link.' ?></p>
-            <pre>curl -X POST https://<?= h($host) ?>/api \
+            <h2><span class="method">POST</span>/api <span class="h2-desc"><?= h($t['api_create_desc']) ?></span></h2>
+            <div class="api-grid">
+                <div>
+                    <p class="api-col-label"><?= h($t['api_params']) ?></p>
+                    <div class="param">
+                        <div class="param-head"><span class="param-name">long_url</span><span class="param-badge req"><?= h($t['api_required']) ?></span><span class="param-type">string</span></div>
+                        <p class="param-desc"><?= h($t['api_p_long_url']) ?></p>
+                    </div>
+                    <div class="param">
+                        <div class="param-head"><span class="param-name">domain</span><span class="param-badge opt"><?= h($t['api_optional']) ?></span><span class="param-type">string</span></div>
+                        <p class="param-desc"><?= h($t['api_p_domain']) ?> <?php foreach ($available_domains as $i => $d): ?><?= $i > 0 ? ', ' : '' ?><code><?= h($d) ?></code><?php endforeach; ?></p>
+                    </div>
+                    <div class="param">
+                        <div class="param-head"><span class="param-name">custom_code</span><span class="param-badge opt"><?= h($t['api_optional']) ?></span><span class="param-type">string</span></div>
+                        <p class="param-desc"><?= h($t['api_p_custom_code']) ?></p>
+                    </div>
+                    <div class="param">
+                        <div class="param-head"><span class="param-name">password</span><span class="param-badge opt"><?= h($t['api_optional']) ?></span><span class="param-type">string</span></div>
+                        <p class="param-desc"><?= h($t['api_p_password']) ?></p>
+                    </div>
+                    <div class="param">
+                        <div class="param-head"><span class="param-name">expires_at</span><span class="param-badge opt"><?= h($t['api_optional']) ?></span><span class="param-type">ISO 8601</span></div>
+                        <p class="param-desc"><?= h($t['api_p_expires_at']) ?></p>
+                    </div>
+                    <div class="param">
+                        <div class="param-head"><span class="param-name">max_clicks</span><span class="param-badge opt"><?= h($t['api_optional']) ?></span><span class="param-type">integer</span></div>
+                        <p class="param-desc"><?= h($t['api_p_max_clicks']) ?></p>
+                    </div>
+                </div>
+                <div>
+                    <p class="api-col-label"><?= h($t['api_request']) ?></p>
+                    <pre>curl -X POST https://<?= h($host) ?>/api \
   -H "Content-Type: application/json" \
-  -d '{"long_url":"https://example.com"}'</pre>
-            <p class="muted"><?= $de ? 'Optionale Felder:' : 'Optional fields:' ?> <code>domain</code>, <code>password</code>, <code>expires_at</code>, <code>max_clicks</code>, <code>custom_code</code></p>
-            <p class="muted"><?= $de ? 'Verfügbare Domains:' : 'Available domains:' ?> <?php foreach ($available_domains as $i => $d): ?><?= $i > 0 ? ', ' : '' ?><code><?= h($d) ?></code><?php endforeach; ?></p>
-            <pre>{
+  -d '{
+    "long_url": "https://example.com",
+    "domain": "<?= h($available_domains[0]) ?>",
+    "custom_code": "my-link",
+    "password": "secret",
+    "expires_at": "2026-12-31T23:59:00Z",
+    "max_clicks": 100
+  }'</pre>
+                    <p class="api-col-label"><?= h($t['api_response']) ?> · 201</p>
+                    <pre>{
   "ok": true,
   "long_url": "https://example.com",
   "short_code": "Ab12Cd",
   "short_url": "https://<?= h($host) ?>/Ab12Cd",
-  "domain": "<?= h($host) ?>",
+  "domain": "<?= h($available_domains[0]) ?>",
   "expires_at": null,
   "has_password": false,
   "click_count": 0,
   "max_clicks": null
 }</pre>
+                </div>
+            </div>
 
-            <h2><span class="method get">GET</span>/api?code=…</h2>
-            <p><?= $de ? 'Fragt einen Kurzlink ab.' : 'Looks up a short link.' ?></p>
-            <pre>curl "https://<?= h($host) ?>/api?code=Ab12Cd"</pre>
+            <h2><span class="method get">GET</span>/api?code=… <span class="h2-desc"><?= h($t['api_lookup_desc']) ?></span></h2>
+            <div class="api-grid">
+                <div>
+                    <p class="api-col-label"><?= h($t['api_params']) ?></p>
+                    <div class="param">
+                        <div class="param-head"><span class="param-name">code</span><span class="param-badge req"><?= h($t['api_required']) ?></span><span class="param-type">string</span></div>
+                        <p class="param-desc"><?= h($t['api_p_code']) ?></p>
+                    </div>
+                </div>
+                <div>
+                    <p class="api-col-label"><?= h($t['api_request']) ?></p>
+                    <pre>curl "https://<?= h($host) ?>/api?code=Ab12Cd"</pre>
+                    <p class="api-col-label"><?= h($t['api_response']) ?> · 200</p>
+                    <pre>{
+  "ok": true,
+  "long_url": "https://example.com",
+  "short_code": "Ab12Cd",
+  "short_url": "https://<?= h($host) ?>/Ab12Cd",
+  "expires_at": null,
+  "has_password": false,
+  "click_count": 12,
+  "max_clicks": null
+}</pre>
+                </div>
+            </div>
 
-            <h2><?= $de ? 'Fehler' : 'Errors' ?></h2>
-            <pre>{ "ok": false, "error": "invalid_url" }
-{ "ok": false, "error": "alias_taken" }
-{ "ok": false, "error": "rate_limited" }
-{ "ok": false, "error": "not_found" }
-{ "ok": false, "error": "expired" }
-{ "ok": false, "error": "burned" }</pre>
+            <h2><?= h($t['api_errors']) ?></h2>
+            <div class="error-table">
+                <div class="error-row"><code class="error-name">invalid_url</code><span class="error-status">400</span></div>
+                <div class="error-row"><code class="error-name">invalid_alias</code><span class="error-status">400</span></div>
+                <div class="error-row"><code class="error-name">invalid_expiry</code><span class="error-status">400</span></div>
+                <div class="error-row"><code class="error-name">invalid_code</code><span class="error-status">400</span></div>
+                <div class="error-row"><code class="error-name">alias_taken</code><span class="error-status">409</span></div>
+                <div class="error-row"><code class="error-name">rate_limited</code><span class="error-status">429</span></div>
+                <div class="error-row"><code class="error-name">not_found</code><span class="error-status">404</span></div>
+                <div class="error-row"><code class="error-name">expired</code><span class="error-status">410</span></div>
+                <div class="error-row"><code class="error-name">burned</code><span class="error-status">410</span></div>
+            </div>
+
+            <h2><?= h($t['api_try_title']) ?></h2>
+            <p class="muted"><?= h($t['api_try_desc']) ?></p>
+            <form class="try-form" id="try-form">
+                <input class="full" id="try-long-url" type="url" required placeholder="https://example.com" autocomplete="off">
+                <select id="try-domain"><?php foreach ($available_domains as $d): ?><option value="<?= h($d) ?>"><?= h($d) ?></option><?php endforeach; ?></select>
+                <input id="try-custom-code" type="text" placeholder="custom_code" autocomplete="off" spellcheck="false">
+                <input id="try-password" type="text" placeholder="password" autocomplete="off">
+                <input id="try-expires" type="datetime-local" aria-label="expires_at">
+                <input id="try-max-clicks" type="number" min="1" max="1000000" placeholder="max_clicks">
+                <button class="try-send" id="try-send" type="submit"><?= h($t['api_try_send']) ?></button>
+            </form>
+            <div class="try-result" id="try-result" hidden>
+                <span class="try-status" id="try-status"></span>
+                <pre id="try-json"></pre>
+            </div>
 
             <a class="api-link" href="/">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 20.5L8 12l6-8.5"></path></svg>
@@ -551,6 +664,56 @@ function renderApiDocs() {
         <?php renderCardFooter(); ?>
     </main>
     <?php renderCardThemeScript(); ?>
+    <script nonce="<?= $csp_nonce ?>">
+        (function () {
+            var form = document.getElementById('try-form');
+            var button = document.getElementById('try-send');
+            var result = document.getElementById('try-result');
+            var statusEl = document.getElementById('try-status');
+            var jsonEl = document.getElementById('try-json');
+            if (!form) return;
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var payload = {
+                    long_url: document.getElementById('try-long-url').value,
+                    domain: document.getElementById('try-domain').value
+                };
+                var code = document.getElementById('try-custom-code').value.trim();
+                var password = document.getElementById('try-password').value;
+                var expires = document.getElementById('try-expires').value;
+                var maxClicks = document.getElementById('try-max-clicks').value;
+                if (code) payload.custom_code = code;
+                if (password) payload.password = password;
+                if (expires) payload.expires_at = expires;
+                if (maxClicks) payload.max_clicks = parseInt(maxClicks, 10);
+
+                button.disabled = true;
+                result.hidden = false;
+                statusEl.className = 'try-status';
+                statusEl.textContent = '…';
+                jsonEl.textContent = '';
+
+                fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(function (res) {
+                    return res.text().then(function (text) {
+                        try { text = JSON.stringify(JSON.parse(text), null, 2); } catch (err) { /* keep raw */ }
+                        statusEl.textContent = res.status + ' ' + res.statusText;
+                        statusEl.className = 'try-status ' + (res.ok ? 'ok' : 'err');
+                        jsonEl.textContent = text;
+                    });
+                }).catch(function () {
+                    statusEl.textContent = 'network error';
+                    statusEl.className = 'try-status err';
+                }).finally(function () {
+                    button.disabled = false;
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
     <?php
