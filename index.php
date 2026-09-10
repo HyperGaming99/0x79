@@ -512,6 +512,8 @@ header('Content-Type: text/html; charset=utf-8');
         .domain-trigger[aria-expanded="true"] { box-shadow:0 0 0 4px rgba(59,130,246,.12); }
         .domain-trigger-copy { display:flex; align-items:center; gap:10px; min-width:0; }
         .domain-mark { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; flex:none; border:1px solid var(--input-border); border-radius:8px; background:var(--card-bg); color:var(--accent); font:800 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace; }
+        .domain-mark:has(img), .domain-option-mark:has(img) { border-color:transparent; background:transparent; }
+        .domain-mark img, .domain-option-mark img { display:block; width:100%; height:100%; border-radius:inherit; object-fit:cover; }
         .domain-trigger-text { display:grid; gap:4px; min-width:0; text-align:left; }
         .domain-kicker { color:var(--muted); font-size:9px; font-weight:800; letter-spacing:.1em; line-height:1; text-transform:uppercase; }
         #domain-current { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -596,7 +598,14 @@ header('Content-Type: text/html; charset=utf-8');
                     <input type="hidden" name="domain" id="domain-value" value="<?= h($selected_domain) ?>">
                     <button type="button" class="domain-trigger" id="domain-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="<?= h($t['domain_label']) ?>">
                         <span class="domain-trigger-copy">
-                            <span class="domain-mark" aria-hidden="true">0x</span>
+                            <span class="domain-mark" aria-hidden="true"><?php
+                                $trigger_icon = $domain_icon_map[$selected_domain] ?? '';
+                                if ($trigger_icon !== '') {
+                                    echo '<img src="' . h($trigger_icon) . '" alt="">';
+                                } else {
+                                    echo h(str_starts_with($selected_domain, '0x') ? '0x' : strtoupper(substr($selected_domain, 0, 2)));
+                                }
+                            ?></span>
                             <span class="domain-trigger-text"><span class="domain-kicker"><?= h($t['domain_label']) ?></span><span id="domain-current"><?= h($selected_domain) ?></span></span>
                         </span>
                         <svg class="domain-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
@@ -604,7 +613,14 @@ header('Content-Type: text/html; charset=utf-8');
                     <div class="domain-menu" id="domain-menu" role="listbox" aria-label="<?= h($t['domain_label']) ?>" hidden>
                         <?php foreach ($available_domains as $d): ?>
                             <button type="button" class="domain-option" role="option" data-domain-value="<?= h($d) ?>" aria-selected="<?= $d === $selected_domain ? 'true' : 'false' ?>">
-                                <span class="domain-option-content"><span class="domain-option-mark" aria-hidden="true">0x</span><span><?= h($d) ?></span></span>
+                                <span class="domain-option-content"><span class="domain-option-mark" aria-hidden="true"><?php
+                                    $option_icon = $domain_icon_map[$d] ?? '';
+                                    if ($option_icon !== '') {
+                                        echo '<img src="' . h($option_icon) . '" alt="">';
+                                    } else {
+                                        echo h(str_starts_with($d, '0x') ? '0x' : strtoupper(substr($d, 0, 2)));
+                                    }
+                                ?></span><span><?= h($d) ?></span></span>
                                 <svg class="domain-option-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
                             </button>
                         <?php endforeach; ?>
@@ -714,6 +730,9 @@ header('Content-Type: text/html; charset=utf-8');
                     option.addEventListener('click', function () {
                         value.value = option.dataset.domainValue;
                         current.textContent = option.dataset.domainValue;
+                        var triggerMark = trigger.querySelector('.domain-mark');
+                        var optionMark = option.querySelector('.domain-option-mark');
+                        if (triggerMark && optionMark) triggerMark.innerHTML = optionMark.innerHTML;
                         menu.querySelectorAll('.domain-option').forEach(function (item) {
                             item.setAttribute('aria-selected', item === option ? 'true' : 'false');
                         });

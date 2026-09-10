@@ -136,6 +136,23 @@ $available_domains = [
     'fckdupfuture.com'
 ];
 
+// Optional per-domain icons for the domain picker. Local files only (no
+// external favicon services); domains without an existing file fall back
+// to a generated letter mark.
+$domain_icons = [
+    '0x79.one' => '/logomark_0x79.jpg',
+    'fftrclo.store' => '/assets/domains/fftrclo-store.svg',
+    'takeitdown.space' => '/assets/domains/takeitdown-space.svg',
+    'mydiscordiscool.store' => '/assets/domains/mydiscordiscool-store.svg',
+    'fckdupfuture.com' => '/assets/domains/fckdupfuture-com.svg',
+];
+
+$domain_icon_map = [];
+foreach ($available_domains as $domain) {
+    $icon = $domain_icons[$domain] ?? '';
+    $domain_icon_map[$domain] = ($icon !== '' && is_file(__DIR__ . $icon)) ? $icon : '';
+}
+
 if (!isset($T['en'])) {
     $T['en'] = [];
 }
